@@ -8,7 +8,7 @@
 			"y": -1180,
 			"width": 1000,
 			"height": 460,
-			"text": "#deck\n\ntheme: Atlas/Theme.css\naccent: #1D5A78\ntransition: slide\nheader position: top-centre\n\n### Atlas Presenter\n**Everything it does**, in one canvas · {section}"
+			"text": "#deck\n\ntheme: Atlas/Theme.css\naccent: #1D5A78\ntransition: slide\n# advance: 8s   <- uncomment for an unattended screen\nheader position: top-centre\n\n### Atlas Presenter\n**Everything it does**, in one canvas · {section}"
 		},
 		{
 			"id": "a1",
@@ -91,7 +91,7 @@
 		{
 			"id": "c3",
 			"type": "text",
-			"text": "## Or all at once\n\n<div class=\"atl-gallery\">\n  <img src=\"Atlas/Assets/site-1.svg\">\n  <img src=\"Atlas/Assets/site-2.svg\">\n  <img src=\"Atlas/Assets/site-3.svg\">\n  <img src=\"Atlas/Assets/site-4.svg\">\n</div>",
+			"text": "#skip-short\n\n## Or all at once\n\n<div class=\"atl-gallery\">\n  <img src=\"Atlas/Assets/site-1.svg\">\n  <img src=\"Atlas/Assets/site-2.svg\">\n  <img src=\"Atlas/Assets/site-3.svg\">\n  <img src=\"Atlas/Assets/site-4.svg\">\n</div>",
 			"x": 3040,
 			"y": 2360,
 			"width": 1280,
@@ -199,7 +199,7 @@
 		{
 			"id": "f2",
 			"type": "text",
-			"text": "## A card longer than the screen\n\nIt scrolls in place — one long thought stays one card instead of being\nchopped across five.\n### Part 1\n\nPressing `→` moves this card a screenful at a time and only leaves once it reaches the bottom. Coming back from the next card lands you at the bottom, where you left it.\n\n### Part 2\n\nPressing `→` moves this card a screenful at a time and only leaves once it reaches the bottom. Coming back from the next card lands you at the bottom, where you left it.\n\n### Part 3\n\nPressing `→` moves this card a screenful at a time and only leaves once it reaches the bottom. Coming back from the next card lands you at the bottom, where you left it.\n\n### Part 4\n\nPressing `→` moves this card a screenful at a time and only leaves once it reaches the bottom. Coming back from the next card lands you at the bottom, where you left it.\n\n### Part 5\n\nPressing `→` moves this card a screenful at a time and only leaves once it reaches the bottom. Coming back from the next card lands you at the bottom, where you left it.\n\n### Part 6\n\nPressing `→` moves this card a screenful at a time and only leaves once it reaches the bottom. Coming back from the next card lands you at the bottom, where you left it.\n\n### Part 7\n\nPressing `→` moves this card a screenful at a time and only leaves once it reaches the bottom. Coming back from the next card lands you at the bottom, where you left it.\n",
+			"text": "#skip-short\n\n## A card longer than the screen\n\nIt scrolls in place — one long thought stays one card instead of being\nchopped across five.\n### Part 1\n\nPressing `→` moves this card a screenful at a time and only leaves once it reaches the bottom. Coming back from the next card lands you at the bottom, where you left it.\n\n### Part 2\n\nPressing `→` moves this card a screenful at a time and only leaves once it reaches the bottom. Coming back from the next card lands you at the bottom, where you left it.\n\n### Part 3\n\nPressing `→` moves this card a screenful at a time and only leaves once it reaches the bottom. Coming back from the next card lands you at the bottom, where you left it.\n\n### Part 4\n\nPressing `→` moves this card a screenful at a time and only leaves once it reaches the bottom. Coming back from the next card lands you at the bottom, where you left it.\n\n### Part 5\n\nPressing `→` moves this card a screenful at a time and only leaves once it reaches the bottom. Coming back from the next card lands you at the bottom, where you left it.\n\n### Part 6\n\nPressing `→` moves this card a screenful at a time and only leaves once it reaches the bottom. Coming back from the next card lands you at the bottom, where you left it.\n\n### Part 7\n\nPressing `→` moves this card a screenful at a time and only leaves once it reaches the bottom. Coming back from the next card lands you at the bottom, where you left it.\n",
 			"x": 1520,
 			"y": 5900,
 			"width": 1280,
@@ -325,6 +325,26 @@
 			"y": 2360,
 			"width": 1280,
 			"height": 720
+		},
+		{
+			"id": "subdeck",
+			"type": "file",
+			"file": "Atlas/1 · Start here.canvas",
+			"x": 6080,
+			"y": 5900,
+			"width": 1280,
+			"height": 720,
+			"color": "6"
+		},
+		{
+			"id": "shortonly",
+			"type": "text",
+			"text": "#only-short\n\n## The five-minute version\n\nThis card appears **only** in the short talk, and the gallery and the long\nscrolling card are left out of it.\n\nRun **Present this canvas as…** and pick *short* to see the difference.",
+			"x": 6080,
+			"y": 6860,
+			"width": 1280,
+			"height": 720,
+			"color": "4"
 		}
 	],
 	"edges": [
