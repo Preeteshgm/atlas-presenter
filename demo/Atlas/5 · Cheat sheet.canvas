@@ -8,7 +8,7 @@
 			"y": -1300,
 			"width": 1000,
 			"height": 420,
-			"text": "#deck\n\ntheme: Atlas/Theme.css\naccent: #1D5A78\n\n### Atlas Presenter — cheat sheet\nEvery feature, with the syntax that makes it · {section}"
+			"text": "#deck\n\ntheme: Atlas/Themes/Paper.css\naccent: #1D5A78\n\n### Atlas Presenter — cheat sheet\nEvery feature, with the syntax that makes it · {section}"
 		},
 		{
 			"id": "s1",
@@ -33,7 +33,7 @@
 		{
 			"id": "s3",
 			"type": "text",
-			"text": "## The title block\n\nOne card, never presented, never on the map. Keys become header tokens and override the look for this canvas alone.\n\n```text\n#deck\n\ntheme: Atlas/Theme.css\nlogo: Assets/client.png\naccent: #1D5A78\nalign: centre\nfit: contain\ntransition: slide\nheader on: sections\n\n### The talk's title\n**Presenter** · {section} · {date}\n```",
+			"text": "## The title block\n\nOne card, never presented, never on the map. Keys become header tokens and override the look for this canvas alone.\n\n```text\n#deck\n\ntheme: Atlas/Themes/Paper.css\nlogo: Assets/client.png\naccent: #1D5A78\nalign: centre\nfit: contain\ntransition: slide\nheader on: sections\n\n### The talk's title\n**Presenter** · {section} · {date}\n```",
 			"color": "6",
 			"x": 3040,
 			"y": 0,

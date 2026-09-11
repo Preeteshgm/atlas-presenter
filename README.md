@@ -204,28 +204,80 @@ a stand. Any keypress stops it, because someone has arrived.
 
 ## Theming
 
-Point **Settings → Background → Theme stylesheet** at a `.css` file in your vault.
-It applies only while presenting — open the same card as a note and there is no
-styling anywhere in it.
+### The eight card roles
 
-Four layers, later winning: Obsidian's theme → the plugin's `styles.css` → your
-theme file → a `slide-html` card's own `<style>`. Your theme reaches inside HTML
-cards too.
+Every Atlas theme implements the same names, so a deck written against one theme
+works against all of them. Put a bare tag line at the top of a card — it never
+reaches the slide.
+
+| Tag | The card becomes |
+|---|---|
+| *(none)* | An ordinary card: heading and text |
+| `#title` | The opening card — large heading, a line beneath |
+| `#section` | A divider carrying only the section's name |
+| `#quote` | A pull quote |
+| `#stat` | One large number and a line about it |
+| `#dark` | The same card, inverted |
+| `#split` | Two columns |
+| `#full` | A picture with no margin |
+
+### Three themes, ready to use
+
+| | |
+|---|---|
+| **Paper** | Editorial light — warm paper, near-black ink, deep blue accent |
+| **Slate** | Dark room — for a projector with the lights down |
+| **Plain** | Follows your Obsidian theme; only the roles are imposed |
+
+**Settings → Background → Theme stylesheet**, or `theme: Atlas/Themes/Slate.css`
+on a canvas's `#deck` card to change one deck without touching settings.
+
+### Making your own
+
+Copy a theme and change the **token block at the top**. Everything below it is
+identical in all three, so a new theme is about twelve values:
 
 ```css
-.atl-overlay { --atl-accent: #1D5A78; --atl-inactive: 0.2; }
-.atl-node:not(.atl-node-group) { background: #E6E9E1; }  /* see below */
-.atl-node.is-active { }
-.atl-node.atl-tag-title .atl-body { }
-.atl-node[data-color="1"] { }        /* canvas colours 1–6 */
-.atl-group-label { }                  /* the section name on the map */
-.atl-body, .atl-hud, .atl-header { }
+.atl-overlay {
+  --paper: #F4F5F0;      /* card background */
+  --ink: #14232A;        /* text */
+  --ink-soft: #4E5F66;   /* secondary text */
+  --rule: #C6CDC6;       /* borders */
+  --accent: #1D5A78;     /* the current card on the map, highlights */
+  --radius: 14px;
+  --body-size: 19px;
+  --display-font: 'Archivo Narrow', sans-serif;
+  --body-font: 'IBM Plex Sans', sans-serif;
+  --mono-font: 'IBM Plex Mono', monospace;
+  --atl-inactive: 0.18;  /* how visible off-camera cards are */
+}
+```
+
+### What to use when
+
+| You want | Use |
+|---|---|
+| A different colour, backdrop or logo | **Settings** — no CSS |
+| Bigger text, rounder corners, a different accent | **Style Settings** plugin — sliders, live preview |
+| A card to look like a title, a quote, a statistic | **A tag line** in the card |
+| A whole deck to look different | **A theme file**, per canvas via `theme:` |
+| One card to look like nothing else | A **`slide-html`** card with its own `<style>` |
+
+Reach for the row you need and stop there. Most decks never get past the third.
+
+### Other hooks
+
+```css
+.atl-node[data-color="1"]              /* canvas colours 1–6 */
+.atl-node[data-group="the-evidence"]   /* a whole section at once */
+.atl-node.is-active                    /* the card on camera */
+.atl-group-label                       /* section names on the map */
 ```
 
 > **A group is also a `.atl-node`.** Styling `.atl-node` with a background paints
 > a panel over the cards inside every group. Use `:not(.atl-node-group)`.
 
-`demo/Atlas/Theme.css` is a commented, working example.
+With a deck open, `Ctrl+Shift+I` shows you the exact classes on anything.
 
 ---
 
@@ -257,7 +309,7 @@ Atlas/
   3 · A real deck.canvas    a full plan: HTML slides and an animated card
   4 · Everything.canvas     a talk that happens to use every feature
   5 · Cheat sheet.canvas    every feature *with the syntax that produces it*
-  Theme.css                 a commented example theme
+  Themes/                   Paper, Slate and Plain
   Assets/                   the slides, pictures and audio the decks point at
 ```
 

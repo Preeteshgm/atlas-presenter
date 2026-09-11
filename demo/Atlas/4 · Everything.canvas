@@ -8,7 +8,7 @@
 			"y": -1180,
 			"width": 1000,
 			"height": 460,
-			"text": "#deck\n\ntheme: Atlas/Theme.css\naccent: #1D5A78\ntransition: slide\n%% advance: 8s  — uncomment this line for an unattended screen %%\nheader position: top-centre\n\n### Atlas Presenter\n**Everything it does**, in one canvas · {section}"
+			"text": "#deck\n\ntheme: Atlas/Themes/Paper.css\naccent: #1D5A78\ntransition: slide\n%% advance: 8s  — uncomment this line for an unattended screen %%\nheader position: top-centre\n\n### Atlas Presenter\n**Everything it does**, in one canvas · {section}"
 		},
 		{
 			"id": "a1",

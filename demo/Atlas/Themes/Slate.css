@@ -1,0 +1,227 @@
+/* Slate — an Atlas Presenter theme.
+
+   Dark room: deep slate cards, pale text, a cool blue accent. For a projector in a dim room.
+
+   Point Settings → Background → Theme stylesheet at this file, or put
+   `theme: Atlas/Themes/Slate.css` on a canvas's #deck card to use it for that
+   deck alone.
+
+   To make your own: copy this file and change the tokens below. Everything
+   under them is the same in every Atlas theme. */
+
+.atl-overlay {
+	--paper: #161C26;
+	--wash: rgb(255 255 255 / 0.07);
+	--ink: #E7ECF4;
+	--ink-soft: #A3AFC0;
+	--ink-faint: rgb(231 236 244 / 0.32);
+	--rule: #2B3442;
+	--accent: #7CC6FF;
+	--accent-soft: #A9DCFF;
+	--radius: 14px;
+	--body-size: 19px;
+	--display-font: 'Archivo Narrow', 'Arial Narrow', var(--font-interface), sans-serif;
+	--body-font: 'IBM Plex Sans', var(--font-interface), sans-serif;
+	--mono-font: 'IBM Plex Mono', var(--font-monospace), monospace;
+
+	--atl-accent: var(--accent);
+	--atl-inactive: 0.22;
+	--atl-card-radius: var(--radius);
+}
+
+/* ---------------------------------------------------------------------------
+   The eight card roles. Every Atlas theme implements these same names, so a
+   deck written against one theme works against any of them.
+
+     (no tag)   an ordinary card: heading and text
+     #title     the opening card
+     #section   a divider carrying only the section's name
+     #quote     a pull quote
+     #stat      one large number and a line about it
+     #dark      the same card, inverted
+     #split     two columns
+     #full      a picture with no margin
+
+   Put a bare tag line at the top of a card. It never reaches the slide.
+   --------------------------------------------------------------------------- */
+
+/* ---- every card -------------------------------------------------------- */
+
+/* :not(.atl-node-group) matters: a group is a .atl-node too, and giving it a
+   background paints a panel over the cards it contains. */
+.atl-node:not(.atl-node-group) {
+	background: var(--paper);
+	border: 1px solid var(--rule);
+	border-radius: var(--radius);
+}
+
+.atl-node.is-active {
+	box-shadow: 0 10px 44px rgb(0 0 0 / 0.22);
+}
+
+.atl-body {
+	color: var(--ink);
+	font-family: var(--body-font);
+	font-size: var(--body-size);
+	line-height: 1.55;
+}
+
+.atl-body h1,
+.atl-body h2,
+.atl-body h3 {
+	font-family: var(--display-font);
+	font-weight: 700;
+	letter-spacing: -0.012em;
+	line-height: 1.06;
+	color: var(--ink);
+}
+
+.atl-body h1 { font-size: 2.9em; margin: 0 0 0.3em; }
+.atl-body h2 { font-size: 2.05em; margin: 0 0 0.35em; }
+.atl-body h3 { font-size: 1.35em; margin: 0 0 0.4em; }
+.atl-body p { max-width: 62ch; }
+.atl-body strong { color: var(--ink); font-weight: 600; }
+.atl-body a { color: var(--accent); }
+
+.atl-body code {
+	font-family: var(--mono-font);
+	font-size: 0.9em;
+	padding: 1px 5px;
+	border-radius: 4px;
+	background: var(--wash);
+}
+
+.atl-body blockquote {
+	margin: 0;
+	padding-left: 1em;
+	border-left: 3px solid var(--accent);
+	color: var(--ink-soft);
+}
+
+/* ---- #title ------------------------------------------------------------ */
+
+.atl-node.atl-tag-title .atl-body {
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
+	padding: 8% 9%;
+}
+
+.atl-node.atl-tag-title h1 { font-size: 4.1em; max-width: 18ch; }
+.atl-node.atl-tag-title p { font-size: 1.15em; color: var(--ink-soft); max-width: 46ch; }
+
+/* ---- #section ---------------------------------------------------------- */
+
+.atl-node.atl-tag-section:not(.atl-node-group) {
+	background: var(--ink);
+	border-color: var(--ink);
+}
+
+.atl-node.atl-tag-section .atl-body {
+	display: flex;
+	flex-direction: column;
+	justify-content: flex-end;
+	padding: 8%;
+	color: var(--paper);
+}
+
+.atl-node.atl-tag-section h2 { color: var(--paper); font-size: 3.2em; margin: 0; }
+
+.atl-node.atl-tag-section h2::after {
+	content: "";
+	display: block;
+	width: 92px;
+	height: 5px;
+	margin-top: 0.38em;
+	background: var(--accent);
+}
+
+/* ---- #quote ------------------------------------------------------------ */
+
+.atl-node.atl-tag-quote .atl-body {
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
+	padding: 9% 11%;
+}
+
+.atl-node.atl-tag-quote blockquote {
+	margin: 0;
+	border: 0;
+	padding: 0;
+	font-family: var(--display-font);
+	font-size: 2.05em;
+	line-height: 1.3;
+	color: var(--ink);
+}
+
+.atl-node.atl-tag-quote blockquote::before {
+	content: "\201C";
+	display: block;
+	font-size: 2.4em;
+	line-height: 0.58;
+	color: var(--accent);
+}
+
+/* ---- #stat ------------------------------------------------------------- */
+
+.atl-node.atl-tag-stat .atl-body {
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
+	align-items: center;
+	text-align: center;
+}
+
+.atl-node.atl-tag-stat h1 {
+	font-size: 6.6em;
+	margin: 0;
+	color: var(--accent);
+	font-variant-numeric: tabular-nums lining-nums;
+}
+
+.atl-node.atl-tag-stat p { font-size: 1.1em; color: var(--ink-soft); max-width: 30ch; }
+
+/* ---- #dark ------------------------------------------------------------- */
+
+.atl-node.atl-tag-dark:not(.atl-node-group) {
+	background: var(--ink);
+	border-color: var(--ink);
+}
+
+.atl-node.atl-tag-dark .atl-body { color: var(--paper); }
+.atl-node.atl-tag-dark h1,
+.atl-node.atl-tag-dark h2,
+.atl-node.atl-tag-dark h3 { color: var(--paper); }
+.atl-node.atl-tag-dark strong { color: var(--accent-soft); }
+.atl-node.atl-tag-dark code { background: rgb(255 255 255 / 0.12); color: var(--accent-soft); }
+
+/* ---- #split ------------------------------------------------------------ */
+
+.atl-node.atl-tag-split .atl-body {
+	column-count: 2;
+	column-gap: 3em;
+	column-rule: 1px solid var(--rule);
+}
+
+.atl-node.atl-tag-split h1,
+.atl-node.atl-tag-split h2 { column-span: all; }
+
+/* ---- #full ------------------------------------------------------------- */
+
+.atl-node.atl-tag-full .atl-body { padding: 0; }
+
+.atl-node.atl-tag-full img {
+	width: 100%;
+	height: 100%;
+	object-fit: cover;
+	border-radius: var(--radius);
+}
+
+/* ---- the map and the chrome -------------------------------------------- */
+
+.atl-group-label { color: var(--ink-faint); font-family: var(--display-font); }
+.atl-node-group.is-current-section .atl-group-label { color: var(--ink); }
+.atl-hud { color: var(--ink-soft); }
+.atl-header { color: var(--ink-soft); font-family: var(--display-font); }
+.atl-mm-node.is-current { fill: var(--accent); stroke: var(--accent); }
