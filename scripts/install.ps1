@@ -107,8 +107,12 @@ if ($WithDemo) {
 	# assets by path, so the whole tree has to move together.
 	$pack = Join-Path $root "demo\Atlas"
 	if (Test-Path $pack) {
+		# Replace rather than merge: copying over the top leaves assets that the
+		# demo no longer ships, and a canvas can end up pointing at a stale file.
+		$dest = Join-Path $Vault "Atlas"
+		if (Test-Path $dest) { Remove-Item $dest -Recurse -Force }
 		Copy-Item $pack -Destination $Vault -Recurse -Force
-		Write-Host "  -> Atlas\ (three decks, a theme and their assets)"
+		Write-Host "  -> Atlas\ (five decks, a theme and their assets)"
 	}
 	else {
 		Write-Host "  !  demo\Atlas not found; skipping the demo." -ForegroundColor Yellow

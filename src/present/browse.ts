@@ -532,11 +532,15 @@ export class Browser {
 		this.root.addClass("is-open");
 		this.filter();
 		window.setTimeout(() => {
+			if (!this.open) return;
 			this.input.focus();
 			this.fit();
 		}, 30);
 		// A short settle before the first look, so it does not open as a knot.
-		window.setTimeout(() => this.fit(), 900);
+		// Guarded: the graph may have been closed again in the meantime.
+		window.setTimeout(() => {
+			if (this.open) this.fit();
+		}, 900);
 	}
 
 	hide(): void {
