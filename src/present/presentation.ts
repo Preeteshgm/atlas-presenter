@@ -840,21 +840,26 @@ ${this.themeCss}`,
 	private captureNote(): void {
 		const stop = this.stopAt(this.index);
 		this.capturing = true;
-		new CaptureModal(this.app, titleOf(stop.node), (text) => {
+		new CaptureModal(
+			this.app,
+			titleOf(stop.node),
+			(text) => {
 			this.captures.push({
 				nodeId: stop.node.id,
 				title: titleOf(stop.node),
 				text,
 				at: Date.now(),
 			});
-			new Notice(`Atlas: noted against “${titleOf(stop.node)}”`);
-			for (const listener of this.listeners) listener();
-		}).open();
-		// The modal closes on Escape as well as on save, so release the keyboard
-		// a beat later either way.
-		window.setTimeout(() => {
-			this.capturing = false;
-		}, 250);
+				new Notice(`Atlas: noted against “${titleOf(stop.node)}”`);
+				this.updateHud(this.stopAt(this.index), 0);
+				for (const listener of this.listeners) listener();
+			},
+			// However it closes — saved or dismissed — the deck takes the
+			// keyboard back only then. A timer here would hand it back mid-word.
+			() => {
+				this.capturing = false;
+			}
+		).open();
 	}
 
 	private session(): Session {
@@ -1082,9 +1087,12 @@ ${this.themeCss}`,
 			void writeMinutes(this.app, this.session(), this.settings.minutesFolder);
 			this.written = true;
 		}
+		// Returning to a parent hands the deck back; nulling it here would blank
+		// the presenter window the instant you came up a level.
+		const returned = !!this.onReturn;
 		this.onReturn?.();
 		this.onReturn = null;
-		if (!this.child) setDeck(null);
+		if (!returned) setDeck(null);
 		this.listeners.clear();
 		// Obsidian restores its own windows, so leave the leaf alone on unload.
 		if (!unloading) {

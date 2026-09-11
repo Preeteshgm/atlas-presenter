@@ -40,7 +40,9 @@ export class CaptureModal extends Modal {
 	constructor(
 		app: App,
 		private cardTitle: string,
-		private onSave: (text: string) => void
+		private onSave: (text: string) => void,
+		/** Called however the box closes — saved, or dismissed. */
+		private onDismiss: () => void
 	) {
 		super(app);
 	}
@@ -84,6 +86,7 @@ export class CaptureModal extends Modal {
 
 	onClose(): void {
 		this.contentEl.empty();
+		this.onDismiss();
 	}
 }
 
