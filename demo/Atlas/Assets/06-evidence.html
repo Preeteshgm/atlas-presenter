@@ -1,0 +1,51 @@
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo+Narrow:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+:host{
+  --film:#E6E9E1; --panel:#F1F3EC; --ink:#14232A; --ink-2:#46565C; --rule:#B3BCB4;
+  --blue:#1D5A78; --olive:#4E7A26; --rust:#A93B22; --marker:#EFC318;
+  --display:'Archivo Narrow','Arial Narrow',system-ui,sans-serif;
+  --body:'IBM Plex Sans',system-ui,'Segoe UI',sans-serif;
+  --mono:'IBM Plex Mono',ui-monospace,Consolas,monospace;
+}
+*{box-sizing:border-box}
+.slide{width:100%;min-height:100%;background:var(--film);color:var(--ink);
+  font-family:var(--body);font-size:19px;line-height:1.5;padding:50px 58px;
+  display:flex;flex-direction:column;position:relative}
+.slide::before{content:"";position:absolute;inset:0;pointer-events:none;
+  background-image:linear-gradient(to right,rgba(20,35,42,.05) 1px,transparent 1px),
+    linear-gradient(to bottom,rgba(20,35,42,.05) 1px,transparent 1px);
+  background-size:28px 28px}
+.slide>*{position:relative}
+h1,h2{font-family:var(--display);font-weight:600;margin:0;letter-spacing:.005em}
+h1{font-size:64px;line-height:1;font-weight:700;max-width:19ch}
+h2{font-size:42px;line-height:1.04;max-width:22ch}
+p{margin:0 0 .7em;max-width:62ch}
+.sec-n{font-family:var(--mono);font-size:16px;color:var(--blue);margin-bottom:8px}
+.quiet{color:var(--ink-2)}
+.num{font-variant-numeric:tabular-nums lining-nums}
+code{font-family:var(--mono);font-size:.9em}
+.foot{font-family:var(--mono);font-size:13px;color:var(--ink-2);
+  border-top:1px solid var(--rule);padding-top:12px;margin-top:auto}
+
+.ev{display:grid;grid-template-columns:1fr 1fr;gap:40px;margin-top:26px}
+.ev .sub{font-size:15px;color:var(--ink-2);margin:3px 0 16px}
+.meter{height:52px;border:1px solid var(--ink);position:relative;background:var(--panel)}
+.fill{position:absolute;inset:0 auto 0 0;background:var(--olive)}
+.fill.zero{background:var(--rust);width:3px}
+.read{display:flex;justify-content:space-between;align-items:baseline;margin-top:10px;
+  font-size:15px;color:var(--ink-2)}
+.big{font-family:var(--display);font-size:38px;font-weight:700;color:var(--ink);line-height:1}</style>
+<div class="slide">
+  <div class="sec-n">the evidence</div>
+  <h2>Why the code, and not the task id</h2>
+  <p class="quiet">The tool re-issues task ids on every export. Between two
+  versions of the same programme:</p>
+  <div class="ev">
+    <div><h3>Task ids that survived</h3><p class="sub">internal identifiers</p>
+      <div class="meter"><div class="fill zero"></div></div>
+      <div class="read"><span class="big num">0</span><span class="num">of 24,180</span></div></div>
+    <div><h3>Activity codes that matched</h3><p class="sub">the same export, keyed on the code</p>
+      <div class="meter"><div class="fill" style="width:99.97%"></div></div>
+      <div class="read"><span class="big num">24,173</span><span class="num">of 24,180</span></div></div>
+  </div>
+</div>

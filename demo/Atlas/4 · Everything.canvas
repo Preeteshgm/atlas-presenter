@@ -1,0 +1,470 @@
+{
+	"nodes": [
+		{
+			"id": "deck",
+			"type": "text",
+			"color": "3",
+			"x": 0,
+			"y": -1180,
+			"width": 1000,
+			"height": 460,
+			"text": "#deck\n\ntheme: Atlas/Theme.css\naccent: #1D5A78\ntransition: slide\nheader position: top-centre\n\n### Atlas Presenter\n**Everything it does**, in one canvas · {section}"
+		},
+		{
+			"id": "a1",
+			"type": "text",
+			"text": "#title\n\n# A deck is a queue. Your thinking is a graph.\n\nOne of those two is lying to the room.\n\n%%Open on the question, not the agenda. Roughly forty seconds here.%%",
+			"x": 0,
+			"y": 0,
+			"width": 1280,
+			"height": 720,
+			"color": "6"
+		},
+		{
+			"id": "a2",
+			"type": "file",
+			"file": "Atlas/Assets/00-motion.html",
+			"x": 1520,
+			"y": 0,
+			"width": 1280,
+			"height": 720,
+			"color": "5"
+		},
+		{
+			"id": "a3",
+			"type": "text",
+			"text": "#section\n\n## How the map works",
+			"x": 3040,
+			"y": 0,
+			"width": 1280,
+			"height": 720
+		},
+		{
+			"id": "b1",
+			"type": "text",
+			"text": "## Arrows are the running order\n\nDepth first — a branch is told to its end before the next one starts.\n\n+++\n\nLabel an arrow `1.` `2.` to force it.\n\n+++\n\nA canvas with no arrows still presents, in reading order.\n\n%%Three reveals here. Pause after each one.%%",
+			"x": 0,
+			"y": 1180,
+			"width": 1280,
+			"height": 720,
+			"color": "4"
+		},
+		{
+			"id": "b2",
+			"type": "text",
+			"text": "## Groups are sections\n\nThe camera frames the whole group before diving in, and the section name\nsits above it on the map — so it can be read *before* you enter it.\n\nPress `O` at any point to pull back to the whole map.",
+			"x": 1520,
+			"y": 1180,
+			"width": 1280,
+			"height": 720,
+			"color": "4"
+		},
+		{
+			"id": "b3",
+			"type": "text",
+			"text": "## Press `M`\n\nEvery card, drawn to scale, with its title and its number.\nClick one to fly there. `Backspace` lands you back exactly where you were.\n\n%%This is the feature nothing else has. Demonstrate it — jump to the last\ncard and come back.%%",
+			"x": 3040,
+			"y": 1180,
+			"width": 1280,
+			"height": 720,
+			"color": "4"
+		},
+		{
+			"id": "c1",
+			"type": "text",
+			"text": "#section\n\n## Pictures",
+			"x": 0,
+			"y": 2360,
+			"width": 1280,
+			"height": 720
+		},
+		{
+			"id": "c2",
+			"type": "text",
+			"text": "## Four images, one card\n\n<div class=\"atl-slideshow\">\n  <img src=\"Atlas/Assets/site-1.svg\">\n  <img src=\"Atlas/Assets/site-2.svg\">\n  <img src=\"Atlas/Assets/site-3.svg\">\n  <img src=\"Atlas/Assets/site-4.svg\">\n</div>\n\n%%Arrows, dots and swipe all work. Five transitions in settings.%%",
+			"x": 1520,
+			"y": 2360,
+			"width": 1280,
+			"height": 720,
+			"color": "5"
+		},
+		{
+			"id": "c3",
+			"type": "text",
+			"text": "## Or all at once\n\n<div class=\"atl-gallery\">\n  <img src=\"Atlas/Assets/site-1.svg\">\n  <img src=\"Atlas/Assets/site-2.svg\">\n  <img src=\"Atlas/Assets/site-3.svg\">\n  <img src=\"Atlas/Assets/site-4.svg\">\n</div>",
+			"x": 3040,
+			"y": 2360,
+			"width": 1280,
+			"height": 720,
+			"color": "5"
+		},
+		{
+			"id": "c4",
+			"type": "text",
+			"text": "#full\n\n![[surfaces.svg]]",
+			"x": 4560,
+			"y": 2360,
+			"width": 1280,
+			"height": 720,
+			"color": "5"
+		},
+		{
+			"id": "d1",
+			"type": "text",
+			"text": "#section\n\n## Media",
+			"x": 0,
+			"y": 3540,
+			"width": 1280,
+			"height": 720
+		},
+		{
+			"id": "d2",
+			"type": "file",
+			"file": "Atlas/Assets/tone.wav",
+			"x": 1520,
+			"y": 3540,
+			"width": 1280,
+			"height": 720,
+			"color": "2"
+		},
+		{
+			"id": "d3",
+			"type": "text",
+			"text": "## Media plays itself\n\nAudio and video start when the camera arrives and pause when it leaves,\nso nothing runs off-screen. Clicking the controls does **not** advance\nthe slide.\n\nThe card to the left is a generated tone — audio with no picture, shown\nas a slim bar rather than a black rectangle.\n\n*No video ships with the demo. Drop any `.mp4` on the canvas and it\nbehaves the same way.*",
+			"x": 3040,
+			"y": 3540,
+			"width": 1280,
+			"height": 720,
+			"color": "2"
+		},
+		{
+			"id": "d4",
+			"type": "file",
+			"file": "Atlas/Assets/surfaces.svg",
+			"x": 4560,
+			"y": 3540,
+			"width": 1280,
+			"height": 720,
+			"color": "2"
+		},
+		{
+			"id": "e1",
+			"type": "text",
+			"text": "#section\n\n## The vault is still there",
+			"x": 0,
+			"y": 4720,
+			"width": 1280,
+			"height": 720
+		},
+		{
+			"id": "e2",
+			"type": "text",
+			"text": "## Read a note without leaving\n\nClick **[[Northwind Depot Plan]]** — the whole note opens over the\nslide. Wheel or `↓` to scroll, `Esc` to land back on this card.\n\n%%Someone always asks for the detail. This is the answer.%%",
+			"x": 1520,
+			"y": 4720,
+			"width": 1280,
+			"height": 720,
+			"color": "1"
+		},
+		{
+			"id": "e3",
+			"type": "text",
+			"text": "## Press `G` for the whole vault\n\nObsidian's own graph view, with a way back. Any note, not just the ones\non this canvas.",
+			"x": 3040,
+			"y": 4720,
+			"width": 1280,
+			"height": 720,
+			"color": "1"
+		},
+		{
+			"id": "e4",
+			"type": "file",
+			"file": "Atlas/Northwind Depot Plan.md",
+			"x": 4560,
+			"y": 4720,
+			"width": 1280,
+			"height": 720,
+			"subpath": "#Why the activity code",
+			"color": "1"
+		},
+		{
+			"id": "f1",
+			"type": "text",
+			"text": "#section\n\n## Cards can be more",
+			"x": 0,
+			"y": 5900,
+			"width": 1280,
+			"height": 720
+		},
+		{
+			"id": "f2",
+			"type": "text",
+			"text": "## A card longer than the screen\n\nIt scrolls in place — one long thought stays one card instead of being\nchopped across five.\n### Part 1\n\nPressing `→` moves this card a screenful at a time and only leaves once it reaches the bottom. Coming back from the next card lands you at the bottom, where you left it.\n\n### Part 2\n\nPressing `→` moves this card a screenful at a time and only leaves once it reaches the bottom. Coming back from the next card lands you at the bottom, where you left it.\n\n### Part 3\n\nPressing `→` moves this card a screenful at a time and only leaves once it reaches the bottom. Coming back from the next card lands you at the bottom, where you left it.\n\n### Part 4\n\nPressing `→` moves this card a screenful at a time and only leaves once it reaches the bottom. Coming back from the next card lands you at the bottom, where you left it.\n\n### Part 5\n\nPressing `→` moves this card a screenful at a time and only leaves once it reaches the bottom. Coming back from the next card lands you at the bottom, where you left it.\n\n### Part 6\n\nPressing `→` moves this card a screenful at a time and only leaves once it reaches the bottom. Coming back from the next card lands you at the bottom, where you left it.\n\n### Part 7\n\nPressing `→` moves this card a screenful at a time and only leaves once it reaches the bottom. Coming back from the next card lands you at the bottom, where you left it.\n",
+			"x": 1520,
+			"y": 5900,
+			"width": 1280,
+			"height": 720,
+			"color": "2"
+		},
+		{
+			"id": "f3",
+			"type": "file",
+			"file": "Atlas/Assets/04-fork.html",
+			"x": 3040,
+			"y": 5900,
+			"width": 1280,
+			"height": 720
+		},
+		{
+			"id": "f4",
+			"type": "text",
+			"text": "#dark\n\n## No CSS in any card\n\nEvery card here is plain markdown. A bare tag line — `#title`, `#section`,\n`#dark` — picks the treatment, and **never reaches the slide**.\n\nThe stylesheet is one file in the vault. Re-skin the whole deck without\ntouching a single note.",
+			"x": 4560,
+			"y": 5900,
+			"width": 1280,
+			"height": 720
+		},
+		{
+			"id": "g1",
+			"type": "text",
+			"text": "#stat\n\n# 24,173\n\nof 24,180 activity codes survived the re-import. Task ids that survived: none.",
+			"x": 0,
+			"y": 7080,
+			"width": 1280,
+			"height": 720,
+			"color": "4"
+		},
+		{
+			"id": "g2",
+			"type": "text",
+			"text": "#quote\n\n> The map you authored is the map you navigate.",
+			"x": 1520,
+			"y": 7080,
+			"width": 1280,
+			"height": 720
+		},
+		{
+			"id": "g3",
+			"type": "text",
+			"text": "## Nothing points here\n\nNo arrow reaches this card. It is still on the map.\n\nPress `M`, click it, answer the question, `Backspace` home.\n\n%%Keep the awkward question on a card nobody walks past by accident.%%",
+			"x": 4560,
+			"y": 7080,
+			"width": 1280,
+			"height": 720,
+			"color": "1"
+		},
+		{
+			"id": "g-open",
+			"type": "group",
+			"label": "Opening",
+			"x": -130,
+			"y": -130,
+			"width": 4580,
+			"height": 980
+		},
+		{
+			"id": "g-map",
+			"type": "group",
+			"label": "The map",
+			"x": -130,
+			"y": 1050,
+			"width": 4580,
+			"height": 980
+		},
+		{
+			"id": "g-pics",
+			"type": "group",
+			"label": "Pictures",
+			"x": -130,
+			"y": 2230,
+			"width": 6100,
+			"height": 980
+		},
+		{
+			"id": "g-media",
+			"type": "group",
+			"label": "Media",
+			"x": -130,
+			"y": 3410,
+			"width": 6100,
+			"height": 980
+		},
+		{
+			"id": "g-vault",
+			"type": "group",
+			"label": "The vault",
+			"x": -130,
+			"y": 4590,
+			"width": 6100,
+			"height": 980
+		},
+		{
+			"id": "g-depth",
+			"type": "group",
+			"label": "Depth",
+			"x": -130,
+			"y": 5770,
+			"width": 6100,
+			"height": 980
+		},
+		{
+			"id": "g-close",
+			"type": "group",
+			"label": "Close",
+			"x": -130,
+			"y": 6950,
+			"width": 6100,
+			"height": 980
+		},
+		{
+			"id": "scrollcard",
+			"type": "text",
+			"text": "## A column you scroll\n\nStacked full width, one under the next. The card scrolls through them.\n\n<div class=\"atl-scroll\">\n  <img src=\"Atlas/Assets/site-1.svg\">\n  <img src=\"Atlas/Assets/site-2.svg\">\n  <img src=\"Atlas/Assets/site-3.svg\">\n</div>",
+			"color": "5",
+			"x": 4560,
+			"y": 2360,
+			"width": 1280,
+			"height": 720
+		}
+	],
+	"edges": [
+		{
+			"id": "e1",
+			"fromNode": "a1",
+			"toNode": "a2",
+			"label": "1."
+		},
+		{
+			"id": "e2",
+			"fromNode": "a2",
+			"toNode": "a3",
+			"label": "2."
+		},
+		{
+			"id": "e3",
+			"fromNode": "a3",
+			"toNode": "b1",
+			"label": "3."
+		},
+		{
+			"id": "e4",
+			"fromNode": "b1",
+			"toNode": "b2",
+			"label": "4."
+		},
+		{
+			"id": "e5",
+			"fromNode": "b2",
+			"toNode": "b3",
+			"label": "5."
+		},
+		{
+			"id": "e6",
+			"fromNode": "b3",
+			"toNode": "c1",
+			"label": "6."
+		},
+		{
+			"id": "e7",
+			"fromNode": "c1",
+			"toNode": "c2",
+			"label": "7."
+		},
+		{
+			"id": "e8",
+			"fromNode": "c2",
+			"toNode": "c3",
+			"label": "8."
+		},
+		{
+			"id": "e9",
+			"fromNode": "c3",
+			"toNode": "c4",
+			"label": "9."
+		},
+		{
+			"id": "e10",
+			"fromNode": "c4",
+			"toNode": "d1",
+			"label": "10."
+		},
+		{
+			"id": "e11",
+			"fromNode": "d1",
+			"toNode": "d2",
+			"label": "11."
+		},
+		{
+			"id": "e12",
+			"fromNode": "d2",
+			"toNode": "d3",
+			"label": "12."
+		},
+		{
+			"id": "e13",
+			"fromNode": "d3",
+			"toNode": "d4",
+			"label": "13."
+		},
+		{
+			"id": "e14",
+			"fromNode": "d4",
+			"toNode": "e1",
+			"label": "14."
+		},
+		{
+			"id": "e15",
+			"fromNode": "e1",
+			"toNode": "e2",
+			"label": "15."
+		},
+		{
+			"id": "e16",
+			"fromNode": "e2",
+			"toNode": "e3",
+			"label": "16."
+		},
+		{
+			"id": "e17",
+			"fromNode": "e3",
+			"toNode": "e4",
+			"label": "17."
+		},
+		{
+			"id": "e18",
+			"fromNode": "e4",
+			"toNode": "f1",
+			"label": "18."
+		},
+		{
+			"id": "e19",
+			"fromNode": "f1",
+			"toNode": "f2",
+			"label": "19."
+		},
+		{
+			"id": "e20",
+			"fromNode": "f2",
+			"toNode": "f3",
+			"label": "20."
+		},
+		{
+			"id": "e21",
+			"fromNode": "f3",
+			"toNode": "f4",
+			"label": "21."
+		},
+		{
+			"id": "e22",
+			"fromNode": "f4",
+			"toNode": "g1",
+			"label": "22."
+		},
+		{
+			"id": "e23",
+			"fromNode": "g1",
+			"toNode": "g2",
+			"label": "23."
+		}
+	]
+}

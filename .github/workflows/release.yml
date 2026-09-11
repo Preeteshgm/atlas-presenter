@@ -1,0 +1,48 @@
+name: Release
+
+# Obsidian and BRAT both look for a release whose tag is the bare version
+# number ("0.1.0", not "v0.1.0") with main.js, manifest.json and styles.css
+# attached as loose assets. Anything else and installs silently fail.
+on:
+  push:
+    tags:
+      - "[0-9]+.[0-9]+.[0-9]+"
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+
+      - run: npm ci
+      - run: npm run lint
+      - run: npm run build
+
+      - name: Check the tag matches manifest.json
+        run: |
+          TAG="${GITHUB_REF_NAME}"
+          MANIFEST=$(node -p "require('./manifest.json').version")
+          if [ "$TAG" != "$MANIFEST" ]; then
+            echo "Tag $TAG does not match manifest version $MANIFEST." >&2
+            exit 1
+          fi
+
+      - run: npm run package
+
+      - name: Publish release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release create "${GITHUB_REF_NAME}" \
+            --title "${GITHUB_REF_NAME}" \
+            --generate-notes \
+            main.js manifest.json styles.css \
+            "dist/atlas-presenter-${GITHUB_REF_NAME}.zip"

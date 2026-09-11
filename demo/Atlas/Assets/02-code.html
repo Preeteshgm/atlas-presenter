@@ -1,0 +1,60 @@
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo+Narrow:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+:host{
+  --film:#E6E9E1; --panel:#F1F3EC; --ink:#14232A; --ink-2:#46565C; --rule:#B3BCB4;
+  --blue:#1D5A78; --olive:#4E7A26; --rust:#A93B22; --marker:#EFC318;
+  --display:'Archivo Narrow','Arial Narrow',system-ui,sans-serif;
+  --body:'IBM Plex Sans',system-ui,'Segoe UI',sans-serif;
+  --mono:'IBM Plex Mono',ui-monospace,Consolas,monospace;
+}
+*{box-sizing:border-box}
+.slide{width:100%;min-height:100%;background:var(--film);color:var(--ink);
+  font-family:var(--body);font-size:19px;line-height:1.5;padding:50px 58px;
+  display:flex;flex-direction:column;position:relative}
+.slide::before{content:"";position:absolute;inset:0;pointer-events:none;
+  background-image:linear-gradient(to right,rgba(20,35,42,.05) 1px,transparent 1px),
+    linear-gradient(to bottom,rgba(20,35,42,.05) 1px,transparent 1px);
+  background-size:28px 28px}
+.slide>*{position:relative}
+h1,h2{font-family:var(--display);font-weight:600;margin:0;letter-spacing:.005em}
+h1{font-size:64px;line-height:1;font-weight:700;max-width:19ch}
+h2{font-size:42px;line-height:1.04;max-width:22ch}
+p{margin:0 0 .7em;max-width:62ch}
+.sec-n{font-family:var(--mono);font-size:16px;color:var(--blue);margin-bottom:8px}
+.quiet{color:var(--ink-2)}
+.num{font-variant-numeric:tabular-nums lining-nums}
+code{font-family:var(--mono);font-size:.9em}
+.foot{font-family:var(--mono);font-size:13px;color:var(--ink-2);
+  border-top:1px solid var(--rule);padding-top:12px;margin-top:auto}
+
+.strip{display:flex;align-items:flex-start;gap:0 3px;margin:30px 0 26px}
+.seg{display:flex;flex-direction:column}
+.glyph{font-family:var(--mono);font-weight:500;font-size:54px;line-height:1.1;
+  padding:4px 7px;position:relative;z-index:0;isolation:isolate;white-space:nowrap}
+.glyph::after{content:"";position:absolute;left:2px;right:2px;bottom:2px;
+  height:.34em;background:var(--marker);z-index:-1}
+.dash{font-family:var(--mono);font-size:54px;line-height:1.1;padding:4px 0;color:var(--rule)}
+.lead{padding:8px 0 0 9px;border-top:1px solid var(--rule);margin-left:9px;
+  font-size:15px;color:var(--ink-2);min-width:86px}
+.lead b{display:block;color:var(--ink);font-weight:600;font-size:16px}
+.lead.empty{visibility:hidden}</style>
+<div class="slide">
+  <div class="sec-n">the join key</div>
+  <h2>What makes three surfaces possible is one field.</h2>
+  <div class="strip">
+    <div class="seg"><div class="glyph">ND</div><div class="lead empty"></div></div>
+    <div class="dash">-</div>
+    <div class="seg"><div class="glyph">B2</div><div class="lead step"><b>Building 2</b></div></div>
+    <div class="dash">-</div>
+    <div class="seg"><div class="glyph">L01</div><div class="lead step"><b>Level 01</b></div></div>
+    <div class="dash">-</div>
+    <div class="seg"><div class="glyph">STR</div><div class="lead step"><b>Structure</b></div></div>
+    <div class="dash">-</div>
+    <div class="seg"><div class="glyph">CL</div><div class="lead step"><b>Columns</b></div></div>
+    <div class="dash">-</div>
+    <div class="seg"><div class="glyph">102</div><div class="lead empty"></div></div>
+  </div>
+  <p class="quiet">Every surface can name the same piece of work without a shared
+  database key, and a re-imported programme does not break the link.</p>
+  <div class="foot">press &rarr; to reveal each segment</div>
+</div>

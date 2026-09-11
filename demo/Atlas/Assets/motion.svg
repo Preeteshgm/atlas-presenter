@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 450" width="800" height="450">
+<rect width="800" height="450" fill="#E6E9E1"/>
+<path d="M120 340 C 250 340 220 230 380 220 C 530 210 520 130 680 118"
+      fill="none" stroke="#B3BCB4" stroke-width="3" stroke-dasharray="7 11"/>
+<g fill="none" stroke="#1D5A78" stroke-width="3">
+  <rect x="82" y="308" width="76" height="52"/>
+  <rect x="342" y="188" width="76" height="52"/>
+  <rect x="642" y="86" width="76" height="52"/>
+</g>
+<rect x="-9" y="-9" width="18" height="18" fill="#A93B22">
+  <animateMotion dur="4s" repeatCount="indefinite"
+    path="M120 340 C 250 340 220 230 380 220 C 530 210 520 130 680 118"/>
+</rect>
+<text x="120" y="404" font-size="20" fill="#46565C"
+      font-family="IBM Plex Sans, system-ui, sans-serif">the camera moving across the map</text>
+</svg>

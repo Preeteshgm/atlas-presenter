@@ -1,0 +1,47 @@
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo+Narrow:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+:host{
+  --film:#E6E9E1; --panel:#F1F3EC; --ink:#14232A; --ink-2:#46565C; --rule:#B3BCB4;
+  --blue:#1D5A78; --olive:#4E7A26; --rust:#A93B22; --marker:#EFC318;
+  --display:'Archivo Narrow','Arial Narrow',system-ui,sans-serif;
+  --body:'IBM Plex Sans',system-ui,'Segoe UI',sans-serif;
+  --mono:'IBM Plex Mono',ui-monospace,Consolas,monospace;
+}
+*{box-sizing:border-box}
+.slide{width:100%;min-height:100%;background:var(--film);color:var(--ink);
+  font-family:var(--body);font-size:19px;line-height:1.5;padding:50px 58px;
+  display:flex;flex-direction:column;position:relative}
+.slide::before{content:"";position:absolute;inset:0;pointer-events:none;
+  background-image:linear-gradient(to right,rgba(20,35,42,.05) 1px,transparent 1px),
+    linear-gradient(to bottom,rgba(20,35,42,.05) 1px,transparent 1px);
+  background-size:28px 28px}
+.slide>*{position:relative}
+h1,h2{font-family:var(--display);font-weight:600;margin:0;letter-spacing:.005em}
+h1{font-size:64px;line-height:1;font-weight:700;max-width:19ch}
+h2{font-size:42px;line-height:1.04;max-width:22ch}
+p{margin:0 0 .7em;max-width:62ch}
+.sec-n{font-family:var(--mono);font-size:16px;color:var(--blue);margin-bottom:8px}
+.quiet{color:var(--ink-2)}
+.num{font-variant-numeric:tabular-nums lining-nums}
+code{font-family:var(--mono);font-size:.9em}
+.foot{font-family:var(--mono);font-size:13px;color:var(--ink-2);
+  border-top:1px solid var(--rule);padding-top:12px;margin-top:auto}
+
+
+ol{counter-reset:o;list-style:none;margin:24px 0 0;padding:0;border-top:1px solid var(--rule)}
+li{counter-increment:o;display:grid;grid-template-columns:52px 1fr;gap:20px;
+  padding:20px 0;border-bottom:1px solid var(--rule);align-items:baseline}
+li::before{content:counter(o);font-family:var(--display);font-size:28px;
+  font-weight:700;color:var(--blue);line-height:1}
+.t{font-family:var(--display);font-size:24px;font-weight:600;line-height:1.15}
+.d{font-size:16px;color:var(--ink-2);margin-top:3px}</style>
+<div class="slide">
+  <div class="sec-n">5</div>
+  <h2>Order of work</h2>
+  <ol>
+    <li class="step"><div class="t">Finish the desktop</div><div class="d">To completion.</div></li>
+    <li class="step"><div class="t">Plan the later surfaces</div><div class="d">In full, before building.</div></li>
+    <li class="step"><div class="t">Identity</div><div class="d">Once the desktop is in shape.</div></li>
+    <li class="step"><div class="t">Build web, then field</div><div class="d">In that order.</div></li>
+  </ol>
+</div>

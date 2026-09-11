@@ -1,0 +1,212 @@
+{
+	"nodes": [
+		{
+			"id": "deck",
+			"type": "text",
+			"color": "3",
+			"x": 0,
+			"y": -1180,
+			"width": 1000,
+			"height": 420,
+			"text": "#deck\n\ntheme: Atlas/Theme.css\naccent: #1D5A78\n\n### Northwind Depot\n**Sam Avery** · controls plan · {section}"
+		},
+		{
+			"id": "p0",
+			"type": "file",
+			"file": "Atlas/Assets/00-motion.html",
+			"x": 0,
+			"y": -1420,
+			"width": 2820,
+			"height": 940,
+			"color": "5"
+		},
+		{
+			"id": "s1",
+			"type": "file",
+			"file": "Atlas/Assets/01-hero.html",
+			"x": 0,
+			"y": 1180,
+			"width": 1280,
+			"height": 720,
+			"color": "6"
+		},
+		{
+			"id": "s2",
+			"type": "file",
+			"file": "Atlas/Assets/02-code.html",
+			"x": 1520,
+			"y": 1180,
+			"width": 1280,
+			"height": 720,
+			"color": "3"
+		},
+		{
+			"id": "s3",
+			"type": "file",
+			"file": "Atlas/Assets/03-decision.html",
+			"x": 0,
+			"y": 2360,
+			"width": 1280,
+			"height": 720
+		},
+		{
+			"id": "s4",
+			"type": "file",
+			"file": "Atlas/Assets/04-fork.html",
+			"x": 1520,
+			"y": 2360,
+			"width": 1280,
+			"height": 720
+		},
+		{
+			"id": "s5",
+			"type": "file",
+			"file": "Atlas/Assets/05-where.html",
+			"x": 3040,
+			"y": 2360,
+			"width": 1280,
+			"height": 720
+		},
+		{
+			"id": "s6",
+			"type": "file",
+			"file": "Atlas/Assets/06-evidence.html",
+			"x": 0,
+			"y": 3540,
+			"width": 1280,
+			"height": 720,
+			"color": "4"
+		},
+		{
+			"id": "s7",
+			"type": "file",
+			"file": "Atlas/Assets/07-scope.html",
+			"x": 1520,
+			"y": 3540,
+			"width": 1280,
+			"height": 720,
+			"color": "2"
+		},
+		{
+			"id": "s8",
+			"type": "file",
+			"file": "Atlas/Assets/09-score.html",
+			"x": 3040,
+			"y": 3540,
+			"width": 1280,
+			"height": 720,
+			"color": "4"
+		},
+		{
+			"id": "s9",
+			"type": "file",
+			"file": "Atlas/Assets/10-order.html",
+			"x": 0,
+			"y": 4720,
+			"width": 1280,
+			"height": 720,
+			"color": "6"
+		},
+		{
+			"id": "g0",
+			"type": "group",
+			"label": "Opening",
+			"x": -130,
+			"y": -1550,
+			"width": 3080,
+			"height": 1200
+		},
+		{
+			"id": "g1",
+			"type": "group",
+			"label": "The plan",
+			"x": -130,
+			"y": 1050,
+			"width": 3060,
+			"height": 980
+		},
+		{
+			"id": "g2",
+			"type": "group",
+			"label": "Where things live",
+			"x": -130,
+			"y": 2230,
+			"width": 4580,
+			"height": 980
+		},
+		{
+			"id": "g3",
+			"type": "group",
+			"label": "Evidence and scope",
+			"x": -130,
+			"y": 3410,
+			"width": 4580,
+			"height": 980
+		},
+		{
+			"id": "g4",
+			"type": "group",
+			"label": "Close",
+			"x": -130,
+			"y": 4590,
+			"width": 1540,
+			"height": 980
+		}
+	],
+	"edges": [
+		{
+			"id": "e1",
+			"fromNode": "p0",
+			"toNode": "s1",
+			"label": "1."
+		},
+		{
+			"id": "e2",
+			"fromNode": "s1",
+			"toNode": "s2",
+			"label": "2."
+		},
+		{
+			"id": "e3",
+			"fromNode": "s2",
+			"toNode": "s3",
+			"label": "3."
+		},
+		{
+			"id": "e4",
+			"fromNode": "s3",
+			"toNode": "s4",
+			"label": "4."
+		},
+		{
+			"id": "e5",
+			"fromNode": "s4",
+			"toNode": "s5",
+			"label": "5."
+		},
+		{
+			"id": "e6",
+			"fromNode": "s5",
+			"toNode": "s6",
+			"label": "6."
+		},
+		{
+			"id": "e7",
+			"fromNode": "s6",
+			"toNode": "s7",
+			"label": "7."
+		},
+		{
+			"id": "e8",
+			"fromNode": "s7",
+			"toNode": "s8",
+			"label": "8."
+		},
+		{
+			"id": "e9",
+			"fromNode": "s8",
+			"toNode": "s9",
+			"label": "9."
+		}
+	]
+}

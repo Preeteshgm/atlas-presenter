@@ -1,0 +1,56 @@
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo+Narrow:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+:host{
+  --film:#E6E9E1; --panel:#F1F3EC; --ink:#14232A; --ink-2:#46565C; --rule:#B3BCB4;
+  --blue:#1D5A78; --olive:#4E7A26; --rust:#A93B22; --marker:#EFC318;
+  --display:'Archivo Narrow','Arial Narrow',system-ui,sans-serif;
+  --body:'IBM Plex Sans',system-ui,'Segoe UI',sans-serif;
+  --mono:'IBM Plex Mono',ui-monospace,Consolas,monospace;
+}
+*{box-sizing:border-box}
+.slide{width:100%;min-height:100%;background:var(--film);color:var(--ink);
+  font-family:var(--body);font-size:19px;line-height:1.5;padding:50px 58px;
+  display:flex;flex-direction:column;position:relative}
+.slide::before{content:"";position:absolute;inset:0;pointer-events:none;
+  background-image:linear-gradient(to right,rgba(20,35,42,.05) 1px,transparent 1px),
+    linear-gradient(to bottom,rgba(20,35,42,.05) 1px,transparent 1px);
+  background-size:28px 28px}
+.slide>*{position:relative}
+h1,h2{font-family:var(--display);font-weight:600;margin:0;letter-spacing:.005em}
+h1{font-size:64px;line-height:1;font-weight:700;max-width:19ch}
+h2{font-size:42px;line-height:1.04;max-width:22ch}
+p{margin:0 0 .7em;max-width:62ch}
+.sec-n{font-family:var(--mono);font-size:16px;color:var(--blue);margin-bottom:8px}
+.quiet{color:var(--ink-2)}
+.num{font-variant-numeric:tabular-nums lining-nums}
+code{font-family:var(--mono);font-size:.9em}
+.foot{font-family:var(--mono);font-size:13px;color:var(--ink-2);
+  border-top:1px solid var(--rule);padding-top:12px;margin-top:auto}
+
+
+.seq{border-top:1px solid var(--rule);margin-top:22px}
+.row{display:grid;grid-template-columns:230px 1fr;gap:0 24px;align-items:center;
+  padding:17px 0;border-bottom:1px solid var(--rule)}
+.nm{font-family:var(--display);font-size:21px;font-weight:600}
+.nm span{display:block;font-family:var(--body);font-size:14px;font-weight:400;
+  color:var(--ink-2);line-height:1.35}
+.track{position:relative;height:34px}
+.bar{position:absolute;top:4px;height:26px;display:flex;align-items:center;
+  padding:0 13px;font-size:14px;white-space:nowrap}
+.now{left:0;width:34%;background:var(--blue);color:var(--panel);font-weight:500}
+.next{left:36%;width:30%;border:1px dashed var(--blue);color:var(--blue)}
+.last{left:68%;width:32%;border:1px dotted var(--blue);color:var(--blue)}</style>
+<div class="slide">
+  <div class="sec-n">1</div>
+  <h2>The decision</h2>
+  <p class="quiet">Each surface waits for the one before it.</p>
+  <div class="seq">
+    <div class="row"><div class="nm">Desktop<span>the model and the programme</span></div>
+      <div class="track"><div class="bar now">Now, to completion</div></div></div>
+    <div class="row"><div class="nm">Web<span>the shared database</span></div>
+      <div class="track"><div class="bar next">After the desktop</div></div></div>
+    <div class="row"><div class="nm">Field<span>what happens on site</span></div>
+      <div class="track"><div class="bar last">After the web</div></div></div>
+  </div>
+  <div class="foot">bars show sequence, not duration</div>
+</div>

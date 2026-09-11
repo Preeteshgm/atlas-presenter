@@ -1,0 +1,27 @@
+{
+  "name": "atlas-presenter",
+  "version": "0.1.0",
+  "description": "Present an Obsidian Canvas as a map you fly across",
+  "private": true,
+  "scripts": {
+    "dev": "node esbuild.config.mjs",
+    "build": "tsc -noEmit -skipLibCheck && node esbuild.config.mjs production",
+    "package": "npm run build && node scripts/package.mjs",
+    "version": "node scripts/version-bump.mjs && git add manifest.json versions.json",
+    "install:vault": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/install.ps1",
+    "vaults": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/install.ps1 -List",
+    "lint": "eslint .",
+    "check": "npm run lint && tsc -noEmit -skipLibCheck"
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "@types/node": "^22.5.0",
+    "builtin-modules": "^4.0.0",
+    "esbuild": "^0.23.0",
+    "eslint": "^10.10.0",
+    "globals": "^17.12.0",
+    "obsidian": "latest",
+    "typescript": "^5.5.4",
+    "typescript-eslint": "^8.70.0"
+  }
+}

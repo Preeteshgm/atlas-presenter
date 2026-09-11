@@ -1,0 +1,55 @@
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo+Narrow:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+:host{
+  --film:#E6E9E1; --panel:#F1F3EC; --ink:#14232A; --ink-2:#46565C; --rule:#B3BCB4;
+  --blue:#1D5A78; --olive:#4E7A26; --rust:#A93B22; --marker:#EFC318;
+  --display:'Archivo Narrow','Arial Narrow',system-ui,sans-serif;
+  --body:'IBM Plex Sans',system-ui,'Segoe UI',sans-serif;
+  --mono:'IBM Plex Mono',ui-monospace,Consolas,monospace;
+}
+*{box-sizing:border-box}
+.slide{width:100%;min-height:100%;background:var(--film);color:var(--ink);
+  font-family:var(--body);font-size:19px;line-height:1.5;padding:50px 58px;
+  display:flex;flex-direction:column;position:relative}
+.slide::before{content:"";position:absolute;inset:0;pointer-events:none;
+  background-image:linear-gradient(to right,rgba(20,35,42,.05) 1px,transparent 1px),
+    linear-gradient(to bottom,rgba(20,35,42,.05) 1px,transparent 1px);
+  background-size:28px 28px}
+.slide>*{position:relative}
+h1,h2{font-family:var(--display);font-weight:600;margin:0;letter-spacing:.005em}
+h1{font-size:64px;line-height:1;font-weight:700;max-width:19ch}
+h2{font-size:42px;line-height:1.04;max-width:22ch}
+p{margin:0 0 .7em;max-width:62ch}
+.sec-n{font-family:var(--mono);font-size:16px;color:var(--blue);margin-bottom:8px}
+.quiet{color:var(--ink-2)}
+.num{font-variant-numeric:tabular-nums lining-nums}
+code{font-family:var(--mono);font-size:.9em}
+.foot{font-family:var(--mono);font-size:13px;color:var(--ink-2);
+  border-top:1px solid var(--rule);padding-top:12px;margin-top:auto}
+
+
+.cols{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;margin-top:22px;flex:1 1 auto}
+.col{padding:15px 17px;background:var(--panel)}
+.col.d{border:1.5px solid var(--ink)}
+.col.w{border:1.5px dashed var(--blue)}
+.col.f{border:1.5px dotted var(--blue)}
+.col h3{font-family:var(--display);font-size:19px;margin:0}
+.col .when{font-family:var(--mono);font-size:12px;color:var(--ink-2);margin-top:2px}
+.col ul{margin:12px 0 0;padding:0;list-style:none;font-size:15px}
+.col li{padding:6px 0;border-top:1px solid var(--rule);line-height:1.3}</style>
+<div class="slide">
+  <div class="sec-n">2</div>
+  <h2>What decides where anything lives</h2>
+  <p class="quiet">Three questions settle it.</p>
+  <div class="cols">
+    <div class="col d"><h3>Desktop</h3><div class="when">needs the model</div>
+      <ul><li>Loading the model</li><li>Building codes</li><li>Linking to the programme</li>
+      <li>The 4D simulation</li><li>Quantities</li></ul></div>
+    <div class="col w"><h3>Web</h3><div class="when">more than one person</div>
+      <ul><li>The production database</li><li>Look-ahead planning</li>
+      <li>Commitments and reasons</li><li>Dashboards</li><li>Identity and roles</li></ul></div>
+    <div class="col f"><h3>Field</h3><div class="when">the truth starts on site</div>
+      <ul><li>This week's commitments</li><li>Progress with a photo</li>
+      <li>Raising a blocker</li><li>Offline first</li></ul></div>
+  </div>
+</div>

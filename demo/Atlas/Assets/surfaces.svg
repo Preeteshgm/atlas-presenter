@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 500" width="900" height="500">
+<rect width="900" height="500" fill="#E6E9E1"/>
+<g font-family="Archivo Narrow, Arial Narrow, sans-serif">
+  <rect x="60" y="60" width="230" height="150" fill="none" stroke="#14232A" stroke-width="2.5"/>
+  <text x="82" y="106" font-size="26" font-weight="700" fill="#14232A">Desktop</text>
+  <text x="82" y="136" font-size="15" fill="#46565C" font-family="IBM Plex Sans, sans-serif">model · 4D · codes</text>
+  <text x="82" y="160" font-size="13" fill="#1D5A78" font-family="IBM Plex Mono, monospace">now</text>
+
+  <rect x="335" y="60" width="230" height="150" fill="none" stroke="#1D5A78" stroke-width="2.5" stroke-dasharray="8 5"/>
+  <text x="357" y="106" font-size="26" font-weight="700" fill="#14232A">Web</text>
+  <text x="357" y="136" font-size="15" fill="#46565C" font-family="IBM Plex Sans, sans-serif">database · PPC · dashboards</text>
+  <text x="357" y="160" font-size="13" fill="#1D5A78" font-family="IBM Plex Mono, monospace">after desktop</text>
+
+  <rect x="610" y="60" width="230" height="150" fill="none" stroke="#1D5A78" stroke-width="2.5" stroke-dasharray="2 5"/>
+  <text x="632" y="106" font-size="26" font-weight="700" fill="#14232A">Field</text>
+  <text x="632" y="136" font-size="15" fill="#46565C" font-family="IBM Plex Sans, sans-serif">commitments · photos</text>
+  <text x="632" y="160" font-size="13" fill="#1D5A78" font-family="IBM Plex Mono, monospace">after web</text>
+
+  <rect x="60" y="330" width="780" height="104" fill="#14232A"/>
+  <text x="86" y="374" font-size="24" font-weight="600" fill="#E6E9E1">the activity code</text>
+  <text x="86" y="406" font-size="17" fill="#EFC318" font-family="IBM Plex Mono, monospace">CO-T1-L01-STR-CL-102</text>
+  <text x="470" y="380" font-size="15" fill="#9FB0AE" font-family="IBM Plex Sans, sans-serif">the only join all three surfaces need</text>
+</g>
+<g stroke="#B3BCB4" stroke-width="2">
+  <path d="M175 210 L175 330"/><path d="M450 210 L450 330"/><path d="M725 210 L725 330"/>
+</g>
+</svg>

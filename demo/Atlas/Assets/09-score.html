@@ -1,0 +1,51 @@
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo+Narrow:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+:host{
+  --film:#E6E9E1; --panel:#F1F3EC; --ink:#14232A; --ink-2:#46565C; --rule:#B3BCB4;
+  --blue:#1D5A78; --olive:#4E7A26; --rust:#A93B22; --marker:#EFC318;
+  --display:'Archivo Narrow','Arial Narrow',system-ui,sans-serif;
+  --body:'IBM Plex Sans',system-ui,'Segoe UI',sans-serif;
+  --mono:'IBM Plex Mono',ui-monospace,Consolas,monospace;
+}
+*{box-sizing:border-box}
+.slide{width:100%;min-height:100%;background:var(--film);color:var(--ink);
+  font-family:var(--body);font-size:19px;line-height:1.5;padding:50px 58px;
+  display:flex;flex-direction:column;position:relative}
+.slide::before{content:"";position:absolute;inset:0;pointer-events:none;
+  background-image:linear-gradient(to right,rgba(20,35,42,.05) 1px,transparent 1px),
+    linear-gradient(to bottom,rgba(20,35,42,.05) 1px,transparent 1px);
+  background-size:28px 28px}
+.slide>*{position:relative}
+h1,h2{font-family:var(--display);font-weight:600;margin:0;letter-spacing:.005em}
+h1{font-size:64px;line-height:1;font-weight:700;max-width:19ch}
+h2{font-size:42px;line-height:1.04;max-width:22ch}
+p{margin:0 0 .7em;max-width:62ch}
+.sec-n{font-family:var(--mono);font-size:16px;color:var(--blue);margin-bottom:8px}
+.quiet{color:var(--ink-2)}
+.num{font-variant-numeric:tabular-nums lining-nums}
+code{font-family:var(--mono);font-size:.9em}
+.foot{font-family:var(--mono);font-size:13px;color:var(--ink-2);
+  border-top:1px solid var(--rule);padding-top:12px;margin-top:auto}
+
+
+.bar{display:flex;height:64px;border:1.5px solid var(--ink);background:var(--panel);
+  overflow:hidden;margin-top:26px}
+.sb.a{flex:0 0 57.5%;background:var(--blue)}
+.sb.b{flex:0 0 27.5%;background:repeating-linear-gradient(45deg,var(--blue) 0 6px,#3D7B98 6px 12px)}
+.sb.c{flex:0 0 15%;border-left:1px solid var(--ink)}
+.lg{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:30px}
+.lg>div{padding-top:12px;border-top:2px solid var(--ink)}
+.lg>div:nth-child(2){border-top-color:#3D7B98}
+.lg>div:nth-child(3){border-top-color:var(--rule)}
+.lg .v{font-family:var(--display);font-size:30px;font-weight:700;line-height:1}
+.lg .l{font-size:15px;color:var(--ink-2);margin-top:5px;line-height:1.35}</style>
+<div class="slide">
+  <div class="sec-n">4</div>
+  <h2>Where this gets us</h2>
+  <div class="bar"><div class="sb a"></div><div class="sb b"></div><div class="sb c"></div></div>
+  <div class="lg">
+    <div><div class="v num">46</div><div class="l">Today</div></div>
+    <div><div class="v num">+22</div><div class="l">Once the desktop phases are done</div></div>
+    <div><div class="v num">+12</div><div class="l">Earned by the later surfaces</div></div>
+  </div>
+</div>

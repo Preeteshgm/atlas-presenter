@@ -1,0 +1,47 @@
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo+Narrow:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+:host{
+  --film:#E6E9E1; --panel:#F1F3EC; --ink:#14232A; --ink-2:#46565C; --rule:#B3BCB4;
+  --blue:#1D5A78; --olive:#4E7A26; --rust:#A93B22; --marker:#EFC318;
+  --display:'Archivo Narrow','Arial Narrow',system-ui,sans-serif;
+  --body:'IBM Plex Sans',system-ui,'Segoe UI',sans-serif;
+  --mono:'IBM Plex Mono',ui-monospace,Consolas,monospace;
+}
+*{box-sizing:border-box}
+.slide{width:100%;min-height:100%;background:var(--film);color:var(--ink);
+  font-family:var(--body);font-size:19px;line-height:1.5;padding:50px 58px;
+  display:flex;flex-direction:column;position:relative}
+.slide::before{content:"";position:absolute;inset:0;pointer-events:none;
+  background-image:linear-gradient(to right,rgba(20,35,42,.05) 1px,transparent 1px),
+    linear-gradient(to bottom,rgba(20,35,42,.05) 1px,transparent 1px);
+  background-size:28px 28px}
+.slide>*{position:relative}
+h1,h2{font-family:var(--display);font-weight:600;margin:0;letter-spacing:.005em}
+h1{font-size:64px;line-height:1;font-weight:700;max-width:19ch}
+h2{font-size:42px;line-height:1.04;max-width:22ch}
+p{margin:0 0 .7em;max-width:62ch}
+.sec-n{font-family:var(--mono);font-size:16px;color:var(--blue);margin-bottom:8px}
+.quiet{color:var(--ink-2)}
+.num{font-variant-numeric:tabular-nums lining-nums}
+code{font-family:var(--mono);font-size:.9em}
+.foot{font-family:var(--mono);font-size:13px;color:var(--ink-2);
+  border-top:1px solid var(--rule);padding-top:12px;margin-top:auto}
+
+.lede{font-size:23px;max-width:56ch;color:var(--ink-2);margin-top:26px}
+.tb{display:grid;grid-template-columns:repeat(4,1fr);border:1.5px solid var(--ink);
+  background:var(--panel);margin-top:auto}
+.tb div{padding:10px 13px;border-right:1px solid var(--rule)}
+.tb div:last-child{border-right:0}
+.tb .k{font-family:var(--mono);font-size:11px;color:var(--ink-2)}
+.tb .v{font-family:var(--display);font-size:17px;font-weight:600;margin-top:2px}</style>
+<div class="slide">
+  <h1>Three surfaces, built in order.</h1>
+  <p class="lede">Written down so the work now does not have to be undone when the
+  later surfaces arrive. The desktop tool is finished first, on its own.</p>
+  <div class="tb">
+    <div><div class="k">project</div><div class="v">Northwind Depot</div></div>
+    <div><div class="k">author</div><div class="v">Sam Avery</div></div>
+    <div><div class="k">agreed</div><div class="v num">rev A</div></div>
+    <div><div class="k">status</div><div class="v">Draft</div></div>
+  </div>
+</div>

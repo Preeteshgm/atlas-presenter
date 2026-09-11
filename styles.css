@@ -1,0 +1,1009 @@
+/* Atlas — canvas-driven spatial presentations */
+
+.atl-overlay {
+	position: fixed;
+	inset: 0;
+	z-index: var(--layer-modal, 100);
+	background: var(--background-primary);
+	overflow: hidden;
+	--atl-accent: var(--interactive-accent);
+	--atl-inactive: 0.45;
+	--atl-dim: 0.45;
+	background-size: cover;
+	background-position: center;
+}
+
+/* Darkens a background image so slide text stays legible over any photo. */
+.atl-overlay.has-image::before {
+	content: "";
+	position: absolute;
+	inset: 0;
+	background: rgb(0 0 0 / var(--atl-dim));
+	pointer-events: none;
+	z-index: 0;
+}
+
+.atl-logo {
+	position: absolute;
+	z-index: 4;
+	pointer-events: none;
+	width: auto;
+}
+
+.atl-logo[data-corner="top-left"] { top: 22px; left: 26px; }
+.atl-logo[data-corner="top-right"] { top: 22px; right: 26px; }
+.atl-logo[data-corner="bottom-left"] { bottom: 58px; left: 26px; }
+.atl-logo[data-corner="bottom-right"] { bottom: 58px; right: 26px; }
+
+.atl-viewport {
+	position: absolute;
+	inset: 0;
+	overflow: hidden;
+	cursor: default;
+}
+
+/* The infinite plane every card lives on. Only this element ever moves. */
+.atl-stage {
+	position: absolute;
+	top: 0;
+	left: 0;
+	width: 0;
+	height: 0;
+	transform-origin: 0 0;
+	will-change: transform;
+}
+
+.atl-node {
+	position: absolute;
+	/* A size container, so a card's padding can be expressed against its own
+	   height rather than a fixed pixel figure that a flat card cannot afford. */
+	container-type: size;
+	border-radius: 10px;
+	background: var(--background-secondary);
+	border: 1px solid var(--background-modifier-border);
+	overflow: hidden;
+	opacity: var(--atl-inactive);
+	transition: opacity 320ms ease, box-shadow 320ms ease;
+}
+
+/* Everything off-camera stays faintly visible, so the audience keeps its
+   bearings on the map instead of being teleported between unrelated cards. */
+.atl-node.is-active {
+	opacity: 1;
+	z-index: 1;
+	box-shadow: 0 8px 40px rgb(0 0 0 / 0.25);
+}
+
+/* Qualified: a group is also a .atl-node, so a theme styling cards would
+   otherwise paint an opaque panel straight over the cards inside it. */
+.atl-overlay .atl-node.atl-node-group {
+	/* The label hangs above the box, and a clipping group would swallow it. */
+	overflow: visible;
+	background: transparent;
+	border: 2px dashed var(--background-modifier-border);
+	border-radius: 16px;
+	opacity: 0.6;
+}
+
+.atl-node-group.is-active {
+	border-color: var(--atl-accent);
+	box-shadow: none;
+}
+
+/* The section name sits on the group itself — above it, to the left, in canvas
+   coordinates — so it travels with the map instead of floating over it. */
+.atl-group-label {
+	position: absolute;
+	top: 0;
+	left: 0;
+	transform: translateY(-124%);
+	font-size: 96px;
+	font-weight: 700;
+	letter-spacing: -0.015em;
+	line-height: 1;
+	color: var(--text-faint);
+	white-space: nowrap;
+	transition: color 380ms ease, opacity 380ms ease;
+}
+
+.atl-node-group.is-current-section .atl-group-label,
+.atl-node-group.is-active .atl-group-label {
+	color: var(--text-normal);
+}
+
+.atl-body {
+	position: relative;
+	width: 100%;
+	height: 100%;
+	/* Obsidian snaps a media card to its media's shape, and an audio file lands
+	   at about 42px tall. A flat 20px of vertical padding would eat the whole
+	   card and squash the player to nothing. */
+	padding: min(20px, 10cqh) min(24px, 3cqw);
+	font-size: 16px;
+	line-height: 1.5;
+	color: var(--text-normal);
+	/* A card taller than its box scrolls in place, so one long thought stays
+	   one card instead of being chopped across five. */
+	overflow-y: auto;
+	overscroll-behavior: contain;
+	scrollbar-width: none;
+}
+
+.atl-body::-webkit-scrollbar { display: none; }
+
+/* Fades the bottom edge while there is more to read. */
+.atl-node.is-active .atl-body.is-scrollable:not(.at-end)::after {
+	content: "";
+	position: sticky;
+	display: block;
+	bottom: -20px;
+	left: 0;
+	right: 0;
+	height: 64px;
+	margin: 0 calc(-1 * min(24px, 3cqw)) calc(-1 * min(20px, 10cqh));
+	background: linear-gradient(to top, var(--background-secondary) 20%, transparent);
+	pointer-events: none;
+}
+
+/* Reveals within a slide — Advanced Slides calls these fragments. */
+.atl-step {
+	opacity: 0;
+	transform: translateY(10px);
+	transition: opacity 340ms ease, transform 340ms ease;
+}
+
+.atl-step.is-shown {
+	opacity: 1;
+	transform: none;
+}
+
+/* Three ways to show pictures on one card.
+   gallery   — all at once, side by side
+   slideshow — one at a time, in place
+   scroll    — a column the card scrolls through */
+
+.atl-scroll {
+	display: flex;
+	flex-direction: column;
+	gap: 16px;
+	margin-top: 12px;
+}
+
+.atl-scroll img {
+	display: block;
+	width: 100%;
+	height: auto;
+	border-radius: 8px;
+}
+
+.atl-scroll > p {
+	margin: 0;
+}
+
+.atl-gallery {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+	gap: 14px;
+	align-items: center;
+}
+
+.atl-gallery img {
+	width: 100%;
+	border-radius: 8px;
+	display: block;
+}
+
+.atl-body > :first-child { margin-top: 0; }
+.atl-body > :last-child { margin-bottom: 0; }
+.atl-body h1 { font-size: 2em; }
+.atl-body h2 { font-size: 1.5em; }
+
+.atl-media {
+	width: 100%;
+	height: 100%;
+	object-fit: contain;
+	display: block;
+}
+
+.atl-frame {
+	width: 100%;
+	height: 100%;
+	border: 0;
+}
+
+.atl-missing,
+.atl-subdeck {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	height: 100%;
+	color: var(--text-muted);
+	font-style: italic;
+}
+
+/* --- HUD ---------------------------------------------------------------- */
+
+.atl-hud {
+	position: absolute;
+	inset: auto 0 0 0;
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	gap: 16px;
+	padding: 10px 18px;
+	font-size: 13px;
+	color: var(--text-faint);
+	pointer-events: none;
+	background: linear-gradient(to top, var(--background-primary), transparent);
+}
+
+.atl-hud.is-hidden { display: none; }
+.atl-counter.is-hidden { display: none; }
+.atl-crumbs { font-weight: 500; }
+.atl-counter { font-variant-numeric: tabular-nums; }
+
+.atl-hud-right {
+	display: flex;
+	align-items: center;
+	gap: 14px;
+}
+
+/* The HUD ignores clicks so it never eats a click-to-advance; the one control
+   inside it has to opt back in. */
+.atl-map-btn {
+	pointer-events: auto;
+	cursor: pointer;
+	padding: 4px 12px;
+	border-radius: 999px;
+	border: 1px solid var(--background-modifier-border);
+	background: var(--background-secondary);
+	color: var(--text-muted);
+	font-size: 12px;
+	line-height: 1.6;
+}
+
+.atl-map-btn::after {
+	content: " " attr(data-key);
+	opacity: 0.5;
+	font-variant-numeric: tabular-nums;
+}
+
+.atl-map-btn:hover {
+	color: var(--text-normal);
+	border-color: var(--atl-accent);
+}
+
+/* --- Minimap ------------------------------------------------------------ */
+
+.atl-minimap {
+	position: absolute;
+	inset: 0;
+	display: none;
+	align-items: center;
+	justify-content: center;
+	flex-direction: column;
+	gap: 14px;
+	padding: 5vh 5vw;
+	background: color-mix(in srgb, var(--background-primary) 88%, transparent);
+	backdrop-filter: blur(6px);
+	z-index: 2;
+}
+
+.atl-minimap.is-open { display: flex; }
+
+.atl-minimap-svg {
+	width: 100%;
+	height: 100%;
+	min-height: 0;
+	overflow: visible;
+}
+
+.atl-minimap-hint {
+	font-size: 13px;
+	color: var(--text-faint);
+	flex: 0 0 auto;
+}
+
+.atl-mm-group {
+	fill: none;
+	stroke: var(--background-modifier-border);
+	stroke-dasharray: 8 6;
+}
+
+.atl-mm-edge {
+	stroke: var(--text-faint);
+	opacity: 0.5;
+}
+
+.atl-mm-node {
+	fill: var(--background-secondary);
+	stroke: var(--background-modifier-border);
+	cursor: pointer;
+	transition: fill 140ms ease, stroke 140ms ease;
+}
+
+.atl-mm-node:hover {
+	fill: var(--background-modifier-hover);
+	stroke: var(--atl-accent);
+}
+
+.atl-mm-node.is-current {
+	fill: var(--atl-accent);
+	stroke: var(--atl-accent);
+}
+
+/* Boxes alone are unchoosable, so every card carries a title, an order
+   badge, and a picture when it has one. */
+.atl-mm-card { cursor: pointer; }
+
+.atl-mm-label,
+.atl-mm-grouplabel,
+.atl-mm-badgetext {
+	pointer-events: none;
+	font-family: var(--font-interface);
+}
+
+.atl-mm-label {
+	fill: var(--text-normal);
+	font-weight: 500;
+}
+
+.atl-mm-grouplabel {
+	fill: var(--text-muted);
+	font-weight: 600;
+}
+
+.atl-mm-thumb {
+	pointer-events: none;
+	opacity: 0.85;
+}
+
+.atl-mm-card:hover .atl-mm-thumb { opacity: 1; }
+
+.atl-mm-badge {
+	fill: var(--background-primary);
+	stroke: var(--background-modifier-border);
+	stroke-width: 1;
+	pointer-events: none;
+}
+
+.atl-mm-badgetext {
+	fill: var(--text-muted);
+	font-weight: 600;
+}
+
+.atl-mm-card:hover .atl-mm-badge { fill: var(--atl-accent); }
+.atl-mm-card:hover .atl-mm-badgetext { fill: var(--text-on-accent); }
+
+/* --- Note peek ---------------------------------------------------------- */
+
+.atl-peek {
+	position: absolute;
+	inset: 0;
+	display: none;
+	align-items: center;
+	justify-content: center;
+	padding: 6vh 4vw;
+	background: rgb(0 0 0 / 0.45);
+	z-index: 3;
+}
+
+.atl-peek.is-open { display: flex; }
+
+.atl-peek-panel {
+	display: flex;
+	flex-direction: column;
+	width: min(860px, 100%);
+	max-height: 100%;
+	border-radius: 14px;
+	background: var(--background-primary);
+	border: 1px solid var(--background-modifier-border);
+	box-shadow: 0 24px 80px rgb(0 0 0 / 0.45);
+	overflow: hidden;
+}
+
+.atl-peek-head {
+	display: flex;
+	align-items: center;
+	gap: 12px;
+	padding: 14px 18px;
+	border-bottom: 1px solid var(--background-modifier-border);
+}
+
+.atl-peek-title {
+	font-weight: 600;
+	font-size: 15px;
+	flex: 1 1 auto;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.atl-peek-crumb {
+	font-size: 12px;
+	color: var(--text-faint);
+}
+
+.atl-peek-close {
+	cursor: pointer;
+	padding: 3px 10px;
+	border-radius: 6px;
+	border: 1px solid var(--background-modifier-border);
+	background: var(--background-secondary);
+	color: var(--text-muted);
+	font-size: 12px;
+}
+
+.atl-peek-body {
+	/* min-height:0 is load-bearing: a flex item defaults to min-height:auto,
+	   which makes it grow to its content instead of scrolling, and the panel
+	   then clips the rest of a long note away with no scrollbar. */
+	flex: 1 1 auto;
+	min-height: 0;
+	padding: 20px 26px 30px;
+	overflow-y: auto;
+	overscroll-behavior: contain;
+	line-height: 1.6;
+}
+
+.atl-peek-body:focus-visible {
+	outline: none;
+}
+
+/* Canvas card colours 1-6, mirrored from Obsidian's own palette. */
+.atl-node[data-color="1"], .atl-mm-node[data-color="1"] { border-color: var(--color-red); stroke: var(--color-red); }
+.atl-node[data-color="2"], .atl-mm-node[data-color="2"] { border-color: var(--color-orange); stroke: var(--color-orange); }
+.atl-node[data-color="3"], .atl-mm-node[data-color="3"] { border-color: var(--color-yellow); stroke: var(--color-yellow); }
+.atl-node[data-color="4"], .atl-mm-node[data-color="4"] { border-color: var(--color-green); stroke: var(--color-green); }
+.atl-node[data-color="5"], .atl-mm-node[data-color="5"] { border-color: var(--color-cyan); stroke: var(--color-cyan); }
+.atl-node[data-color="6"], .atl-mm-node[data-color="6"] { border-color: var(--color-purple); stroke: var(--color-purple); }
+
+
+/* --- Slide shows and embeds inside markdown cards ----------------------- */
+
+/* A fixed stage, sized against the card itself rather than the flow above it.
+   Depending on flex to leave the right gap made the height depend on how much
+   text happened to sit above, which is how one image ended up overflowing the
+   card and another sat half-size. */
+.atl-body.has-slideshow {
+	display: flex;
+	flex-direction: column;
+}
+
+.atl-slideshow {
+	position: relative;
+	width: 100%;
+	/* Take everything the text does not need, rather than a fixed share: more
+	   room for the picture means less letterboxing. */
+	flex: 1 1 auto;
+	min-height: 38cqh;
+	margin-top: 12px;
+	overflow: hidden;
+	border-radius: 10px;
+	background: var(--background-primary);
+}
+
+.atl-frame-item {
+	position: absolute;
+	inset: 0;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	/* Opaque, so a frame in motion never blends with the one beneath it — that
+	   double exposure is what read as a flicker. */
+	background: var(--background-secondary);
+	transition: transform 520ms cubic-bezier(0.22, 0.7, 0.24, 1), opacity 380ms ease;
+	backface-visibility: hidden;
+	will-change: transform, opacity;
+}
+
+/* The frame owns the box; the picture fits inside it. Without this the image
+   keeps its natural size in an absolutely positioned frame and gets cropped.
+   `contain` shows all of it, `cover` fills and crops — Settings, or `fit:` on
+   the #deck card. */
+.atl-show .atl-frame-item > img,
+.atl-show .atl-frame-item > video,
+.atl-show .atl-frame-item p > img,
+.atl-show .atl-frame-item p > video {
+	display: block;
+	width: 100%;
+	height: 100%;
+	max-width: 100%;
+	max-height: 100%;
+	object-fit: var(--atl-show-fit, contain);
+	border-radius: 8px;
+}
+
+/* Markdown wraps a lone image in a paragraph; that wrapper must not add
+   margins or collapse the height the image measures against. */
+.atl-show .atl-frame-item > p {
+	margin: 0;
+	width: 100%;
+	height: 100%;
+}
+
+/* A carousel needs its frames laid out on a strip, not stacked. */
+.atl-show.tx-slide,
+.atl-show.tx-slide-up { perspective: none; }
+
+.atl-show.tx-flip { perspective: 1400px; }
+
+/* --- album controls ----------------------------------------------------- */
+
+/* One row under the picture: arrows either side of the dots. Edge-anchored
+   arrows drift far from a picture that does not fill the stage. */
+.atl-show-controls {
+	position: absolute;
+	left: 0;
+	right: 0;
+	bottom: 10px;
+	z-index: 3;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	gap: 14px;
+	pointer-events: none;
+}
+
+.atl-overlay .atl-show-arrow {
+	pointer-events: auto;
+	cursor: pointer;
+	padding: 0 6px;
+	border: 0;
+	background: none;
+	box-shadow: none;
+	color: var(--text-normal);
+	font-size: 30px;
+	line-height: 1;
+	opacity: 0.45;
+	text-shadow: 0 1px 6px var(--background-primary);
+	transition: opacity 180ms ease;
+}
+
+.atl-overlay .atl-show-arrow:hover { opacity: 1; }
+.atl-overlay .atl-show-arrow:disabled { opacity: 0.12; cursor: default; }
+
+.atl-show-dots {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	pointer-events: none;
+}
+
+.atl-overlay .atl-show-dot {
+	pointer-events: auto;
+	width: 9px;
+	height: 9px;
+	padding: 0;
+	border-radius: 50%;
+	border: 1px solid color-mix(in srgb, var(--text-normal) 45%, transparent);
+	background: color-mix(in srgb, var(--background-primary) 55%, transparent);
+	box-shadow: none;
+	cursor: pointer;
+	transition: background 200ms ease, transform 200ms ease;
+}
+
+.atl-overlay .atl-show-dot.is-current {
+	background: var(--atl-accent);
+	border-color: var(--atl-accent);
+	transform: scale(1.25);
+}
+
+/* --- Vault browser ------------------------------------------------------ */
+
+.atl-browse {
+	position: absolute;
+	inset: 0;
+	display: none;
+	align-items: center;
+	justify-content: center;
+	padding: 4vh 3vw;
+	background: color-mix(in srgb, var(--background-primary) 86%, transparent);
+	backdrop-filter: blur(7px);
+	z-index: 4;
+}
+
+.atl-browse.is-open { display: flex; }
+
+.atl-browse-panel {
+	display: flex;
+	flex-direction: column;
+	width: min(1400px, 100%);
+	height: 100%;
+	border-radius: 14px;
+	background: var(--background-primary);
+	border: 1px solid var(--background-modifier-border);
+	box-shadow: 0 24px 80px rgb(0 0 0 / 0.45);
+	overflow: hidden;
+}
+
+.atl-browse-head {
+	display: flex;
+	align-items: center;
+	gap: 14px;
+	padding: 14px 18px;
+	border-bottom: 1px solid var(--background-modifier-border);
+}
+
+.atl-browse-input {
+	flex: 1 1 auto;
+	font-size: 17px;
+	padding: 8px 12px;
+	border-radius: 8px;
+	border: 1px solid var(--background-modifier-border);
+	background: var(--background-secondary);
+	color: var(--text-normal);
+}
+
+.atl-browse-count {
+	font-size: 12px;
+	color: var(--text-faint);
+	font-variant-numeric: tabular-nums;
+}
+
+.atl-browse-cols {
+	display: grid;
+	/* The list is a lookup aid; the graph is the thing you navigate, so it
+	   takes the room. */
+	grid-template-columns: 320px minmax(0, 1fr);
+	flex: 1 1 auto;
+	min-height: 0;
+}
+
+.atl-browse-list {
+	min-height: 0;
+	overflow-y: auto;
+	padding: 8px 0;
+	border-right: 1px solid var(--background-modifier-border);
+}
+
+.atl-browse-row {
+	padding: 8px 18px;
+	cursor: pointer;
+	border-left: 3px solid transparent;
+}
+
+.atl-browse-row:hover { background: var(--background-modifier-hover); }
+
+.atl-browse-row.is-cursor {
+	background: var(--background-modifier-hover);
+	border-left-color: var(--atl-accent);
+}
+
+.atl-browse-name { font-size: 15px; font-weight: 500; }
+.atl-browse-path { font-size: 12px; color: var(--text-faint); margin-top: 1px; }
+.atl-browse-empty { padding: 20px 18px; color: var(--text-faint); font-style: italic; }
+
+.atl-browse-stage {
+	position: relative;
+	min-width: 0;
+	min-height: 0;
+	overflow: hidden;
+}
+
+.atl-browse-canvas {
+	display: block;
+	width: 100%;
+	height: 100%;
+	cursor: grab;
+}
+
+.atl-browse-canvas:active { cursor: grabbing; }
+.atl-browse-canvas.is-over { cursor: pointer; }
+
+.atl-browse-fit {
+	cursor: pointer;
+	padding: 5px 14px;
+	border-radius: 8px;
+	border: 1px solid var(--background-modifier-border);
+	background: var(--background-secondary);
+	color: var(--text-muted);
+	font-size: 12px;
+}
+
+.atl-browse-fit:hover { color: var(--text-normal); border-color: var(--atl-accent); }
+
+.atl-browse-row.is-linked .atl-browse-name { color: var(--text-muted); font-weight: 400; }
+
+.atl-bg-edge { stroke: var(--text-faint); stroke-width: 1.4; opacity: 0.55; }
+.atl-bg-edge.is-in { stroke-dasharray: 4 4; }
+
+.atl-bg-node {
+	fill: var(--background-secondary);
+	stroke: var(--atl-accent);
+	stroke-width: 1.6;
+	cursor: pointer;
+}
+
+.atl-bg-node.is-in { stroke: var(--text-faint); }
+.atl-bg-node:hover { fill: var(--atl-accent); }
+
+.atl-bg-hub { fill: var(--atl-accent); stroke: none; }
+
+.atl-bg-label, .atl-bg-hublabel {
+	font-family: var(--font-interface);
+	font-size: 11px;
+	fill: var(--text-muted);
+	pointer-events: none;
+}
+
+.atl-bg-hublabel { font-size: 13px; font-weight: 600; fill: var(--text-normal); }
+
+.atl-browse-hint {
+	padding: 10px 18px;
+	font-size: 12px;
+	color: var(--text-faint);
+	border-top: 1px solid var(--background-modifier-border);
+}
+
+
+/* --- Handing the screen to Obsidian's graph view ------------------------ */
+
+.atl-overlay.is-away { display: none; }
+
+.atl-return {
+	position: fixed;
+	z-index: 1000;
+	left: 50%;
+	bottom: 26px;
+	transform: translateX(-50%);
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	padding: 8px 14px;
+	border-radius: 999px;
+	background: var(--background-secondary);
+	border: 1px solid var(--background-modifier-border);
+	box-shadow: 0 8px 30px rgb(0 0 0 / 0.3);
+	font-size: 13px;
+	color: var(--text-muted);
+}
+
+.atl-return button {
+	cursor: pointer;
+	padding: 4px 12px;
+	border-radius: 999px;
+	border: 1px solid var(--interactive-accent);
+	background: var(--interactive-accent);
+	color: var(--text-on-accent);
+	font-size: 13px;
+}
+
+.atl-return-key {
+	padding: 2px 7px;
+	border-radius: 5px;
+	border: 1px solid var(--background-modifier-border);
+	font-size: 11px;
+}
+
+/* --- The band a wide card leaves empty --------------------------------- */
+
+.atl-header {
+	opacity: 0;
+	transition: opacity 420ms ease;
+	position: absolute;
+	top: 26px;
+	left: 44px;
+	right: 44px;
+	z-index: 3;
+	pointer-events: none;
+	font-size: 15px;
+	letter-spacing: 0.04em;
+	color: var(--text-muted);
+	white-space: pre-wrap;
+}
+
+.atl-header.is-shown { opacity: 1; }
+.atl-header[data-position="top-centre"] { text-align: center; }
+.atl-header[data-position="top-right"] { text-align: right; }
+
+
+/* --- Progress rail ------------------------------------------------------ */
+
+.atl-rail {
+	position: absolute;
+	top: 0;
+	left: 0;
+	right: 0;
+	height: 3px;
+	z-index: 5;
+	background: color-mix(in srgb, var(--text-faint) 30%, transparent);
+	pointer-events: none;
+}
+
+.atl-rail-fill {
+	height: 100%;
+	width: 0;
+	background: var(--atl-accent);
+	transition: width 460ms cubic-bezier(0.3, 0.7, 0.3, 1);
+}
+
+/* A tick per section, so the rail reads as chapters, not one long bar. */
+.atl-rail-tick {
+	position: absolute;
+	top: 0;
+	width: 2px;
+	height: 100%;
+	background: var(--background-primary);
+}
+
+/* --- The band under the card ------------------------------------------- */
+
+.atl-band {
+	position: absolute;
+	left: 0;
+	right: 0;
+	bottom: 42px;
+	z-index: 3;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: 8px;
+	padding: 0 8vw;
+	pointer-events: none;
+}
+
+.atl-notes {
+	max-width: 90ch;
+	max-height: 18vh;
+	overflow-y: auto;
+	padding: 12px 20px;
+	border-radius: 12px;
+	border: 1px solid var(--background-modifier-border);
+	background: color-mix(in srgb, var(--background-secondary) 92%, transparent);
+	color: var(--text-muted);
+	font-size: 15px;
+	line-height: 1.5;
+	white-space: pre-wrap;
+	text-align: left;
+	opacity: 0;
+	transition: opacity 260ms ease;
+}
+
+.atl-notes.is-shown { opacity: 1; }
+
+.atl-next {
+	font-size: 13px;
+	letter-spacing: 0.03em;
+	color: var(--text-faint);
+}
+
+.atl-timer {
+	font-variant-numeric: tabular-nums;
+	letter-spacing: 0.02em;
+}
+
+/* The header is whatever the #deck card says — rendered, not just a line. */
+.atl-header > :first-child { margin-top: 0; }
+.atl-header > :last-child { margin-bottom: 0; }
+.atl-header p { margin: 0.15em 0; }
+.atl-header h1,
+.atl-header h2,
+.atl-header h3 { margin: 0 0 0.1em; line-height: 1.1; }
+.atl-header img { max-height: 2.4em; width: auto; vertical-align: middle; }
+.atl-header[data-position="top-centre"] > * { text-align: center; }
+.atl-header[data-position="top-right"] > * { text-align: right; }
+
+/* Settings -> On screen -> Section titles */
+.atl-overlay.hide-sections .atl-group-label { display: none; }
+
+/* --- Media that had no rule -------------------------------------------- */
+
+.atl-audio {
+	width: min(560px, 90%);
+	margin: auto;
+	display: block;
+}
+
+.atl-embed {
+	display: block;
+	max-width: 100%;
+	border-radius: 8px;
+}
+
+/* --- The authoring reference in the settings tab ------------------------ */
+/* Not inside the overlay: these render in Obsidian's own settings pane. */
+
+.atl-ref-lead {
+	margin: 4px 0 18px;
+	color: var(--text-muted);
+	font-size: 13px;
+	line-height: 1.5;
+	max-width: 70ch;
+}
+
+.atl-ref-section {
+	margin: 26px 0 6px;
+}
+
+.atl-ref-section h4 {
+	margin: 0 0 10px;
+	font-size: 15px;
+	color: var(--text-normal);
+	padding-bottom: 6px;
+	border-bottom: 1px solid var(--background-modifier-border);
+}
+
+.atl-ref {
+	display: grid;
+	grid-template-columns: minmax(140px, 210px) minmax(0, 1fr);
+	gap: 4px 18px;
+	padding: 11px 0;
+	border-bottom: 1px solid var(--background-modifier-border);
+	align-items: start;
+}
+
+.atl-ref-name {
+	font-weight: 600;
+	font-size: 13.5px;
+	color: var(--text-normal);
+}
+
+.atl-ref-desc {
+	font-size: 13px;
+	line-height: 1.5;
+	color: var(--text-muted);
+	max-width: 68ch;
+}
+
+/* The snippet spans both columns so long lines do not squeeze the text. */
+.atl-ref-code {
+	grid-column: 1 / -1;
+	position: relative;
+	margin-top: 8px;
+}
+
+.atl-ref-code pre {
+	margin: 0;
+	padding: 10px 74px 10px 14px;
+	border-radius: 8px;
+	border: 1px solid var(--background-modifier-border);
+	background: var(--background-secondary);
+	font-family: var(--font-monospace);
+	font-size: 12.5px;
+	line-height: 1.55;
+	white-space: pre;
+	overflow-x: auto;
+}
+
+.atl-ref-copy {
+	position: absolute;
+	top: 8px;
+	right: 8px;
+	padding: 3px 10px;
+	border-radius: 6px;
+	border: 1px solid var(--background-modifier-border);
+	background: var(--background-primary);
+	color: var(--text-muted);
+	font-size: 11.5px;
+	cursor: pointer;
+}
+
+.atl-ref-copy:hover {
+	color: var(--text-normal);
+	border-color: var(--interactive-accent);
+}
+
+/* The key list needs no snippet column. */
+.atl-ref-key {
+	grid-template-columns: minmax(160px, 230px) minmax(0, 1fr);
+	padding: 7px 0;
+}
+
+.atl-ref-key .atl-ref-name {
+	font-family: var(--font-monospace);
+	font-size: 12.5px;
+	font-weight: 500;
+}
+
+/* Shown in place of a script that has not been allowed to run. */
+.atl-scripts-off {
+	margin: 0 0 12px;
+	padding: 10px 14px;
+	border-radius: 8px;
+	border: 1px dashed var(--background-modifier-border);
+	background: var(--background-secondary);
+	color: var(--text-muted);
+	font-size: 13px;
+	line-height: 1.5;
+}

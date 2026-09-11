@@ -1,0 +1,396 @@
+{
+	"nodes": [
+		{
+			"id": "deck",
+			"type": "text",
+			"color": "3",
+			"x": 0,
+			"y": -1300,
+			"width": 1000,
+			"height": 420,
+			"text": "#deck\n\ntheme: Atlas/Theme.css\naccent: #1D5A78\n\n### Atlas Presenter — cheat sheet\nEvery feature, with the syntax that makes it · {section}"
+		},
+		{
+			"id": "s1",
+			"type": "text",
+			"text": "## Running order\n\nArrows set the sequence, depth first. A number at the start of an edge label forces it. No arrows at all still presents, in reading order.\n\n```text\n1.\n2.\n3. then this one\n```",
+			"color": "6",
+			"x": 0,
+			"y": 0,
+			"width": 1280,
+			"height": 860
+		},
+		{
+			"id": "s2",
+			"type": "text",
+			"text": "## Where it starts\n\nThe card with arrows out and none in. To override, put this anywhere in a card. Selecting a card in the editor before pressing the hotkey beats both.\n\n```text\n#start\n```",
+			"color": "6",
+			"x": 1520,
+			"y": 0,
+			"width": 1280,
+			"height": 860
+		},
+		{
+			"id": "s3",
+			"type": "text",
+			"text": "## The title block\n\nOne card, never presented, never on the map. Keys become header tokens and override the look for this canvas alone.\n\n```text\n#deck\n\ntheme: Atlas/Theme.css\nlogo: Assets/client.png\naccent: #1D5A78\nalign: centre\nfit: contain\ntransition: slide\nheader on: sections\n\n### The talk's title\n**Presenter** · {section} · {date}\n```",
+			"color": "6",
+			"x": 3040,
+			"y": 0,
+			"width": 1280,
+			"height": 860
+		},
+		{
+			"id": "s4",
+			"type": "text",
+			"text": "## Reveals\n\nA line of three plus signs splits the card into steps. The card below the rule is live — press → three times.\n\n```text\nFirst point.\n\n+++\n\nSecond point.\n\n+++\n\nThird.\n```\n\n---\n\nThe claim.\n\n+++\n\nThe evidence.\n\n+++\n\nThe conclusion.",
+			"color": "4",
+			"x": 0,
+			"y": 1280,
+			"width": 1280,
+			"height": 860
+		},
+		{
+			"id": "s5",
+			"type": "text",
+			"text": "## Speaker notes\n\nStripped before the card is drawn. Turn on Settings → On screen → Speaker notes and this card shows one under it.\n\n```text\n%%Slow down here. Ask if anyone has seen the report.%%\n```\n\n---\n\n%%This note is real — it is in this card's source, and you are not seeing it on the slide.%%",
+			"color": "4",
+			"x": 1520,
+			"y": 1280,
+			"width": 1280,
+			"height": 860
+		},
+		{
+			"id": "s6",
+			"type": "text",
+			"text": "## Reading a linked note\n\nClick the link while presenting: the whole note opens over the deck, scrolls, and Esc puts you back on this card.\n\n```text\nSee [[A note]] for the detail.\n```\n\n---\n\nLive: **[[Northwind Depot Plan]]**",
+			"color": "4",
+			"x": 3040,
+			"y": 1280,
+			"width": 1280,
+			"height": 860
+		},
+		{
+			"id": "s7",
+			"type": "text",
+			"text": "## Styling hooks, no CSS in the card\n\nA line of bare tags becomes classes for your stylesheet and never reaches the slide. This card is tagged #dark, which is why it is inverted.\n\n```text\n#dark\n\n## Your heading\n\nOrdinary markdown from here on.\n```\n\n#dark",
+			"color": "4",
+			"x": 4560,
+			"y": 1280,
+			"width": 1280,
+			"height": 860
+		},
+		{
+			"id": "s8",
+			"type": "text",
+			"text": "## One picture\n\nObsidian embeds work, and so does a plain img tag with a vault path.\n\n```text\n![[surfaces.svg]]\n```\n\n---\n\n![[surfaces.svg]]",
+			"color": "5",
+			"x": 0,
+			"y": 2560,
+			"width": 1280,
+			"height": 860
+		},
+		{
+			"id": "s9",
+			"type": "text",
+			"text": "## Several at once\n\nA grid that lays itself out.\n\n```text\n<div class=\"atl-gallery\">\n  <img src=\"Assets/a.png\">\n  <img src=\"Assets/b.png\">\n</div>\n```\n\n---\n\n<div class=\"atl-gallery\">\n  <img src=\"Atlas/Assets/site-1.svg\">\n  <img src=\"Atlas/Assets/site-2.svg\">\n  <img src=\"Atlas/Assets/site-3.svg\">\n</div>",
+			"color": "5",
+			"x": 1520,
+			"y": 2560,
+			"width": 1280,
+			"height": 860
+		},
+		{
+			"id": "s10",
+			"type": "text",
+			"text": "## One at a time\n\nAn album: dots, arrows, swipe in any direction, five transitions. → steps through it before leaving the card.\n\n```text\n<div class=\"atl-slideshow\">\n  <img src=\"Assets/a.png\">\n  <img src=\"Assets/b.png\">\n</div>\n```\n\n---\n\n<div class=\"atl-slideshow\">\n  <img src=\"Atlas/Assets/site-1.svg\">\n  <img src=\"Atlas/Assets/site-2.svg\">\n  <img src=\"Atlas/Assets/site-3.svg\">\n  <img src=\"Atlas/Assets/site-4.svg\">\n</div>",
+			"color": "5",
+			"x": 3040,
+			"y": 2560,
+			"width": 1280,
+			"height": 860
+		},
+		{
+			"id": "s11",
+			"type": "text",
+			"text": "## Video and audio\n\nPlays on arrival, pauses on leaving. Audio in a .webm shows as a bar, not a black rectangle. The next two cards are the real thing.\n\n```text\n![[walkthrough.mp4]]\n```",
+			"color": "5",
+			"x": 4560,
+			"y": 2560,
+			"width": 1280,
+			"height": 860
+		},
+		{
+			"id": "s12",
+			"type": "file",
+			"file": "Atlas/Assets/tone.wav",
+			"x": 6080,
+			"y": 2560,
+			"width": 1280,
+			"height": 860,
+			"color": "5"
+		},
+		{
+			"id": "s13",
+			"type": "file",
+			"file": "Atlas/Assets/tone.wav",
+			"x": 7600,
+			"y": 2560,
+			"width": 1280,
+			"height": 860,
+			"color": "5"
+		},
+		{
+			"id": "s14",
+			"type": "text",
+			"text": "```slide-html\n<style>\n  .wrap { font-family: var(--font-interface), system-ui, sans-serif;\n          padding: 26px 30px; height: 100%; box-sizing: border-box; }\n  h2 { margin: 0 0 6px; font-size: 26px; }\n  p { margin: 0 0 14px; opacity: 0.75; font-size: 15px; line-height: 1.5; }\n  pre { margin: 0; padding: 14px 16px; border-radius: 8px;\n        background: #141a2e; color: #cfe3ff; font-size: 13px;\n        line-height: 1.6; overflow: auto; }\n  .live { margin-top: 16px; display: grid; place-items: center;\n          background: #141a2e; color: #e9ecf5; border-radius: 8px;\n          padding: 22px; font-size: 22px; font-weight: 600; }\n</style>\n<div class=\"wrap\">\n  <h2>A card written as HTML</h2>\n  <p>Its CSS is sealed into a shadow root, so it cannot leak into the rest\n  of the deck and the deck cannot reach in. Scripts run, so a card can hold\n  a toggle, a chart or an animation.</p>\n  <pre>&#96;&#96;&#96;slide-html\n&lt;style&gt;\n  .hero { display: grid; place-items: center; height: 100%;\n          background: #141a2e; color: #e9ecf5; }\n&lt;/style&gt;\n&lt;div class=&quot;hero&quot;&gt;&lt;h1&gt;Anything you like&lt;/h1&gt;&lt;/div&gt;\n&#96;&#96;&#96;</pre>\n  <div class=\"live\">and this card is one</div>\n</div>\n```",
+			"color": "2",
+			"x": 0,
+			"y": 3840,
+			"width": 1280,
+			"height": 860
+		},
+		{
+			"id": "s15",
+			"type": "text",
+			"text": "## Reveals inside an HTML card\n\nGive any element the class step. Works the same as +++, in document order.\n\n```text\n<div class=\"step\">appears on the next press</div>\n```",
+			"color": "2",
+			"x": 1520,
+			"y": 3840,
+			"width": 1280,
+			"height": 860
+		},
+		{
+			"id": "s16",
+			"type": "text",
+			"text": "## Pausing an animation\n\nA card that animates should stop when it is off camera. Listen on the shadow host for these two events.\n\n```text\nconst root = document.currentScript.getRootNode();\nroot.host.addEventListener('atlas:enter', start);\nroot.host.addEventListener('atlas:leave', stop);\n```",
+			"color": "2",
+			"x": 3040,
+			"y": 3840,
+			"width": 1280,
+			"height": 860
+		},
+		{
+			"id": "s17",
+			"type": "text",
+			"text": "## Part of a note\n\nDrop a note on the canvas and point the card at a heading. Only that section is presented — the next card does exactly this.\n\n```text\nNote.md#Some heading\n```",
+			"color": "2",
+			"x": 4560,
+			"y": 3840,
+			"width": 1280,
+			"height": 860
+		},
+		{
+			"id": "s18",
+			"type": "file",
+			"file": "Atlas/Northwind Depot Plan.md",
+			"x": 6080,
+			"y": 3840,
+			"width": 1280,
+			"height": 860,
+			"subpath": "#Why the activity code",
+			"color": "2"
+		},
+		{
+			"id": "s19",
+			"type": "text",
+			"text": "## A card longer than the screen\n\nKeep writing. → scrolls a screenful at a time and only moves on at the bottom. Coming back lands you where you left it.\n\n```text\n(no syntax — just write more than fits)\n```\n\n### Part 1\n\nFiller so this card overflows its box and the scrolling is actually exercised rather than assumed.\n\n### Part 2\n\nFiller so this card overflows its box and the scrolling is actually exercised rather than assumed.\n\n### Part 3\n\nFiller so this card overflows its box and the scrolling is actually exercised rather than assumed.\n\n### Part 4\n\nFiller so this card overflows its box and the scrolling is actually exercised rather than assumed.\n\n### Part 5\n\nFiller so this card overflows its box and the scrolling is actually exercised rather than assumed.\n\n### Part 6\n\nFiller so this card overflows its box and the scrolling is actually exercised rather than assumed.\n",
+			"color": "1",
+			"x": 0,
+			"y": 5120,
+			"width": 1280,
+			"height": 860
+		},
+		{
+			"id": "s20",
+			"type": "text",
+			"text": "## Nothing points here\n\nNo arrow reaches this card, so the running order never visits it. Press M, click it, then Backspace to land back where you were.\n\n```text\n(no syntax — just leave it unconnected)\n```",
+			"color": "1",
+			"x": 1520,
+			"y": 5120,
+			"width": 1280,
+			"height": 860
+		},
+		{
+			"id": "s21",
+			"type": "text",
+			"text": "## Keys\n\nAll of these work while presenting. Only the start shortcut is an Obsidian hotkey; the rest are handled by the deck itself.\n\n```text\n→ Space   reveal, then album, then scroll, then next card\n←         back, the same way\nM         the map of this canvas\nG         the graph of the whole vault\nBackspace return from a jump\nO         zoom out to everything\nF         fullscreen\nEsc       close the top layer, then leave\n```",
+			"color": "1",
+			"x": 3040,
+			"y": 5120,
+			"width": 1280,
+			"height": 860
+		},
+		{
+			"id": "cg1",
+			"type": "group",
+			"label": "On the canvas",
+			"x": -130,
+			"y": -130,
+			"width": 4580,
+			"height": 1120
+		},
+		{
+			"id": "cg2",
+			"type": "group",
+			"label": "Inside a card",
+			"x": -130,
+			"y": 1150,
+			"width": 6100,
+			"height": 1120
+		},
+		{
+			"id": "cg3",
+			"type": "group",
+			"label": "Pictures and media",
+			"x": -130,
+			"y": 2430,
+			"width": 9140,
+			"height": 1120
+		},
+		{
+			"id": "cg4",
+			"type": "group",
+			"label": "HTML and notes",
+			"x": -130,
+			"y": 3710,
+			"width": 7620,
+			"height": 1120
+		},
+		{
+			"id": "cg5",
+			"type": "group",
+			"label": "The map",
+			"x": -130,
+			"y": 4990,
+			"width": 4580,
+			"height": 1120
+		},
+		{
+			"id": "scrollcard",
+			"type": "text",
+			"text": "## A column you scroll\n\nStacked full width, one under the next. The card scrolls through them.\n\n<div class=\"atl-scroll\">\n  <img src=\"Atlas/Assets/site-1.svg\">\n  <img src=\"Atlas/Assets/site-2.svg\">\n  <img src=\"Atlas/Assets/site-3.svg\">\n</div>",
+			"color": "5",
+			"x": 3040,
+			"y": 2560,
+			"width": 1280,
+			"height": 860
+		}
+	],
+	"edges": [
+		{
+			"id": "c1",
+			"fromNode": "s1",
+			"toNode": "s2",
+			"label": "1."
+		},
+		{
+			"id": "c2",
+			"fromNode": "s2",
+			"toNode": "s3",
+			"label": "2."
+		},
+		{
+			"id": "c3",
+			"fromNode": "s3",
+			"toNode": "s4",
+			"label": "3."
+		},
+		{
+			"id": "c4",
+			"fromNode": "s4",
+			"toNode": "s5",
+			"label": "4."
+		},
+		{
+			"id": "c5",
+			"fromNode": "s5",
+			"toNode": "s6",
+			"label": "5."
+		},
+		{
+			"id": "c6",
+			"fromNode": "s6",
+			"toNode": "s7",
+			"label": "6."
+		},
+		{
+			"id": "c7",
+			"fromNode": "s7",
+			"toNode": "s8",
+			"label": "7."
+		},
+		{
+			"id": "c8",
+			"fromNode": "s8",
+			"toNode": "s9",
+			"label": "8."
+		},
+		{
+			"id": "c9",
+			"fromNode": "s9",
+			"toNode": "s10",
+			"label": "9."
+		},
+		{
+			"id": "c10",
+			"fromNode": "s10",
+			"toNode": "s11",
+			"label": "10."
+		},
+		{
+			"id": "c11",
+			"fromNode": "s11",
+			"toNode": "s12",
+			"label": "11."
+		},
+		{
+			"id": "c12",
+			"fromNode": "s12",
+			"toNode": "s13",
+			"label": "12."
+		},
+		{
+			"id": "c13",
+			"fromNode": "s13",
+			"toNode": "s14",
+			"label": "13."
+		},
+		{
+			"id": "c14",
+			"fromNode": "s14",
+			"toNode": "s15",
+			"label": "14."
+		},
+		{
+			"id": "c15",
+			"fromNode": "s15",
+			"toNode": "s16",
+			"label": "15."
+		},
+		{
+			"id": "c16",
+			"fromNode": "s16",
+			"toNode": "s17",
+			"label": "16."
+		},
+		{
+			"id": "c17",
+			"fromNode": "s17",
+			"toNode": "s18",
+			"label": "17."
+		},
+		{
+			"id": "c18",
+			"fromNode": "s18",
+			"toNode": "s19",
+			"label": "18."
+		},
+		{
+			"id": "c19",
+			"fromNode": "s19",
+			"toNode": "s21",
+			"label": "19."
+		}
+	]
+}

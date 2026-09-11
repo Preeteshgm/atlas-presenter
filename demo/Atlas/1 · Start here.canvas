@@ -1,0 +1,77 @@
+{
+	"nodes": [
+		{
+			"id": "title",
+			"type": "text",
+			"x": 0,
+			"y": 0,
+			"width": 620,
+			"height": 360,
+			"color": "6",
+			"text": "# Atlas\n\nThe map **is** the deck.\n\n*Press `M` at any point.*\n\n%%Open with the question, not the agenda. Roughly 40 seconds here.%%"
+		},
+		{
+			"id": "why-a",
+			"type": "text",
+			"x": 840,
+			"y": -60,
+			"width": 460,
+			"height": 300,
+			"text": "## A deck is a queue\n\nSlides are a straight line.\n\nYour actual thinking is a graph.\n\nOne of those two is lying to the room."
+		},
+		{
+			"id": "why-b",
+			"type": "text",
+			"x": 1380,
+			"y": -60,
+			"width": 460,
+			"height": 300,
+			"text": "## So keep the graph\n\nCards stay where you put them.\n\nThe **camera** does the moving — pan, zoom, arc."
+		},
+		{
+			"id": "why-c",
+			"type": "text",
+			"x": 840,
+			"y": 300,
+			"width": 1000,
+			"height": 260,
+			"color": "4",
+			"text": "### The rules\n\n- **Edges** are the running order — label one `1.`, `2.` to force it\n- **Groups** are sections — the camera frames the whole group on the way in\n- **`M`** opens the map: click any card to fly there, `Backspace` comes back"
+		},
+		{
+			"id": "section",
+			"type": "group",
+			"x": 800,
+			"y": -120,
+			"width": 1080,
+			"height": 720,
+			"label": "Why bother"
+		},
+		{
+			"id": "html",
+			"type": "text",
+			"x": 300,
+			"y": 800,
+			"width": 900,
+			"height": 480,
+			"color": "5",
+			"text": "```slide-html\n<style>\n  .wrap {\n    display: grid;\n    grid-template-columns: 1.2fr 1fr;\n    gap: 32px;\n    align-items: center;\n    height: 100%;\n    padding: 40px;\n    border-radius: 6px;\n    background: linear-gradient(135deg, #141a2e 0%, #2c1f3d 100%);\n    color: #e9ecf5;\n    font-family: ui-sans-serif, system-ui, sans-serif;\n  }\n  h2 { margin: 0 0 12px; font-size: 38px; letter-spacing: -0.02em; }\n  p { margin: 0; line-height: 1.55; opacity: 0.78; font-size: 17px; }\n  .chip {\n    display: inline-block;\n    margin: 0 8px 8px 0;\n    padding: 7px 14px;\n    border-radius: 999px;\n    background: rgba(255,255,255,0.09);\n    border: 1px solid rgba(255,255,255,0.14);\n    font-size: 14px;\n  }\n</style>\n<div class=\"wrap\">\n  <div>\n    <h2>Or just write HTML</h2>\n    <p>This card is raw HTML and CSS in its own shadow root. Nothing here leaks into the rest of the deck, and nothing in the deck reaches in.</p>\n  </div>\n  <div>\n    <span class=\"chip\">grid</span>\n    <span class=\"chip\">gradients</span>\n    <span class=\"chip\">web fonts</span>\n    <span class=\"chip\">anything</span>\n  </div>\n</div>\n```"
+		},
+		{
+			"id": "aside",
+			"type": "text",
+			"x": 1400,
+			"y": 900,
+			"width": 440,
+			"height": 280,
+			"color": "3",
+			"text": "## The detour card\n\nNothing points here.\n\nIt is still on the map — press `M` and jump to it, then `Backspace` to land exactly where you left off."
+		}
+	],
+	"edges": [
+		{ "id": "e1", "fromNode": "title", "fromSide": "right", "toNode": "why-a", "toSide": "left", "label": "1." },
+		{ "id": "e2", "fromNode": "why-a", "fromSide": "right", "toNode": "why-b", "toSide": "left", "label": "2." },
+		{ "id": "e3", "fromNode": "why-b", "fromSide": "bottom", "toNode": "why-c", "toSide": "top", "label": "3." },
+		{ "id": "e4", "fromNode": "why-c", "fromSide": "bottom", "toNode": "html", "toSide": "top", "label": "4." }
+	]
+}
