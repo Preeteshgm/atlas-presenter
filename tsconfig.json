@@ -1,16 +1,20 @@
 {
   "compilerOptions": {
-    "baseUrl": ".",
-    "module": "ESNext",
     "target": "ES2020",
-    "moduleResolution": "node",
-    "allowJs": true,
-    "noImplicitAny": true,
-    "strictNullChecks": true,
-    "importHelpers": false,
+    "module": "ESNext",
+    // esbuild does the resolving, so "bundler" is the mode that matches
+    // reality. "node" resolves to node10, which TypeScript 5 deprecates and
+    // editors underline.
+    "moduleResolution": "Bundler",
+    "lib": ["DOM", "ES2020", "ES2022.Error"],
+    "strict": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noFallthroughCasesInSwitch": true,
     "isolatedModules": true,
     "skipLibCheck": true,
-    "lib": ["DOM", "ES2020", "ES2022.Error"]
+    "forceConsistentCasingInFileNames": true,
+    "noEmit": true
   },
   "include": ["src/**/*.ts"]
 }

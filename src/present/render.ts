@@ -395,7 +395,6 @@ async function renderFileNode(
 	owner: Component,
 	body: HTMLElement,
 	node: CanvasNode,
-	sourcePath: string,
 	themeCss: string,
 	allowScripts: boolean
 ): Promise<void> {
@@ -570,7 +569,7 @@ export async function renderNode(
 			for (const cls of hooks.classes) el.addClass(cls);
 			await renderMarkdown(app, owner, body, hooks.text, sourcePath, themeCss, allowScripts);
 		} else if (node.type === "file") {
-			await renderFileNode(app, owner, body, node, sourcePath, themeCss, allowScripts);
+			await renderFileNode(app, owner, body, node, themeCss, allowScripts);
 		} else if (node.type === "link") {
 			const frame = body.createEl("iframe", { cls: "atl-frame" });
 			frame.src = node.url ?? "";
