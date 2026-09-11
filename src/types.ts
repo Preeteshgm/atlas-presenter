@@ -136,6 +136,10 @@ export interface AtlasSettings {
 	/** A rail across the top showing progress, ticked at each section. */
 	showProgress: boolean;
 	timer: TimerMode;
+	/** Where a written-up session is filed. */
+	minutesFolder: string;
+	/** Write the minutes on leaving a deck, when anything was noted. */
+	minutesOnExit: boolean;
 	showHud: boolean;
 	showCounter: boolean;
 	autoplayMedia: boolean;
@@ -174,6 +178,8 @@ export const DEFAULT_SETTINGS: AtlasSettings = {
 	showNext: false,
 	showProgress: true,
 	timer: "off",
+	minutesFolder: "Meetings",
+	minutesOnExit: true,
 	showHud: true,
 	showCounter: true,
 	autoplayMedia: true,

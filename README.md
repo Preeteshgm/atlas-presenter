@@ -53,6 +53,8 @@ starts at the beginning.
 | `Backspace` | Return from a jump, or one level out of a peeked note |
 | `O` | Zoom out to the whole map |
 | `Home` `End` | First and last card |
+| `N` | Note something against the card on screen |
+| `W` | Write the session up now |
 | `P` | Open the presenter window on your second screen |
 | `E` | Export the deck to one standalone HTML file |
 | `F` | Fullscreen |
@@ -288,6 +290,44 @@ in either window and drive the same deck.
 
 Speaker notes are collected whether or not the on-screen panel is enabled, so
 turning that off leaves the presenter window fully fed.
+
+---
+
+## Notes, and minutes
+
+Two different things share the word "note".
+
+**Prepared notes** are `%%…%%` in a card. They never reach the screen. They show
+under the card if you enable it, and always in the presenter window.
+
+**Notes you take during the talk** are new. Press **`N`** and a box opens over the
+deck, already focused. Type, press Enter, it closes. What you typed is attached
+to **the card that was on screen**, with the time.
+
+Leaving the deck writes it all up as one note in `Meetings/`:
+
+```markdown
+# Northwind Depot — 11 September 2026
+
+14:02–14:38 · 24 cards · exec
+
+Deck: [[Northwind Depot]]
+
+## Why the code
+### The join key
+%%the prepared note%%
+> 14:07 — Sam asked whether v6 changed this. Check and come back.
+
+## Actions
+- [ ] Re-run the v6 comparison before Thursday
+```
+
+Cards appear **in the order you actually visited them**, detours through the map
+included. A card nobody wrote anything about is left out. Any line you type
+beginning `- [ ]` is gathered into **Actions** at the end.
+
+`W` writes it up without leaving. Both the folder and whether leaving writes at
+all are in **Settings → Notes and minutes**.
 
 ---
 

@@ -541,6 +541,37 @@ export class AtlasSettingTab extends PluginSettingTab {
 					})
 			);
 
+		new Setting(containerEl).setName("Notes and minutes").setHeading();
+
+		new Setting(containerEl)
+			.setName("Where minutes are filed")
+			.setDesc(
+				"Press N while presenting to note something against the card on screen. "
+					+ "The write-up lands here, one note per session."
+			)
+			.addText((c) =>
+				c
+					.setPlaceholder("Meetings")
+					.setValue(s.minutesFolder)
+					.onChange(async (v) => {
+						s.minutesFolder = v.trim();
+						await this.save();
+					})
+			);
+
+		new Setting(containerEl)
+			.setName("Write up on leaving")
+			.setDesc(
+				"When you noted something during a talk, leaving the deck writes the "
+					+ "minutes. Turn this off to write them only with W."
+			)
+			.addToggle((c) =>
+				c.setValue(s.minutesOnExit).onChange(async (v) => {
+					s.minutesOnExit = v;
+					await this.save();
+				})
+			);
+
 		new Setting(containerEl).setName("Chrome").setHeading();
 
 		new Setting(containerEl)

@@ -26,6 +26,7 @@ import {
 import { Slideshow } from "./slideshow";
 import { exportDeck } from "./export";
 import { DeckSnapshot, PRESENTER_VIEW, setDeck } from "./presenter";
+import { Capture, CaptureModal, Session, Visit, writeMinutes } from "./capture";
 
 /** Anything that handles its own clicks must not also advance the slide. */
 const INTERACTIVE = "a, button, video, audio, iframe, input, textarea, select, .atl-hud";
@@ -50,6 +51,12 @@ export class Presentation extends Component {
 	/** Anything following along — the presenter window, today. */
 	private listeners = new Set<() => void>();
 	private presenterLeaf: WorkspaceLeaf | null = null;
+	/** The talk as it actually happened, detours included. */
+	private visits: Visit[] = [];
+	private captures: Capture[] = [];
+	/** Set while the note box owns the keyboard. */
+	private capturing = false;
+	private written = false;
 	private scene!: Scene;
 
 	private index = 0;
@@ -383,6 +390,10 @@ export class Presentation extends Component {
 				"Escape",
 			]);
 
+			// The note box is a Modal with its own key scope. Touching the event
+			// here would either steal the keystroke or let it through to the deck.
+			if (this.capturing) return;
+
 			if (this.away) {
 				if (key === "Escape") {
 					handled();
@@ -482,6 +493,12 @@ export class Presentation extends Component {
 			} else if (key === "o" || key === "O") {
 				handled();
 				this.overview();
+			} else if (key === "n" || key === "N") {
+				handled();
+				this.captureNote();
+			} else if (key === "w" || key === "W") {
+				handled();
+				void this.writeUp();
 			} else if (key === "p" || key === "P") {
 				handled();
 				void this.openPresenter();
@@ -566,6 +583,14 @@ export class Presentation extends Component {
 		this.signal(stop.node.id, "enter");
 		this.minimap?.setCurrent(stop.kind === "node" ? stop.node.id : undefined);
 		this.updateHud(stop, steps.length);
+		if (stop.kind === "node" && this.visits[this.visits.length - 1]?.nodeId !== stop.node.id) {
+			this.visits.push({
+				nodeId: stop.node.id,
+				title: titleOf(stop.node),
+				section: stop.group?.label ?? "",
+				at: Date.now(),
+			});
+		}
 		for (const listener of this.listeners) listener();
 	}
 
@@ -786,6 +811,50 @@ ${this.themeCss}`,
 		}
 	}
 
+	/** A note against whichever card is on screen. */
+	private captureNote(): void {
+		const stop = this.stopAt(this.index);
+		this.capturing = true;
+		new CaptureModal(this.app, titleOf(stop.node), (text) => {
+			this.captures.push({
+				nodeId: stop.node.id,
+				title: titleOf(stop.node),
+				text,
+				at: Date.now(),
+			});
+			new Notice(`Atlas: noted against “${titleOf(stop.node)}”`);
+			for (const listener of this.listeners) listener();
+		}).open();
+		// The modal closes on Escape as well as on save, so release the keyboard
+		// a beat later either way.
+		window.setTimeout(() => {
+			this.capturing = false;
+		}, 250);
+	}
+
+	private session(): Session {
+		return {
+			deck: this.file.basename,
+			deckPath: this.file.path,
+			variant: this.variant,
+			startedAt: this.began,
+			endedAt: Date.now(),
+			visits: this.visits,
+			captures: this.captures,
+			prepared: this.notes,
+		};
+	}
+
+	/** The talk, written up as one note. */
+	async writeUp(): Promise<void> {
+		if (this.captures.length === 0 && this.visits.length === 0) {
+			new Notice("Atlas: nothing to write up yet.");
+			return;
+		}
+		await writeMinutes(this.app, this.session(), this.settings.minutesFolder);
+		this.written = true;
+	}
+
 	private overview(): void {
 		void this.camera.flyTo(this.scene.bounds, this.settings.duration);
 	}
@@ -918,6 +987,11 @@ ${this.themeCss}`,
 	}
 
 	stop(unloading = false): void {
+		// Leaving is the one click: a talk that was noted gets written up.
+		if (!unloading && !this.written && this.captures.length > 0 && this.settings.minutesOnExit) {
+			void writeMinutes(this.app, this.session(), this.settings.minutesFolder);
+			this.written = true;
+		}
 		setDeck(null);
 		this.listeners.clear();
 		// Obsidian restores its own windows, so leave the leaf alone on unload.
