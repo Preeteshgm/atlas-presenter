@@ -9,6 +9,7 @@ import {
 } from "obsidian";
 import { AtlasSettings, Scene, Stop } from "../types";
 import { parseCanvas, rectOf } from "../canvas/parse";
+import { readDeckVariant } from "../canvas/path";
 import { buildScene } from "../canvas/path";
 import { Camera } from "./camera";
 import { Minimap } from "./minimap";
@@ -68,16 +69,19 @@ export class Presentation extends Component {
 		private file: TFile,
 		private settings: AtlasSettings,
 		/** Card to open on, when starting from a selection in the editor. */
-		private startNodeId?: string
+		private startNodeId?: string,
+		/** Which talk to give, when the canvas offers more than one. */
+		private variant = ""
 	) {
 		super();
 	}
 
 	async start(): Promise<void> {
-		this.scene = buildScene(
-			parseCanvas(await this.app.vault.cachedRead(this.file)),
-			this.settings.sectionOverviews
-		);
+		const data = parseCanvas(await this.app.vault.cachedRead(this.file));
+		// A canvas may name its own default talk; an explicit choice wins.
+		const declared = readDeckVariant(data);
+		this.variant = this.variant || declared;
+		this.scene = buildScene(data, this.settings.sectionOverviews, this.variant);
 		if (this.scene.stops.length === 0) {
 			new Notice("Atlas: this canvas has no cards to present.");
 			return;
@@ -100,10 +104,11 @@ export class Presentation extends Component {
 		// Name the card we opened on, so a wrong start is visible rather than
 		// puzzling — the canvas selection API is not public and can drift.
 		const opening = this.stopAt(this.startIndex());
+		const talk = this.variant ? ` · ${this.variant}` : "";
 		const where =
 			this.startNodeId && opening.node.id === this.startNodeId
 				? `starting on “${titleOf(opening.node)}”`
-				: `${this.scene.stops.length} stops`;
+				: `${this.cardTotal} cards${talk}`;
 		new Notice(
 			`Atlas · ${where}\n` +
 				"→ advances · M for the map · click a link to peek · Esc exits",

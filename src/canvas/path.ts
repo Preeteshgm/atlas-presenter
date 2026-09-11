@@ -72,7 +72,48 @@ function readDeckMeta(nodes: CanvasNode[]): Record<string, string> {
 	return meta;
 }
 
-export function buildScene(data: CanvasData, sectionOverviews: boolean): Scene {
+/**
+ * Which talk a card belongs to.
+ *
+ * `#skip-exec` leaves it out of the exec talk; `#only-exec` keeps it for that
+ * talk alone. No tags at all means every talk, which is what most cards want.
+ */
+function inVariant(node: CanvasNode, variant: string): boolean {
+	const text = outsideCode(node.text ?? "");
+	const only = [...text.matchAll(/(^|\n)[ \t]*#only-([\w-]+)\b/gi)].map((m) => m[2].toLowerCase());
+	const skip = [...text.matchAll(/(^|\n)[ \t]*#skip-([\w-]+)\b/gi)].map((m) => m[2].toLowerCase());
+	const v = variant.toLowerCase();
+	if (skip.includes(v)) return false;
+	if (only.length > 0 && !only.includes(v)) return false;
+	return true;
+}
+
+/** The variant names a canvas mentions anywhere, for the picker. */
+/** `variant:` on the #deck card, when it names a default. */
+export function readDeckVariant(data: CanvasData): string {
+	const card = data.nodes.find(
+		(n) => n.type === "text" && DECK_CARD.test(outsideCode(n.text ?? ""))
+	);
+	if (!card) return "";
+	const m = outsideCode(card.text ?? "").match(/^[ \t]*variant[ \t]*:[ \t]*(.+?)[ \t]*$/mi);
+	return m ? m[1].toLowerCase() : "";
+}
+
+export function variantsIn(data: CanvasData): string[] {
+	const found = new Set<string>();
+	for (const node of data.nodes) {
+		for (const m of outsideCode(node.text ?? "").matchAll(/(^|\n)[ \t]*#(?:skip|only)-([\w-]+)\b/gi)) {
+			found.add(m[2].toLowerCase());
+		}
+	}
+	return [...found].sort();
+}
+
+export function buildScene(
+	data: CanvasData,
+	sectionOverviews: boolean,
+	variant = ""
+): Scene {
 	const meta = readDeckMeta(data.nodes);
 	// The title block is not a stop, and must not show up on the map either.
 	const slides = data.nodes.filter(
@@ -114,6 +155,15 @@ export function buildScene(data: CanvasData, sectionOverviews: boolean): Scene {
 	const walk = (node: CanvasNode, depth: number) => {
 		if (visited.has(node.id)) return;
 		visited.add(node.id);
+		// Left out of this talk, but still a junction: its children are reached
+		// through it, so skipping it must not break the chain.
+		if (variant && !inVariant(node, variant)) {
+			for (const edge of out.get(node.id) ?? []) {
+				const next = byId.get(edge.toNode);
+				if (next && next.type !== "group") walk(next, depth);
+			}
+			return;
+		}
 		push(node, depth);
 		for (const edge of out.get(node.id) ?? []) {
 			const next = byId.get(edge.toNode);
@@ -126,7 +176,7 @@ export function buildScene(data: CanvasData, sectionOverviews: boolean): Scene {
 
 	// Anything the edges never reached still belongs in the deck, in reading order.
 	const orphans = slides
-		.filter((n) => !visited.has(n.id))
+		.filter((n) => !visited.has(n.id) && (!variant || inVariant(n, variant)))
 		.sort((a, b) => rectOf(a).y - rectOf(b).y || rectOf(a).x - rectOf(b).x);
 	for (const n of orphans) walk(n, 0);
 

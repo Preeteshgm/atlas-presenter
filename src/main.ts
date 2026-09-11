@@ -1,6 +1,9 @@
 import { ItemView, Notice, Plugin, TFile, addIcon } from "obsidian";
 import { AtlasSettings, DEFAULT_SETTINGS } from "./types";
 import { Presentation } from "./present/presentation";
+import { parseCanvas } from "./canvas/parse";
+import { variantsIn } from "./canvas/path";
+import { VariantPicker } from "./variant-picker";
 import { AtlasSettingTab } from "./settings";
 
 /**
@@ -36,6 +39,17 @@ export default class AtlasPlugin extends Plugin {
 				const file = this.app.workspace.getActiveFile();
 				if (!file || file.extension !== "canvas") return false;
 				if (!checking) void this.present(file, this.selectedCardId());
+				return true;
+			},
+		});
+
+		this.addCommand({
+			id: "present-canvas-variant",
+			name: "Present this canvas as…",
+			checkCallback: (checking: boolean) => {
+				const file = this.app.workspace.getActiveFile();
+				if (!file || file.extension !== "canvas") return false;
+				if (!checking) void this.presentVariant(file);
 				return true;
 			},
 		});
@@ -116,9 +130,42 @@ export default class AtlasPlugin extends Plugin {
 		}
 	}
 
-	private async present(file: TFile, startNodeId?: string): Promise<void> {
+	/**
+	 * Offer the talks this canvas contains.
+	 *
+	 * The list comes from the cards, so a canvas with no variant tags simply
+	 * presents as usual rather than asking a pointless question.
+	 */
+	private async presentVariant(file: TFile): Promise<void> {
+		let names: string[];
+		try {
+			names = variantsIn(parseCanvas(await this.app.vault.cachedRead(file)));
+		} catch {
+			// An unreadable canvas is the presenter's problem, not the picker's.
+			names = [];
+		}
+		if (names.length === 0) {
+			new Notice("Atlas: this canvas has no variants. Tag a card #skip-short or #only-short.");
+			void this.present(file, this.selectedCardId());
+			return;
+		}
+
+		const choices = [
+			{ id: "", label: "The whole canvas", detail: "every card" },
+			...names.map((n) => ({
+				id: n,
+				label: n,
+				detail: `cards tagged #only-${n}, and everything not tagged #skip-${n}`,
+			})),
+		];
+		new VariantPicker(this.app, choices, (id) =>
+			void this.present(file, this.selectedCardId(), id)
+		).open();
+	}
+
+	private async present(file: TFile, startNodeId?: string, variant = ""): Promise<void> {
 		if (this.active) this.active.stop();
-		const show = new Presentation(this.app, file, this.settings, startNodeId);
+		const show = new Presentation(this.app, file, this.settings, startNodeId, variant);
 		this.active = show;
 		this.addChild(show);
 		try {
