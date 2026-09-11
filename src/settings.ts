@@ -810,6 +810,15 @@ The conclusion.`);
 			"Script tags run, so a card can hold a toggle, a chart or an animation. " +
 				"Clicking a control does not advance the slide.");
 
+		entry(html, "What a card script is given",
+			"Two things are already in scope: root, the card's own shadow root, and "
+				+ "host, the card element. Look things up through root — document sees "
+				+ "a different tree and will find nothing. Anything that throws is "
+				+ "shown on the card.",
+			"var box = root.querySelector('#chart');
+"
+				+ "host.addEventListener('atlas:enter', start);");
+
 		entry(html, "Pausing an animation",
 			"A card that animates should stop when it is off camera. Listen on the shadow " +
 				"host for these two events.",

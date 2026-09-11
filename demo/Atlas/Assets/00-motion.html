@@ -38,7 +38,6 @@ canvas{display:block;width:100%;height:100%}
 </div>
 <script>
 (function(){
-  var root = document.currentScript.getRootNode();
   var box = root.querySelector('.wrap'), cv = root.querySelector('#c');
   var ctx = cv.getContext('2d'), t = 0, running = false, dpr = 1;
   function size(){ dpr = Math.min(window.devicePixelRatio || 1, 2);
@@ -59,8 +58,8 @@ canvas{display:block;width:100%;height:100%}
     if (running) { t += 0.02; requestAnimationFrame(frame); }
   }
   new ResizeObserver(function(){ size(); if (!running) frame(); }).observe(box);
-  root.host.addEventListener('atlas:enter', function(){ if (!running) { running = true; frame(); } });
-  root.host.addEventListener('atlas:leave', function(){ running = false; });
+  host.addEventListener('atlas:enter', function(){ if (!running) { running = true; frame(); } });
+  host.addEventListener('atlas:leave', function(){ running = false; });
   size(); frame();
 })();
 </script>

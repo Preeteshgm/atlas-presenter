@@ -76,7 +76,7 @@ code{font-family:var(--mono);font-size:.9em}
 </div>
 <script>
   (function(){
-    var root = document.currentScript.getRootNode();
+    // root and host are handed to every card script; no lookup needed.
     var r = root.querySelector('#r'), f = root.querySelector('#f');
     var vr = root.querySelector('#vr'), vf = root.querySelector('#vf');
     function go(fork){ f.setAttribute('aria-pressed', String(fork));

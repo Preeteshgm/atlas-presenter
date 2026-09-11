@@ -147,11 +147,20 @@ It renders into a shadow root, so a card's CSS cannot leak. `<script>` runs, so 
 card can hold a toggle, a chart or an animation. A card that animates should stop
 when off camera:
 
+Two things are already in scope for you: **`root`**, the card's own shadow root,
+and **`host`**, the card element. Look things up through `root` — `document` sees
+a different tree and will find nothing.
+
 ```js
-const root = document.currentScript.getRootNode();
-root.host.addEventListener('atlas:enter', start);
-root.host.addEventListener('atlas:leave', stop);
+const chart = root.querySelector('#chart');
+
+// A card that animates should stop when it is off camera.
+host.addEventListener('atlas:enter', start);
+host.addEventListener('atlas:leave', stop);
 ```
+
+Anything that throws is printed **on the card**, so a broken script says so
+rather than failing quietly.
 
 A `.html` file dropped on the canvas behaves the same way. `note.md#Heading`
 cards present just that section.

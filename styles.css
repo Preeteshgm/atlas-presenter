@@ -1384,3 +1384,18 @@ settings:
 	display: flex;
 	gap: 10px;
 }
+
+/* A card script that threw, said out loud instead of only in the console. */
+.atl-script-error {
+	position: absolute;
+	left: 12px;
+	right: 12px;
+	bottom: 12px;
+	padding: 8px 12px;
+	border-radius: 8px;
+	background: var(--background-modifier-error, #4a1f1f);
+	color: var(--text-on-accent, #fff);
+	font-size: 13px;
+	font-family: var(--font-monospace);
+	z-index: 9;
+}

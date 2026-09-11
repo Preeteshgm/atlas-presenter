@@ -363,12 +363,54 @@ function renderRawHtml(
 		}
 		return;
 	}
-	wrap.querySelectorAll("script").forEach((old) => {
-		const fresh = document.createElement("script");
-		for (const attr of Array.from(old.attributes)) fresh.setAttribute(attr.name, attr.value);
-		fresh.textContent = old.textContent;
-		old.replaceWith(fresh);
-	});
+	runCardScripts(shadow, host, wrap);
+}
+
+interface AtlasScriptGlobals {
+	__atlasRoot?: ShadowRoot;
+	__atlasHost?: HTMLElement;
+}
+
+/**
+ * Run a card's scripts, with the card handed to them.
+ *
+ * `document.currentScript` is the usual way to find yourself, but it is null in
+ * enough situations to be a poor foundation — and a card inside a shadow root
+ * cannot use `document.getElementById` anyway, because it is in a different
+ * tree. So the code is wrapped in a function that receives `root` (the card's
+ * shadow root) and `host` (the card element), and a thrown error is shown on
+ * the card rather than swallowed into the console.
+ */
+function runCardScripts(shadow: ShadowRoot, host: HTMLElement, wrap: HTMLElement): void {
+	const scripts = Array.from(wrap.querySelectorAll("script"));
+	if (scripts.length === 0) return;
+
+	const globals = window as unknown as AtlasScriptGlobals;
+	globals.__atlasRoot = shadow;
+	globals.__atlasHost = host;
+	try {
+		for (const old of scripts) {
+			const fresh = document.createElement("script");
+			for (const attr of Array.from(old.attributes)) {
+				fresh.setAttribute(attr.name, attr.value);
+			}
+			fresh.textContent = `(function (root, host) {
+try {
+${old.textContent ?? ""}
+} catch (e) {
+  var note = document.createElement("div");
+  note.className = "atl-script-error";
+  note.textContent = "This card's script failed: " + (e && e.message ? e.message : e);
+  root.appendChild(note);
+  console.error("Atlas card script:", e);
+}
+})(window.__atlasRoot, window.__atlasHost);`;
+			old.replaceWith(fresh);
+		}
+	} finally {
+		delete globals.__atlasRoot;
+		delete globals.__atlasHost;
+	}
 }
 
 async function renderMarkdown(
