@@ -451,6 +451,23 @@ same history and the same remarks still gathering.
 
 ---
 
+## Audits
+
+Four sweeps live in `scripts/audit/`, each written after a real bug got through
+review:
+
+```bash
+python scripts/audit/leaks.py        # a listener that acts, then lets the event travel
+python scripts/audit/sweep.py        # listeners, loops, dropped awaits, CSS coverage
+python scripts/audit/demo_audit.py   # does every feature still have an example
+ATLAS_VAULT="…" python scripts/audit/audit.py   # naming, settings wiring, install drift
+```
+
+None of them can tell you whether an interaction is *right* — only that the
+plumbing holds. Every wrong interaction so far was found by presenting.
+
+---
+
 ## Developing
 
 `npm run dev` watches and rebuilds; the installer drops a `.hotreload` marker, so
