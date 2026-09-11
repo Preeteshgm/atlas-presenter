@@ -366,50 +366,37 @@ function renderRawHtml(
 	runCardScripts(shadow, host, wrap);
 }
 
-interface AtlasScriptGlobals {
-	__atlasRoot?: ShadowRoot;
-	__atlasHost?: HTMLElement;
-}
-
 /**
  * Run a card's scripts, with the card handed to them.
  *
- * `document.currentScript` is the usual way to find yourself, but it is null in
- * enough situations to be a poor foundation — and a card inside a shadow root
- * cannot use `document.getElementById` anyway, because it is in a different
- * tree. So the code is wrapped in a function that receives `root` (the card's
- * shadow root) and `host` (the card element), and a thrown error is shown on
- * the card rather than swallowed into the console.
+ * Not by inserting a <script>: an element in a shadow root is not reliably
+ * executed, and `document.currentScript` is null when it is — which is why an
+ * interactive card could look enabled and still do nothing. The code is
+ * compiled directly instead, with `root` (the card's shadow root) and `host`
+ * (the card element) as its two arguments.
  */
 function runCardScripts(shadow: ShadowRoot, host: HTMLElement, wrap: HTMLElement): void {
 	const scripts = Array.from(wrap.querySelectorAll("script"));
-	if (scripts.length === 0) return;
-
-	const globals = window as unknown as AtlasScriptGlobals;
-	globals.__atlasRoot = shadow;
-	globals.__atlasHost = host;
-	try {
-		for (const old of scripts) {
-			const fresh = document.createElement("script");
-			for (const attr of Array.from(old.attributes)) {
-				fresh.setAttribute(attr.name, attr.value);
-			}
-			fresh.textContent = `(function (root, host) {
-try {
-${old.textContent ?? ""}
-} catch (e) {
-  var note = document.createElement("div");
-  note.className = "atl-script-error";
-  note.textContent = "This card's script failed: " + (e && e.message ? e.message : e);
-  root.appendChild(note);
-  console.error("Atlas card script:", e);
-}
-})(window.__atlasRoot, window.__atlasHost);`;
-			old.replaceWith(fresh);
+	for (const el of scripts) {
+		const code = el.textContent ?? "";
+		el.remove();
+		if (!code.trim()) continue;
+		try {
+			// Compiled here rather than inserted, so it runs exactly once and we
+			// can hand it what it needs.
+			const run = new Function("root", "host", code) as (
+				root: ShadowRoot,
+				host: HTMLElement
+			) => void;
+			run(shadow, host);
+		} catch (e) {
+			const message = e instanceof Error ? e.message : String(e);
+			const note = document.createElement("div");
+			note.addClass("atl-script-error");
+			note.setText(`This card's script failed: ${message}`);
+			shadow.appendChild(note);
+			console.error("Atlas card script:", e);
 		}
-	} finally {
-		delete globals.__atlasRoot;
-		delete globals.__atlasHost;
 	}
 }
 

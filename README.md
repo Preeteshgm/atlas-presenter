@@ -151,6 +151,10 @@ Two things are already in scope for you: **`root`**, the card's own shadow root,
 and **`host`**, the card element. Look things up through `root` — `document` sees
 a different tree and will find nothing.
 
+The code is **compiled and run**, not inserted as a `<script>` element, because a
+script element in a shadow root is not reliably executed. So `document.currentScript`
+is not available, and `root` is how you find yourself.
+
 ```js
 const chart = root.querySelector('#chart');
 
