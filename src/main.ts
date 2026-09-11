@@ -65,6 +65,16 @@ export default class AtlasPlugin extends Plugin {
 			},
 		});
 
+		this.addCommand({
+			id: "export-deck",
+			name: "Export the running deck to a single HTML file",
+			checkCallback: (checking: boolean) => {
+				if (!this.active) return false;
+				if (!checking) void this.active.exportToHtml();
+				return true;
+			},
+		});
+
 		this.addRibbonIcon(ICON_ID, "Atlas: present this canvas", () => {
 			const file = this.app.workspace.getActiveFile();
 			if (file && file.extension === "canvas") void this.present(file, this.selectedCardId());

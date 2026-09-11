@@ -24,6 +24,7 @@ import {
 	titleOf,
 } from "./render";
 import { Slideshow } from "./slideshow";
+import { exportDeck } from "./export";
 
 /** Anything that handles its own clicks must not also advance the slide. */
 const INTERACTIVE = "a, button, video, audio, iframe, input, textarea, select, .atl-hud";
@@ -475,6 +476,9 @@ export class Presentation extends Component {
 			} else if (key === "o" || key === "O") {
 				handled();
 				this.overview();
+			} else if (key === "e" || key === "E") {
+				handled();
+				void this.exportToHtml();
 			} else if (key === "f" || key === "F") {
 				handled();
 				if (document.fullscreenElement) void document.exitFullscreen();
@@ -687,6 +691,40 @@ export class Presentation extends Component {
 		}
 		if (this.index <= 0) return;
 		this.goTo(this.index - 1);
+	}
+
+	/**
+	 * One self-contained HTML file: the cards as they stand, their media as data
+	 * URIs, and a small camera. It opens in any browser with no Obsidian.
+	 */
+	async exportToHtml(): Promise<void> {
+		new Notice("Atlas: exporting…");
+		// Obsidian injects a plugin's styles.css as a <style> element; find ours
+		// by something only it contains.
+		const pluginCss =
+			Array.from(document.querySelectorAll("style"))
+				.map((el) => el.textContent ?? "")
+				.find((text) => text.includes(".atl-stage") && text.includes(".atl-node")) ?? "";
+
+		await exportDeck(this.app, {
+			title: this.file.basename,
+			stage: this.stage,
+			css: `${pluginCss}
+${this.themeCss}`,
+			padding: this.settings.padding,
+			maxScale: this.settings.maxScale,
+			stops: this.scene.stops.map((stop) => {
+				const r = rectOf(stop.node);
+				return {
+					nodeId: stop.node.id,
+					x: r.x,
+					y: r.y,
+					width: r.width,
+					height: r.height,
+					label: stop.kind === "group" ? stop.node.label ?? "" : "",
+				};
+			}),
+		});
 	}
 
 	private overview(): void {

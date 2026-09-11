@@ -53,6 +53,7 @@ starts at the beginning.
 | `Backspace` | Return from a jump, or one level out of a peeked note |
 | `O` | Zoom out to the whole map |
 | `Home` `End` | First and last card |
+| `E` | Export the deck to one standalone HTML file |
 | `F` | Fullscreen |
 | `Esc` | Close the map or the note, then leave the deck |
 
@@ -246,11 +247,39 @@ project, so everything in them is safe to copy.
 
 ---
 
+## One map, several talks
+
+Tag a card to leave it out of a shorter version:
+
+| Tag | Meaning |
+|---|---|
+| `#skip-exec` | Left out of the **exec** talk, in every other one |
+| `#only-exec` | Appears in the **exec** talk and nowhere else |
+
+Run **Present this canvas as…** and pick. The list is built from the tags the
+cards already carry, so there is nothing to declare first; the `#deck` card can
+name a default with `variant:`. Traversal walks *through* an omitted card to its
+children, so leaving one out never severs the chain.
+
+---
+
+## Export
+
+Press **`E`** while presenting, or run **Export the running deck to a single HTML
+file**. You get one `.html` in your vault: the cards as they stand, every image,
+video and audio file inlined as a data URI, and a small camera with the same
+keys. It opens in any browser — no Obsidian, no network, no plugin.
+
+Scripts are dropped from the export, so an interactive card renders but does not
+run.
+
+---
+
 ## Not built yet
 
-Nested canvases as sub-decks (a `.canvas` card renders as a signpost), a presenter
-view on a second screen, export to standalone HTML or PDF, and path variants — one
-map, a five-minute and a forty-minute talk.
+A presenter view on a second screen, nested canvases as sub-decks (a `.canvas`
+card renders as a signpost), and PDF — for which the browser's own print of the
+exported HTML is usually the better answer.
 
 ---
 
