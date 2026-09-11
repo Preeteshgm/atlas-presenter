@@ -140,6 +140,10 @@ export interface AtlasSettings {
 	minutesFolder: string;
 	/** Write the minutes on leaving a deck, when anything was noted. */
 	minutesOnExit: boolean;
+	/** Appended to every action, e.g. a tag the Tasks plugin can query. */
+	actionSuffix: string;
+	/** Link each action back to the card it came from. */
+	actionsLinkBack: boolean;
 	showHud: boolean;
 	showCounter: boolean;
 	autoplayMedia: boolean;
@@ -180,6 +184,8 @@ export const DEFAULT_SETTINGS: AtlasSettings = {
 	timer: "off",
 	minutesFolder: "Meetings",
 	minutesOnExit: true,
+	actionSuffix: "",
+	actionsLinkBack: true,
 	showHud: true,
 	showCounter: true,
 	autoplayMedia: true,

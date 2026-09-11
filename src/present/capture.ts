@@ -14,6 +14,13 @@ export interface Capture {
 	at: number;
 }
 
+export interface MinutesOptions {
+	/** Appended to each action — a tag, a person, a due date. */
+	actionSuffix: string;
+	/** Name the card each action came from, so it survives being moved. */
+	linkBack: boolean;
+}
+
 export interface Session {
 	deck: string;
 	deckPath: string;
@@ -106,7 +113,7 @@ function stamp(ms: number): string {
  * Cards appear in the order they were actually visited — detours through the
  * map included, which is often where the interesting part happened.
  */
-export function minutesFor(session: Session): string {
+export function minutesFor(session: Session, options: MinutesOptions): string {
 	const lines: string[] = [];
 	const date = new Date(session.startedAt).toLocaleDateString(undefined, {
 		day: "numeric",
@@ -148,10 +155,18 @@ export function minutesFor(session: Session): string {
 		written++;
 	}
 
-	const actions = session.captures
-		.flatMap((c) => c.text.split("\n"))
-		.filter((l) => /^\s*-\s*\[ \]/.test(l))
-		.map((l) => l.trim());
+	// Left exactly as typed apart from what is appended, so the Tasks plugin
+	// parses its own due-date and priority syntax untouched.
+	const actions: string[] = [];
+	for (const capture of session.captures) {
+		for (const line of capture.text.split("\n")) {
+			if (!/^\s*-\s*\[ \]/.test(line)) continue;
+			const parts = [line.trim()];
+			if (options.linkBack) parts.push(`(${capture.title})`);
+			if (options.actionSuffix) parts.push(options.actionSuffix);
+			actions.push(parts.join(" "));
+		}
+	}
 	if (actions.length > 0) {
 		lines.push("## Actions", "", ...actions, "");
 	}
@@ -166,7 +181,8 @@ export function minutesFor(session: Session): string {
 export async function writeMinutes(
 	app: App,
 	session: Session,
-	folder: string
+	folder: string,
+	options: MinutesOptions
 ): Promise<TFile | null> {
 	const dir = normalizePath(folder || "Meetings");
 	try {
@@ -185,7 +201,7 @@ export async function writeMinutes(
 	}
 
 	try {
-		const file = await app.vault.create(path, minutesFor(session));
+		const file = await app.vault.create(path, minutesFor(session, options));
 		new Notice(`Atlas: written up to ${path}`);
 		return file;
 	} catch (e) {

@@ -8,7 +8,7 @@ you the canvas you already drew: cards keep their positions, edges become the
 running order, groups become sections, and you can leave the path at any moment
 and come back.
 
-![A canvas, its edges and groups, and the camera arcing between cards](docs/canvas-to-deck.svg)
+<img src="docs/canvas-to-deck.svg" alt="A canvas, its edges and groups, and the camera arcing between cards" width="800">
 
 ---
 
@@ -79,7 +79,7 @@ control inside a card never advances the slide.
 | Card with no edges | Still on the map, reachable by jumping |
 | Card colour | Mirrored on the map |
 
-![The map overlay: every card to scale, numbered, the current one highlighted](docs/map.svg)
+<img src="docs/map.svg" alt="The map overlay: every card to scale, numbered, the current one highlighted" width="720">
 
 Traversal is depth-first: a branch is told to its end before the next begins. The
 start is the card with outgoing edges and none incoming, or any card containing
@@ -108,7 +108,7 @@ work.
 
 ### Pictures
 
-![Gallery, slideshow and scroll compared](docs/layouts.svg)
+<img src="docs/layouts.svg" alt="Gallery, slideshow and scroll compared" width="760">
 
 Three layouts, all taking the same markup:
 

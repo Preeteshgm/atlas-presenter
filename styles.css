@@ -1,3 +1,65 @@
+/* @settings
+
+name: Atlas Presenter
+id: atlas-presenter
+settings:
+    -
+        id: atl-look
+        title: Deck
+        type: heading
+        level: 2
+        collapsed: true
+    -
+        id: atl-accent
+        title: Accent colour
+        description: The current card on the map, highlights, the progress rail.
+        type: variable-themed-color
+        format: hex
+        opacity: false
+        default-light: '#1d5a78'
+        default-dark: '#7cc6ff'
+    -
+        id: atl-inactive
+        title: Off-camera cards
+        description: How visible the rest of the map stays behind the current card.
+        type: variable-number-slider
+        default: 0.45
+        min: 0
+        max: 1
+        step: 0.05
+    -
+        id: atl-card-radius
+        title: Card corners
+        type: variable-number
+        default: 10
+        format: px
+    -
+        id: atl-card-font
+        title: Card text size
+        type: variable-number
+        default: 16
+        format: px
+    -
+        id: atl-type
+        title: Typography
+        type: heading
+        level: 2
+        collapsed: true
+    -
+        id: atl-heading-font
+        title: Heading font
+        description: Leave blank to follow your theme.
+        type: variable-text
+        default: ''
+    -
+        id: atl-section-size
+        title: Section name on the map
+        type: variable-number
+        default: 96
+        format: px
+
+*/
+
 /* Atlas — canvas-driven spatial presentations */
 
 .atl-overlay {
@@ -8,6 +70,10 @@
 	overflow: hidden;
 	--atl-accent: var(--interactive-accent);
 	--atl-inactive: 0.45;
+	--atl-card-radius: 10px;
+	--atl-card-font: 16px;
+	--atl-section-size: 96px;
+	--atl-heading-font: var(--font-interface);
 	--atl-dim: 0.45;
 	background-size: cover;
 	background-position: center;
@@ -58,7 +124,7 @@
 	/* A size container, so a card's padding can be expressed against its own
 	   height rather than a fixed pixel figure that a flat card cannot afford. */
 	container-type: size;
-	border-radius: 10px;
+	border-radius: var(--atl-card-radius, 10px);
 	background: var(--background-secondary);
 	border: 1px solid var(--background-modifier-border);
 	overflow: hidden;
@@ -97,7 +163,7 @@
 	top: 0;
 	left: 0;
 	transform: translateY(-124%);
-	font-size: 96px;
+	font-size: var(--atl-section-size, 96px);
 	font-weight: 700;
 	letter-spacing: -0.015em;
 	line-height: 1;
@@ -119,7 +185,7 @@
 	   at about 42px tall. A flat 20px of vertical padding would eat the whole
 	   card and squash the player to nothing. */
 	padding: min(20px, 10cqh) min(24px, 3cqw);
-	font-size: 16px;
+	font-size: var(--atl-card-font, 16px);
 	line-height: 1.5;
 	color: var(--text-normal);
 	/* A card taller than its box scrolls in place, so one long thought stays

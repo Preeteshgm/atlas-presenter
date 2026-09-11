@@ -572,6 +572,32 @@ export class AtlasSettingTab extends PluginSettingTab {
 				})
 			);
 
+		new Setting(containerEl)
+			.setName("Append to every action")
+			.setDesc(
+				"Added to each line you type beginning - [ ]. A tag the Tasks plugin can "
+				+ "query, a person, or a due date in whatever syntax you already use."
+			)
+			.addText((c) =>
+				c
+					.setPlaceholder("#meeting")
+					.setValue(s.actionSuffix)
+					.onChange(async (v) => {
+						s.actionSuffix = v.trim();
+						await this.save();
+					})
+			);
+
+		new Setting(containerEl)
+			.setName("Name the card on each action")
+			.setDesc("So an action still says what it came out of once it has moved.")
+			.addToggle((c) =>
+				c.setValue(s.actionsLinkBack).onChange(async (v) => {
+					s.actionsLinkBack = v;
+					await this.save();
+				})
+			);
+
 		new Setting(containerEl).setName("Chrome").setHeading();
 
 		new Setting(containerEl)

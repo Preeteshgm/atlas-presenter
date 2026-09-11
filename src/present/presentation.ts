@@ -26,7 +26,14 @@ import {
 import { Slideshow } from "./slideshow";
 import { exportDeck } from "./export";
 import { DeckSnapshot, PRESENTER_VIEW, setDeck } from "./presenter";
-import { Capture, CaptureModal, Session, Visit, writeMinutes } from "./capture";
+import {
+	Capture,
+	CaptureModal,
+	MinutesOptions,
+	Session,
+	Visit,
+	writeMinutes,
+} from "./capture";
 
 /** Anything that handles its own clicks must not also advance the slide. */
 const INTERACTIVE = "a, button, video, audio, iframe, input, textarea, select, .atl-hud";
@@ -862,6 +869,13 @@ ${this.themeCss}`,
 		).open();
 	}
 
+	private minutesOptions(): MinutesOptions {
+		return {
+			actionSuffix: this.settings.actionSuffix,
+			linkBack: this.settings.actionsLinkBack,
+		};
+	}
+
 	private session(): Session {
 		return {
 			deck: this.file.basename,
@@ -881,7 +895,12 @@ ${this.themeCss}`,
 			new Notice("Atlas: nothing to write up yet.");
 			return;
 		}
-		await writeMinutes(this.app, this.session(), this.settings.minutesFolder);
+		await writeMinutes(
+			this.app,
+			this.session(),
+			this.settings.minutesFolder,
+			this.minutesOptions()
+		);
 		this.written = true;
 	}
 
@@ -1084,7 +1103,12 @@ ${this.themeCss}`,
 		this.stopAutoAdvance();
 		// Leaving is the one click: a talk that was noted gets written up.
 		if (!unloading && !this.written && this.captures.length > 0 && this.settings.minutesOnExit) {
-			void writeMinutes(this.app, this.session(), this.settings.minutesFolder);
+			void writeMinutes(
+				this.app,
+				this.session(),
+				this.settings.minutesFolder,
+				this.minutesOptions()
+			);
 			this.written = true;
 		}
 		// Returning to a parent hands the deck back; nulling it here would blank
