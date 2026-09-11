@@ -135,6 +135,55 @@ async function renderExcalidraw(app: App, body: HTMLElement, file: TFile): Promi
 	}
 }
 
+/**
+ * Names a camera or a paste never chose.
+ *
+ * `Pasted image 20251029102222` is not a slide title. Where a filename is
+ * clearly automatic, the card is named by what it is and when, which at least
+ * reads as English on the map. A file you named yourself is left alone.
+ */
+const AUTO_NAMED = [
+	/^Pasted image (\d{8})/i,
+	/^Recording (\d{8})/i,
+	/^Screenshot[ _-]?(\d{8})/i,
+	/^(?:IMG|DSC|PXL|VID|MOV)[ _-]?\d+/i,
+	/^WhatsApp (?:Image|Video|Audio) /i,
+	/^image \d+$/i,
+	/^untitled/i,
+];
+
+function mediaTitle(path: string): string | null {
+	const base = (path.split("/").pop() ?? "").replace(/\.\w+$/, "");
+	const kind = IMAGE_EXT.test(path)
+		? "Image"
+		: VIDEO_EXT.test(path)
+			? "Video"
+			: AUDIO_EXT.test(path)
+				? "Audio"
+				: null;
+	if (!kind) return null;
+
+	for (const pattern of AUTO_NAMED) {
+		const m = base.match(pattern);
+		if (!m) continue;
+		const stamp = m[1];
+		if (!stamp) return kind;
+		const date = new Date(
+			Number(stamp.slice(0, 4)),
+			Number(stamp.slice(4, 6)) - 1,
+			Number(stamp.slice(6, 8))
+		);
+		return Number.isNaN(date.getTime())
+			? kind
+			: `${kind} · ${date.toLocaleDateString(undefined, {
+					day: "numeric",
+					month: "short",
+					year: "numeric",
+				})}`;
+	}
+	return null;
+}
+
 /** A human label for a card, used by the minimap so boxes are choosable. */
 export function titleOf(node: CanvasNode): string {
 	if (node.type === "group") return node.label ?? "Section";
@@ -146,6 +195,8 @@ export function titleOf(node: CanvasNode): string {
 		}
 	}
 	if (node.type === "file") {
+		const auto = mediaTitle(node.file ?? "");
+		if (auto) return auto;
 		const base = (node.file ?? "").split("/").pop() ?? "";
 		const stem = base.replace(/\.\w+$/, "");
 		return node.subpath ? `${stem} ${node.subpath}` : stem || "File";

@@ -344,6 +344,95 @@
 			"y": 6270,
 			"width": 9140,
 			"height": 1120
+		},
+		{
+			"id": "t1",
+			"type": "text",
+			"text": "## How a card gets its name\n\nThe same name is used on the map, in the next-card line, in the presenter window and in the minutes. A text card is named by **its first line of real content**, so a card that opens with a heading names itself well. Tag lines and speaker notes are skipped.\n\n```text\n## The decision        -> “The decision”\n#title                 -> skipped, not a name\na long opening line... -> the whole line, which reads badly\n```",
+			"x": 0,
+			"y": 7680,
+			"width": 1280,
+			"height": 860,
+			"color": "6"
+		},
+		{
+			"id": "t2",
+			"type": "text",
+			"text": "## Naming a picture\n\nA media card is named by its filename, which is fine when you chose the name and poor when a camera did. Names that are clearly automatic become *Image · 29 Oct 2025* instead.\n\n```text\nsite-plan.png               -> “site-plan”\nPasted image 20251029102222 -> “Image · 29 Oct 2025”\nIMG_2043.jpg                -> “Image”\n```\n\n---\n\n**Better still:** put the picture *in* a card with a heading, as the next card does — then you choose the name, and you get a caption for free.",
+			"x": 1520,
+			"y": 7680,
+			"width": 1280,
+			"height": 860,
+			"color": "6"
+		},
+		{
+			"id": "t3",
+			"type": "text",
+			"text": "## The surfaces, to scale\n\nA picture inside a card, rather than a card that is only a picture.\n\n![[surfaces.svg]]\n\n%%This card is called “The surfaces, to scale” because that is its first\nline — not because of the file's name.%%",
+			"x": 3040,
+			"y": 7680,
+			"width": 1280,
+			"height": 860,
+			"color": "5"
+		},
+		{
+			"id": "t4",
+			"type": "text",
+			"text": "## Eight card roles\n\nEvery Atlas theme implements the same names, so a deck written against one works against all of them. A bare tag line picks the treatment and never reaches the slide.\n\n```text\n#title     the opening card\n#section   a divider carrying the section's name\n#quote     a pull quote\n#stat      one large number\n#dark      the same card, inverted\n#split     two columns\n#full      a picture with no margin\n```",
+			"x": 4560,
+			"y": 7680,
+			"width": 1280,
+			"height": 860,
+			"color": "4"
+		},
+		{
+			"id": "t5",
+			"type": "text",
+			"text": "## Three themes\n\nPaper is editorial light, Slate is for a dim room, Plain follows your Obsidian theme. Swap one for another and the deck re-skins without a card changing.\n\n```text\ntheme: Atlas/Themes/Paper.css\ntheme: Atlas/Themes/Slate.css\ntheme: Atlas/Themes/Plain.css\n```\n\n---\n\n*Try it: change the theme line on this canvas's #deck card and present again.*",
+			"x": 6080,
+			"y": 7680,
+			"width": 1280,
+			"height": 860,
+			"color": "4"
+		},
+		{
+			"id": "t6",
+			"type": "text",
+			"text": "## The title block\n\nAnything in the #deck card that is not a key is the deck's title block, rendered into the band above a section overview — a heading at full size, a subtitle, and an image if you want one.\n\n```text\n# Northwind Depot\nControls plan, rev A · **Sam Avery** · *{section}*\n\n![[logo.png]]\n```",
+			"x": 7600,
+			"y": 7680,
+			"width": 1280,
+			"height": 860,
+			"color": "3"
+		},
+		{
+			"id": "t7",
+			"type": "text",
+			"text": "## Reading the session before it is written\n\n**W** opens every card that carries anything, in the order you visited it, each editable in place. The action count updates as you type. Create the note when it reads right.\n\n```text\n- [ ] a line like this becomes an Action\n```\n\n---\n\n*An edit there is the same note you see when you press N on that card later.*",
+			"x": 9120,
+			"y": 7680,
+			"width": 1280,
+			"height": 860,
+			"color": "1"
+		},
+		{
+			"id": "t8",
+			"type": "text",
+			"text": "## What a card script is given\n\n`root` is the card's own shadow root and `host` is the card element — both already in scope. Look things up through root: document sees a different tree and finds nothing. Anything thrown is printed on the card.\n\n```text\nvar box = root.querySelector('#chart');\nhost.addEventListener('atlas:enter', start);\nhost.addEventListener('atlas:leave', stop);\n```",
+			"x": 10640,
+			"y": 7680,
+			"width": 1280,
+			"height": 860,
+			"color": "2"
+		},
+		{
+			"id": "cg7",
+			"type": "group",
+			"label": "Naming, themes and notes",
+			"x": -130,
+			"y": 7550,
+			"width": 12180,
+			"height": 1120
 		}
 	],
 	"edges": [
@@ -496,6 +585,54 @@
 			"fromNode": "n5",
 			"toNode": "n6",
 			"label": "25."
+		},
+		{
+			"id": "c26",
+			"fromNode": "n6",
+			"toNode": "t1",
+			"label": "26."
+		},
+		{
+			"id": "c27",
+			"fromNode": "t1",
+			"toNode": "t2",
+			"label": "27."
+		},
+		{
+			"id": "c28",
+			"fromNode": "t2",
+			"toNode": "t3",
+			"label": "28."
+		},
+		{
+			"id": "c29",
+			"fromNode": "t3",
+			"toNode": "t4",
+			"label": "29."
+		},
+		{
+			"id": "c30",
+			"fromNode": "t4",
+			"toNode": "t5",
+			"label": "30."
+		},
+		{
+			"id": "c31",
+			"fromNode": "t5",
+			"toNode": "t6",
+			"label": "31."
+		},
+		{
+			"id": "c32",
+			"fromNode": "t6",
+			"toNode": "t7",
+			"label": "32."
+		},
+		{
+			"id": "c33",
+			"fromNode": "t7",
+			"toNode": "t8",
+			"label": "33."
 		}
 	]
 }

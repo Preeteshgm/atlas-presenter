@@ -87,6 +87,40 @@ start is the card with outgoing edges and none incoming, or any card containing
 
 ---
 
+## How a card is named
+
+The same name appears on the map, in the next-card line, in the presenter window
+and in the minutes.
+
+| Card | Named by |
+|---|---|
+| A text card | **Its first line of real content** — tag lines and `%%notes%%` skipped |
+| A note or file | The filename without its extension |
+| …with a heading | `Controls Plan #Why the code` |
+| An HTML card | Its first heading, else "HTML slide" |
+| A web link | The hostname |
+
+A card that opens with `## A short heading` names itself well. One that opens
+with a long paragraph takes the whole first line, which reads badly on the map.
+
+**Pictures are the awkward case.** A media card is named by its filename, which
+is fine when you chose it and poor when a camera did — so `Pasted image
+20251029102222` becomes *Image · 29 Oct 2025*, and `IMG_2043.jpg` becomes
+*Image*.
+
+Better still, **put the picture in a card rather than making the card a
+picture**:
+
+```markdown
+## The surfaces, to scale
+
+![[surfaces.svg]]
+```
+
+Now you choose the name, and you get a caption for free.
+
+---
+
 ## Writing cards
 
 Everything below is written on the canvas. Nothing needs a setting turned on, and
