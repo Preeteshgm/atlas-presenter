@@ -709,6 +709,12 @@ The conclusion.`);
 ` +
 				"</div>");
 
+		entry(card, "Excalidraw drawings",
+			"A drawing is stored as markdown with its JSON inside, so it needs the "
+				+ "Excalidraw plugin to become a picture. Drop the drawing on the canvas, "
+				+ "or embed it — either way it renders as the drawing, not the file.",
+			"![[Drawing 2026-01-14.excalidraw]]");
+
 		entry(card, "Video and audio",
 			"Drop the file on the canvas, or embed it. It starts when the camera arrives " +
 				"and pauses when it leaves. Audio saved as .webm shows as a player bar.",

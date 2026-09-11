@@ -97,6 +97,7 @@ work.
 | `%%…%%` | Speaker notes. Never drawn on the slide; optionally shown under it |
 | `[[A note]]` | Click while presenting to read the whole note over the deck |
 | `![[picture.png]]` | Images, video and audio embeds |
+| `![[drawing.excalidraw]]` | Excalidraw drawings, rendered by that plugin |
 | A very long card | Scrolls a screenful per press, then moves on |
 
 ### Pictures

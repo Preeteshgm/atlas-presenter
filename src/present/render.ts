@@ -78,6 +78,63 @@ function frontmatterClasses(app: App, file: TFile): string[] {
 	return list.map((c) => slug(String(c))).filter(Boolean);
 }
 
+/**
+ * An Excalidraw drawing is stored as markdown with the drawing's JSON inside,
+ * so the extension alone does not identify one. The plugin always writes an
+ * `excalidraw-plugin` key into the frontmatter.
+ */
+function isExcalidraw(app: App, file: TFile): boolean {
+	if (/\.excalidraw$/i.test(file.path)) return true;
+	const fm = app.metadataCache.getFileCache(file)?.frontmatter;
+	return !!fm && "excalidraw-plugin" in fm;
+}
+
+interface ExcalidrawAutomate {
+	reset?: () => void;
+	createSVG?: (
+		templatePath?: string,
+		embedFont?: boolean,
+		exportSettings?: unknown,
+		loader?: unknown,
+		theme?: string,
+		padding?: number
+	) => Promise<SVGSVGElement>;
+}
+
+function excalidrawApi(app: App): ExcalidrawAutomate | null {
+	const fromPlugin = (
+		app as unknown as {
+			plugins?: { plugins?: Record<string, { ea?: ExcalidrawAutomate }> };
+		}
+	).plugins?.plugins?.["obsidian-excalidraw-plugin"]?.ea;
+	const fromWindow = (window as unknown as { ExcalidrawAutomate?: ExcalidrawAutomate })
+		.ExcalidrawAutomate;
+	return fromPlugin ?? fromWindow ?? null;
+}
+
+/**
+ * Hand the drawing to Excalidraw and put the SVG it returns on the card.
+ * Returns false when there is nothing we can do, so the caller can say why.
+ */
+async function renderExcalidraw(app: App, body: HTMLElement, file: TFile): Promise<boolean> {
+	const ea = excalidrawApi(app);
+	if (!ea?.createSVG) return false;
+	try {
+		ea.reset?.();
+		const svg = await ea.createSVG(file.path, true);
+		if (!svg) return false;
+		svg.addClass("atl-drawing");
+		// The plugin sizes the SVG to the drawing; let the card decide instead.
+		svg.removeAttribute("width");
+		svg.removeAttribute("height");
+		svg.setAttribute("preserveAspectRatio", "xMidYMid meet");
+		body.appendChild(svg);
+		return true;
+	} catch {
+		return false;
+	}
+}
+
 /** A human label for a card, used by the minimap so boxes are choosable. */
 export function titleOf(node: CanvasNode): string {
 	if (node.type === "group") return node.label ?? "Section";
@@ -158,12 +215,23 @@ function resolveMedia(app: App, root: ParentNode, sourcePath: string): void {
  * later; nothing fills them in inside a presentation overlay, so a card written
  * with embeds would come up blank.
  */
-function resolveEmbeds(app: App, root: HTMLElement, sourcePath: string): void {
-	root.querySelectorAll("span.internal-embed").forEach((span) => {
+async function resolveEmbeds(app: App, root: HTMLElement, sourcePath: string): Promise<void> {
+	for (const span of Array.from(root.querySelectorAll("span.internal-embed"))) {
 		const src = span.getAttribute("src");
-		if (!src) return;
+		if (!src) continue;
 		const dest = app.metadataCache.getFirstLinkpathDest(src.split("#")[0], sourcePath);
-		if (!dest) return;
+		if (!dest) continue;
+
+		if (isExcalidraw(app, dest)) {
+			const holder = document.createElement("div");
+			holder.addClass("atl-embed");
+			span.replaceWith(holder);
+			if (!(await renderExcalidraw(app, holder, dest))) {
+				holder.addClass("atl-missing");
+				holder.setText(`${dest.basename} needs the Excalidraw plugin.`);
+			}
+			continue;
+		}
 		const url = app.vault.getResourcePath(dest);
 
 		let replacement: HTMLElement | null = null;
@@ -189,7 +257,7 @@ function resolveEmbeds(app: App, root: HTMLElement, sourcePath: string): void {
 			replacement.addClass("atl-embed");
 			span.replaceWith(replacement);
 		}
-	});
+	}
 }
 
 
@@ -318,7 +386,7 @@ async function renderMarkdown(
 		return;
 	}
 	await MarkdownRenderer.render(app, stripComments(md), body, sourcePath, owner);
-	resolveEmbeds(app, body, sourcePath);
+	await resolveEmbeds(app, body, sourcePath);
 	resolveMedia(app, body, sourcePath);
 }
 
@@ -373,6 +441,16 @@ async function renderFileNode(
 	if (file.extension === "canvas") {
 		// Nested decks land in v0.2; for now show it as a signpost.
 		body.createDiv({ cls: "atl-subdeck", text: `↳ ${file.basename}` });
+		return;
+	}
+
+	if (isExcalidraw(app, file)) {
+		if (await renderExcalidraw(app, body, file)) return;
+		body.createDiv({
+			cls: "atl-missing",
+			text: `${file.basename} is an Excalidraw drawing — install or enable the `
+				+ "Excalidraw plugin to show it.",
+		});
 		return;
 	}
 
