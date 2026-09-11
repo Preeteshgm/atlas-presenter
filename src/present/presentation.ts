@@ -321,6 +321,14 @@ export class Presentation extends Component {
 			this.captureNote();
 		});
 
+		const writeBtn = right.createEl("button", { cls: "atl-map-btn", text: "Write up" });
+		writeBtn.setAttribute("aria-label", "Write the session up as a note (W)");
+		writeBtn.dataset.key = "W";
+		writeBtn.addEventListener("click", (e) => {
+			e.stopPropagation();
+			void this.writeUp();
+		});
+
 		const counter = right.createDiv({ cls: "atl-counter" });
 		counter.toggleClass("is-hidden", !this.settings.showCounter);
 
@@ -900,19 +908,31 @@ ${this.themeCss}`,
 		};
 	}
 
-	/** The talk, written up as one note. */
+	/**
+	 * The talk, written up as one note — and then opened, so it is not a file
+	 * you have to go looking for.
+	 */
 	async writeUp(): Promise<void> {
 		if (this.captures.length === 0 && this.visits.length === 0) {
 			new Notice("Atlas: nothing to write up yet.");
 			return;
 		}
-		await writeMinutes(
+		const file = await writeMinutes(
 			this.app,
 			this.session(),
 			this.settings.minutesFolder,
 			this.minutesOptions()
 		);
 		this.written = true;
+		if (!file) return;
+
+		// Opened behind the deck: it is waiting when you leave, and the deck
+		// does not lose its place while you are still presenting.
+		try {
+			await this.app.workspace.getLeaf(true).openFile(file);
+		} catch {
+			// A workspace that refuses a leaf is not a reason to lose the note.
+		}
 	}
 
 	/**
@@ -1115,13 +1135,9 @@ ${this.themeCss}`,
 		this.stopAutoAdvance();
 		// Leaving is the one click: a talk that was noted gets written up.
 		if (!unloading && !this.written && this.captures.length > 0 && this.settings.minutesOnExit) {
-			void writeMinutes(
-				this.app,
-				this.session(),
-				this.settings.minutesFolder,
-				this.minutesOptions()
-			);
-			this.written = true;
+			// Leaving is the one click, so the note opens rather than waiting to
+			// be found.
+			void this.writeUp();
 		}
 		// Returning to a parent hands the deck back; nulling it here would blank
 		// the presenter window the instant you came up a level.

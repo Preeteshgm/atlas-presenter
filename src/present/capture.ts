@@ -220,7 +220,7 @@ export async function writeMinutes(
 
 	try {
 		const file = await app.vault.create(path, minutesFor(session, options));
-		new Notice(`Atlas: written up to ${path}`);
+		new Notice(`Atlas: written up to ${path}`, 8000);
 		return file;
 	} catch (e) {
 		new Notice(`Atlas: could not write the minutes — ${String(e)}`);

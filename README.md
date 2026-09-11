@@ -343,8 +343,13 @@ Cards appear **in the order you actually visited them**, detours through the map
 included. A card nobody wrote anything about is left out. Any line you type
 beginning `- [ ]` is gathered into **Actions** at the end.
 
-`W` writes it up without leaving. Both the folder and whether leaving writes at
-all are in **Settings → Notes and minutes**.
+**`W`**, or the *Write up* button in the bar, writes it without leaving — and
+**opens the note behind the deck**, so it is waiting when you exit rather than
+being a file you have to go and find. Leaving does the same thing.
+
+The folder is **Settings → Notes and minutes → Where minutes are filed**
+(`Meetings` by default), along with whether leaving writes at all, what gets
+appended to each action, and whether actions name the card they came from.
 
 ---
 
