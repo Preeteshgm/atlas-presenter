@@ -108,15 +108,24 @@ export class PresenterView extends ItemView {
 		const on = controls.createEl("button", { cls: "mod-cta", text: "Next  ›" });
 		on.addEventListener("click", () => current?.next());
 
-		// The presenter window has its own focus, so it needs its own keys.
+		// The presenter window has its own focus, so it needs its own keys — and
+		// must stop them there. Obsidian's keymap is shared across windows, so a
+		// key left to travel reaches the canvas in the main window, where the
+		// arrows move whichever card is selected.
+		const FORWARD = ["ArrowRight", " ", "PageDown", "ArrowDown"];
+		const BACK = ["ArrowLeft", "PageUp", "ArrowUp"];
+		const OWNED = [...FORWARD, ...BACK, "Home", "End", "Escape", "Backspace"];
+
 		this.registerDomEvent(this.containerEl.ownerDocument, "keydown", (e: KeyboardEvent) => {
-			if (["ArrowRight", " ", "PageDown", "ArrowDown"].includes(e.key)) {
-				e.preventDefault();
-				current?.next();
-			} else if (["ArrowLeft", "PageUp", "ArrowUp"].includes(e.key)) {
-				e.preventDefault();
-				current?.prev();
-			}
+			const target = e.target as HTMLElement | null;
+			// Anything typed into a field in this window belongs to that field.
+			if (target?.closest("input, textarea, [contenteditable='true']")) return;
+			if (!OWNED.includes(e.key)) return;
+
+			e.preventDefault();
+			e.stopPropagation();
+			if (FORWARD.includes(e.key)) current?.next();
+			else if (BACK.includes(e.key)) current?.prev();
 		});
 
 		this.unsubscribeDeck = watchDeck(() => this.attach());
