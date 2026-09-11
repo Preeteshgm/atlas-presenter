@@ -53,6 +53,7 @@ starts at the beginning.
 | `Backspace` | Return from a jump, or one level out of a peeked note |
 | `O` | Zoom out to the whole map |
 | `Home` `End` | First and last card |
+| `P` | Open the presenter window on your second screen |
 | `E` | Export the deck to one standalone HTML file |
 | `F` | Fullscreen |
 | `Esc` | Close the map or the note, then leave the deck |
@@ -275,11 +276,26 @@ run.
 
 ---
 
+## The presenter window
+
+Press **`P`**. Obsidian opens a second window showing what you need and the
+audience does not: the current card, **its speaker note at a readable size**, the
+section you are in, what is coming next, the elapsed time and the clock, and
+Back / Next buttons.
+
+Drag it to your laptop screen and put the deck on the projector. Arrow keys work
+in either window and drive the same deck.
+
+Speaker notes are collected whether or not the on-screen panel is enabled, so
+turning that off leaves the presenter window fully fed.
+
+---
+
 ## Not built yet
 
-A presenter view on a second screen, nested canvases as sub-decks (a `.canvas`
-card renders as a signpost), and PDF — for which the browser's own print of the
-exported HTML is usually the better answer.
+Nested canvases as sub-decks (a `.canvas` card renders as a signpost), and PDF —
+for which the browser's own print of the exported HTML is usually the better
+answer.
 
 ---
 

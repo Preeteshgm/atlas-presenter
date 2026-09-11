@@ -25,6 +25,7 @@ import {
 } from "./render";
 import { Slideshow } from "./slideshow";
 import { exportDeck } from "./export";
+import { DeckSnapshot, PRESENTER_VIEW, setDeck } from "./presenter";
 
 /** Anything that handles its own clicks must not also advance the slide. */
 const INTERACTIVE = "a, button, video, audio, iframe, input, textarea, select, .atl-hud";
@@ -46,6 +47,9 @@ export class Presentation extends Component {
 	private notes = new Map<string, string>();
 	private began = 0;
 	private ticker = 0;
+	/** Anything following along — the presenter window, today. */
+	private listeners = new Set<() => void>();
+	private presenterLeaf: WorkspaceLeaf | null = null;
 	private scene!: Scene;
 
 	private index = 0;
@@ -99,6 +103,8 @@ export class Presentation extends Component {
 		this.peek = new Peek(this.overlay, this.app, this);
 		this.browser = new Browser(this.overlay, this.app, (file) => void this.peek.showFile(file));
 		this.minimap = new Minimap(this.overlay, this.app, this.scene, (i) => this.jumpTo(i));
+		this.began = Date.now();
+		setDeck(this);
 		this.goTo(this.startIndex(), { animate: false });
 		this.bindKeys();
 
@@ -302,8 +308,8 @@ export class Presentation extends Component {
 			if (this.minimap?.isOpen || this.peek?.isOpen || this.browser?.isOpen) return;
 			if (this.matchInPath(e, INTERACTIVE)) return;
 			// Click the right two-thirds to advance, the left third to go back.
-			if (e.clientX > window.innerWidth / 3) this.next();
-			else this.prev();
+			if (e.clientX > window.innerWidth / 3) this.advance();
+			else this.retreat();
 		});
 	}
 
@@ -463,10 +469,10 @@ export class Presentation extends Component {
 				this.back();
 			} else if (key === "ArrowRight" || key === " " || key === "PageDown" || key === "ArrowDown") {
 				handled();
-				this.next();
+				this.advance();
 			} else if (key === "ArrowLeft" || key === "PageUp" || key === "ArrowUp") {
 				handled();
-				this.prev();
+				this.retreat();
 			} else if (key === "Home") {
 				handled();
 				this.goTo(0);
@@ -476,6 +482,9 @@ export class Presentation extends Component {
 			} else if (key === "o" || key === "O") {
 				handled();
 				this.overview();
+			} else if (key === "p" || key === "P") {
+				handled();
+				void this.openPresenter();
 			} else if (key === "e" || key === "E") {
 				handled();
 				void this.exportToHtml();
@@ -557,6 +566,7 @@ export class Presentation extends Component {
 		this.signal(stop.node.id, "enter");
 		this.minimap?.setCurrent(stop.kind === "node" ? stop.node.id : undefined);
 		this.updateHud(stop, steps.length);
+		for (const listener of this.listeners) listener();
 	}
 
 	/**
@@ -659,7 +669,7 @@ export class Presentation extends Component {
 	}
 
 	/** Reveals first, then scrolling, then the next card. */
-	private next(): void {
+	private advance(): void {
 		const steps = this.steps.get(this.stopAt(this.index).node.id) ?? [];
 		if (this.stepIndex < steps.length) {
 			steps[this.stepIndex].addClass("is-shown");
@@ -676,7 +686,7 @@ export class Presentation extends Component {
 		this.goTo(this.index + 1);
 	}
 
-	private prev(): void {
+	private retreat(): void {
 		if (this.scrollStep(-1)) return;
 		const albums = this.shows.get(this.stopAt(this.index).node.id) ?? [];
 		for (const show of [...albums].reverse()) {
@@ -727,6 +737,55 @@ ${this.themeCss}`,
 		});
 	}
 
+	// ---- what a presenter window is allowed to know and do ----------------
+
+	onChange(listener: () => void): () => void {
+		this.listeners.add(listener);
+		return () => this.listeners.delete(listener);
+	}
+
+	snapshot(): DeckSnapshot {
+		const stop = this.stopAt(this.index);
+		const upcoming = this.scene.stops[this.index + 1];
+		return {
+			deck: this.file.basename,
+			section: stop.group?.label ?? "",
+			card: titleOf(stop.node),
+			notes: this.notes.get(stop.node.id) ?? "",
+			next: upcoming ? titleOf(upcoming.node) : "",
+			index: this.cardNumber(this.index),
+			total: this.cardTotal,
+			elapsedMs: Date.now() - this.began,
+		};
+	}
+
+	/** Public so the presenter window's own keys can drive the deck. */
+	next(): void {
+		this.advance();
+	}
+
+	prev(): void {
+		this.retreat();
+	}
+
+	/**
+	 * A second screen: notes, the clock, and what is coming — while the
+	 * projector shows only the deck.
+	 */
+	private async openPresenter(): Promise<void> {
+		if (this.presenterLeaf) {
+			this.app.workspace.setActiveLeaf(this.presenterLeaf, { focus: true });
+			return;
+		}
+		try {
+			const leaf = this.app.workspace.openPopoutLeaf();
+			await leaf.setViewState({ type: PRESENTER_VIEW, active: true });
+			this.presenterLeaf = leaf;
+		} catch {
+			new Notice("Atlas: could not open a presenter window.");
+		}
+	}
+
 	private overview(): void {
 		void this.camera.flyTo(this.scene.bounds, this.settings.duration);
 	}
@@ -749,7 +808,6 @@ ${this.themeCss}`,
 
 	/** Collect %%notes%% once, rather than re-reading a file on every move. */
 	private async collectNotes(): Promise<void> {
-		if (!this.settings.showNotes) return;
 		for (const node of this.scene.slides) {
 			if (node.type === "text") {
 				const text = speakerNotes(node.text ?? "");
@@ -860,6 +918,17 @@ ${this.themeCss}`,
 	}
 
 	stop(unloading = false): void {
+		setDeck(null);
+		this.listeners.clear();
+		// Obsidian restores its own windows, so leave the leaf alone on unload.
+		if (!unloading) {
+			try {
+				this.presenterLeaf?.detach();
+			} catch {
+				// Closed by hand already.
+			}
+		}
+		this.presenterLeaf = null;
 		if (this.ticker) window.clearInterval(this.ticker);
 		this.ticker = 0;
 		this.closeVaultGraph(unloading);

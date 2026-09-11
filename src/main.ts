@@ -4,6 +4,7 @@ import { Presentation } from "./present/presentation";
 import { parseCanvas } from "./canvas/parse";
 import { variantsIn } from "./canvas/path";
 import { VariantPicker } from "./variant-picker";
+import { PRESENTER_VIEW, PresenterView } from "./present/presenter";
 import { AtlasSettingTab } from "./settings";
 
 /**
@@ -28,6 +29,7 @@ export default class AtlasPlugin extends Plugin {
 	async onload(): Promise<void> {
 		this.settings = Object.assign({}, DEFAULT_SETTINGS, await this.loadData());
 		addIcon(ICON_ID, ICON_SVG);
+		this.registerView(PRESENTER_VIEW, (leaf) => new PresenterView(leaf));
 
 		this.addCommand({
 			id: "present-canvas",

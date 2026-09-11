@@ -1024,3 +1024,100 @@
 /* The variant picker */
 .atl-pick-name { font-weight: 600; }
 .atl-pick-detail { font-size: 12px; color: var(--text-faint); margin-top: 1px; }
+
+/* --- The presenter window ---------------------------------------------- */
+
+.atl-presenter {
+	display: flex;
+	flex-direction: column;
+	height: 100%;
+	padding: 20px 24px;
+	gap: 14px;
+}
+
+.atl-presenter .is-hidden { display: none; }
+
+.atl-presenter-empty {
+	margin: auto;
+	color: var(--text-faint);
+	font-style: italic;
+}
+
+.atl-presenter-body {
+	display: flex;
+	flex-direction: column;
+	height: 100%;
+	min-height: 0;
+	gap: 14px;
+}
+
+.atl-presenter-head {
+	display: flex;
+	justify-content: space-between;
+	align-items: baseline;
+	gap: 16px;
+	padding-bottom: 10px;
+	border-bottom: 1px solid var(--background-modifier-border);
+}
+
+.atl-presenter-section {
+	font-size: 14px;
+	color: var(--text-muted);
+	font-weight: 500;
+}
+
+.atl-presenter-time {
+	font-variant-numeric: tabular-nums;
+	font-size: 20px;
+	font-weight: 600;
+	color: var(--text-normal);
+}
+
+.atl-presenter-card {
+	font-size: 30px;
+	font-weight: 700;
+	line-height: 1.15;
+	letter-spacing: -0.015em;
+}
+
+/* The notes are the reason this window exists, so they get the room. */
+.atl-presenter-notes {
+	flex: 1 1 auto;
+	min-height: 0;
+	overflow-y: auto;
+	padding: 16px 18px;
+	border-radius: 10px;
+	background: var(--background-secondary);
+	font-size: 18px;
+	line-height: 1.6;
+	white-space: pre-wrap;
+}
+
+.atl-presenter-notes.is-empty {
+	color: var(--text-faint);
+	font-style: italic;
+	font-size: 15px;
+}
+
+.atl-presenter-foot {
+	display: flex;
+	justify-content: space-between;
+	align-items: baseline;
+	gap: 16px;
+	font-size: 14px;
+	color: var(--text-muted);
+}
+
+.atl-presenter-count { font-variant-numeric: tabular-nums; }
+
+.atl-presenter-controls {
+	display: flex;
+	gap: 10px;
+}
+
+.atl-presenter-controls button {
+	flex: 1 1 0;
+	padding: 12px;
+	font-size: 15px;
+	cursor: pointer;
+}
