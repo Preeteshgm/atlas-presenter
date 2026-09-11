@@ -255,6 +255,22 @@ a stand. Any keypress stops it, because someone has arrived.
 
 ## Theming
 
+### Every `#` line
+
+A line holding nothing but tags is an instruction. It is removed before the card
+is drawn, so it never reaches the slide.
+
+**Markers — what a card is:**
+
+| | |
+|---|---|
+| `#deck` | The deck's title block. Never presented, never on the map |
+| `#start` | Begin here, whatever the arrows say |
+| `#skip-short` | Leave this card out of the talk called *short* |
+| `#only-short` | Show it in *short* and nowhere else |
+
+**Roles — how a card looks:**
+
 ### The eight card roles
 
 Every Atlas theme implements the same names, so a deck written against one theme

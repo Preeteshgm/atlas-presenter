@@ -88,12 +88,32 @@ export class AtlasSettingTab extends PluginSettingTab {
 		}
 	}
 
-	/** Stylesheets in the vault, so a theme is picked rather than typed. */
+	/**
+	 * Stylesheets in the vault, with the ones that are actually Atlas themes
+	 * first.
+	 *
+	 * A vault that has ever exported a reveal.js deck contains a hundred and
+	 * thirty stylesheets, and the three that matter were lost among them.
+	 */
 	private cssChoices(): Record<string, string> {
-		const out: Record<string, string> = { "": "— none —" };
+		const NOISE = /(^|\/)(dist|plugin|plugins|node_modules|\.obsidian)\//i;
+		const themes: string[] = [];
+		const others: string[] = [];
+
 		for (const file of this.app.vault.getFiles()) {
-			if (file.extension === "css") out[file.path] = file.path;
+			if (file.extension !== "css") continue;
+			if (NOISE.test(file.path)) continue;
+			if (/(^|\/)Themes\//i.test(file.path)) themes.push(file.path);
+			else others.push(file.path);
 		}
+		themes.sort();
+		others.sort();
+
+		const out: Record<string, string> = { "": "— none —" };
+		for (const path of themes) {
+			out[path] = `Themes  ·  ${path.split("/").pop()?.replace(/\.css$/, "")}`;
+		}
+		for (const path of others) out[path] = path;
 		return out;
 	}
 
@@ -665,6 +685,48 @@ export class AtlasSettingTab extends PluginSettingTab {
 				window.setTimeout(() => copy.setText("Copy"), 1200);
 			});
 		};
+
+		// ------------------------------------------------- every # line
+		const hashes = section("Every # line");
+
+		hashes.createDiv({
+			cls: "atl-ref-lead",
+			text:
+				"A line holding nothing but tags is an instruction, and is removed before " +
+				"the card is drawn \u2014 so it never reaches the slide. Markers change what a " +
+				"card is; roles change how it looks.",
+		});
+
+		for (const [tag, what] of [
+			["#deck", "This card is the deck's title block. It is never presented and never appears on the map. Its key: value lines set the header, the theme, the logo and more."],
+			["#start", "Begin the deck here, whatever the arrows say."],
+			["#skip-short", "Leave this card out of the talk called \u201cshort\u201d. It stays in every other one."],
+			["#only-short", "Show this card in the \u201cshort\u201d talk and nowhere else."],
+		] as [string, string][]) {
+			entry(hashes, tag, what, tag);
+		}
+
+		const roles = section("The eight card roles");
+
+		roles.createDiv({
+			cls: "atl-ref-lead",
+			text:
+				"Every Atlas theme implements these same names, so a deck written against " +
+				"one theme works against any of them. Put one at the top of a card.",
+		});
+
+		for (const [tag, what] of [
+			["(no tag)", "An ordinary card: a heading and some text."],
+			["#title", "The opening card \u2014 a large heading with a line beneath it."],
+			["#section", "A divider carrying only the section's name, inverted, with a rule under it."],
+			["#quote", "A pull quote, set large with an opening mark."],
+			["#stat", "One large number, centred, with a line about it."],
+			["#dark", "The same card, inverted. Useful for a point you want to land."],
+			["#split", "Two columns. Headings span both."],
+			["#full", "A picture with no margin, filling the card."],
+		] as [string, string][]) {
+			entry(roles, tag, what, tag === "(no tag)" ? undefined : tag);
+		}
 
 		// ------------------------------------------------- on the canvas
 		const canvas = section("On the canvas");

@@ -195,7 +195,17 @@ export class Presentation extends Component {
 			new Notice(`Atlas: theme file not found — ${path}`);
 			return "";
 		}
-		return this.app.vault.cachedRead(file);
+		const css = await this.app.vault.cachedRead(file);
+		// A stylesheet with none of our class names is almost always a reveal.js
+		// theme picked out of an export folder, and will do nothing at all.
+		if (css && !css.includes(".atl-")) {
+			new Notice(
+				`Atlas: ${file.name} has no Atlas selectors in it, so it will not ` +
+					"change anything. Try Atlas/Themes/Paper.css.",
+				9000
+			);
+		}
+		return css;
 	}
 
 	/** Open on the card that was selected in the canvas, when there was one. */
