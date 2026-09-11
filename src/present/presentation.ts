@@ -57,6 +57,9 @@ export class Presentation extends Component {
 	/** Set while the note box owns the keyboard. */
 	private capturing = false;
 	private written = false;
+	/** A blanked screen, and the unattended-run timer. */
+	private blanked = false;
+	private autoAdvance = 0;
 	private scene!: Scene;
 
 	private index = 0;
@@ -112,6 +115,7 @@ export class Presentation extends Component {
 		this.minimap = new Minimap(this.overlay, this.app, this.scene, (i) => this.jumpTo(i));
 		this.began = Date.now();
 		setDeck(this);
+		this.startAutoAdvance();
 		this.goTo(this.startIndex(), { animate: false });
 		this.bindKeys();
 
@@ -393,6 +397,7 @@ export class Presentation extends Component {
 			// The note box is a Modal with its own key scope. Touching the event
 			// here would either steal the keystroke or let it through to the deck.
 			if (this.capturing) return;
+			this.stopAutoAdvance();
 
 			if (this.away) {
 				if (key === "Escape") {
@@ -493,6 +498,10 @@ export class Presentation extends Component {
 			} else if (key === "o" || key === "O") {
 				handled();
 				this.overview();
+			} else if (key === "b" || key === "B") {
+				handled();
+				this.blanked = !this.blanked;
+				this.overlay.toggleClass("is-blank", this.blanked);
 			} else if (key === "n" || key === "N") {
 				handled();
 				this.captureNote();
@@ -855,6 +864,31 @@ ${this.themeCss}`,
 		this.written = true;
 	}
 
+	/**
+	 * `advance: 8s` on the #deck card runs the deck by itself — a lobby screen,
+	 * a stand. Any keypress stops it, because someone has arrived.
+	 */
+	private startAutoAdvance(): void {
+		const raw = this.scene.meta.advance;
+		if (!raw) return;
+		const m = raw.match(/([\d.]+)\s*(ms|s|m)?/i);
+		if (!m) return;
+		const n = parseFloat(m[1]);
+		const unit = (m[2] ?? "s").toLowerCase();
+		const ms = unit === "ms" ? n : unit === "m" ? n * 60000 : n * 1000;
+		if (!Number.isFinite(ms) || ms < 500) return;
+
+		this.autoAdvance = window.setInterval(() => {
+			if (this.index >= this.scene.stops.length - 1) this.goTo(0);
+			else this.advance();
+		}, ms);
+	}
+
+	private stopAutoAdvance(): void {
+		if (this.autoAdvance) window.clearInterval(this.autoAdvance);
+		this.autoAdvance = 0;
+	}
+
 	private overview(): void {
 		void this.camera.flyTo(this.scene.bounds, this.settings.duration);
 	}
@@ -987,6 +1021,7 @@ ${this.themeCss}`,
 	}
 
 	stop(unloading = false): void {
+		this.stopAutoAdvance();
 		// Leaving is the one click: a talk that was noted gets written up.
 		if (!unloading && !this.written && this.captures.length > 0 && this.settings.minutesOnExit) {
 			void writeMinutes(this.app, this.session(), this.settings.minutesFolder);

@@ -53,6 +53,7 @@ starts at the beginning.
 | `Backspace` | Return from a jump, or one level out of a peeked note |
 | `O` | Zoom out to the whole map |
 | `Home` `End` | First and last card |
+| `B` | Blank the screen — attention on the room, not the slide |
 | `N` | Note something against the card on screen |
 | `W` | Write the session up now |
 | `P` | Open the presenter window on your second screen |
@@ -182,6 +183,10 @@ deck and an internal deck can differ entirely with nothing in settings:
 
 `theme:` `logo:` `logo corner:` `logo height:` `accent:` `colour:` `image:`
 `dim:` `align:` `fit:` `transition:` `header on:` `header position:`
+`variant:` `advance:`
+
+`advance: 8s` runs the deck by itself for an unattended screen — a lobby,
+a stand. Any keypress stops it, because someone has arrived.
 
 ---
 
@@ -333,9 +338,12 @@ all are in **Settings → Notes and minutes**.
 
 ## Not built yet
 
-Nested canvases as sub-decks (a `.canvas` card renders as a signpost), and PDF —
-for which the browser's own print of the exported HTML is usually the better
-answer.
+Nested canvases as sub-decks — a `.canvas` card renders as a signpost. `M`
+already reaches any card, which is most of what a sub-deck would buy.
+
+PDF, deliberately: printing flattens the camera, which is the thing that makes
+this different. The browser's own print of an exported deck is the better answer
+when paper is genuinely needed.
 
 ---
 

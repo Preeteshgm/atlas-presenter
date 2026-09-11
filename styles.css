@@ -1144,3 +1144,17 @@
 	font-size: 12px;
 	color: var(--text-faint);
 }
+
+/* B blanks the screen: attention on the room, not the slide. */
+.atl-overlay.is-blank .atl-viewport,
+.atl-overlay.is-blank .atl-hud,
+.atl-overlay.is-blank .atl-header,
+.atl-overlay.is-blank .atl-band,
+.atl-overlay.is-blank .atl-logo {
+	opacity: 0;
+	transition: opacity 220ms ease;
+}
+
+.atl-overlay.is-blank {
+	background: #000;
+}
