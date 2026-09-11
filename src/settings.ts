@@ -815,9 +815,10 @@ The conclusion.`);
 				+ "host, the card element. Look things up through root — document sees "
 				+ "a different tree and will find nothing. Anything that throws is "
 				+ "shown on the card.",
-			"var box = root.querySelector('#chart');
-"
-				+ "host.addEventListener('atlas:enter', start);");
+			[
+				"var box = root.querySelector('#chart');",
+				"host.addEventListener('atlas:enter', start);",
+			].join("\n"));
 
 		entry(html, "Pausing an animation",
 			"A card that animates should stop when it is off camera. Listen on the shadow " +
