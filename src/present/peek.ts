@@ -19,7 +19,9 @@ export class Peek {
 	constructor(container: HTMLElement, private app: App, private owner: Component) {
 		this.root = container.createDiv({ cls: "atl-peek" });
 		this.root.addEventListener("click", (e) => {
-			if (e.target === this.root) this.close();
+			if (e.target !== this.root) return;
+			e.stopPropagation();
+			this.close();
 		});
 
 		const panel = this.root.createDiv({ cls: "atl-peek-panel" });

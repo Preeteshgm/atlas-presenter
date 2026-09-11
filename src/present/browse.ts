@@ -57,7 +57,9 @@ export class Browser {
 	constructor(container: HTMLElement, private app: App, private onOpen: (file: TFile) => void) {
 		this.root = container.createDiv({ cls: "atl-browse" });
 		this.root.addEventListener("click", (e) => {
-			if (e.target === this.root) this.hide();
+			if (e.target !== this.root) return;
+			e.stopPropagation();
+			this.hide();
 		});
 
 		const panel = this.root.createDiv({ cls: "atl-browse-panel" });

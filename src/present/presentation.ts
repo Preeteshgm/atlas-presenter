@@ -347,6 +347,10 @@ export class Presentation extends Component {
 		viewport.addEventListener("click", (e) => {
 			if (this.minimap?.isOpen || this.peek?.isOpen || this.browser?.isOpen) return;
 			if (this.matchInPath(e, INTERACTIVE)) return;
+			// Acting on an event means owning it: anything left to travel reaches
+			// the app behind the deck.
+			e.preventDefault();
+			e.stopPropagation();
 			// Click the right two-thirds to advance, the left third to go back.
 			if (e.clientX > window.innerWidth / 3) this.advance();
 			else this.retreat();

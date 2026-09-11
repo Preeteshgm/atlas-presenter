@@ -52,7 +52,9 @@ export class Minimap {
 	) {
 		this.root = container.createDiv({ cls: "atl-minimap" });
 		this.root.addEventListener("click", (e) => {
-			if (e.target === this.root) this.hide();
+			if (e.target !== this.root) return;
+			e.stopPropagation();
+			this.hide();
 		});
 
 		const b = rectOf(this.scene.bounds);
@@ -66,7 +68,9 @@ export class Minimap {
 		// The svg covers the backdrop, so clicking empty space inside it has to
 		// close too, or the overlay feels stuck.
 		this.svg.addEventListener("click", (e) => {
-			if (e.target === this.svg) this.hide();
+			if (e.target !== this.svg) return;
+			e.stopPropagation();
+			this.hide();
 		});
 		this.root.appendChild(this.svg);
 

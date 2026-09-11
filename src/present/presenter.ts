@@ -104,9 +104,15 @@ export class PresenterView extends ItemView {
 
 		const controls = this.bodyEl.createDiv({ cls: "atl-presenter-controls" });
 		const back = controls.createEl("button", { text: "‹  Back" });
-		back.addEventListener("click", () => current?.prev());
+		back.addEventListener("click", (e) => {
+			e.stopPropagation();
+			current?.prev();
+		});
 		const on = controls.createEl("button", { cls: "mod-cta", text: "Next  ›" });
-		on.addEventListener("click", () => current?.next());
+		on.addEventListener("click", (e) => {
+			e.stopPropagation();
+			current?.next();
+		});
 
 		// The presenter window has its own focus, so it needs its own keys — and
 		// must stop them there. Obsidian's keymap is shared across windows, so a
