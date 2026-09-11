@@ -354,6 +354,22 @@ export class Presentation extends Component {
 				e.preventDefault();
 				e.stopPropagation();
 			};
+			// Anything the deck navigates with. Letting one of these through
+			// reaches the canvas behind the overlay, where the arrow keys *move*
+			// the selected card — presenting would quietly edit the file.
+			const NAVIGATION = new Set([
+				"ArrowLeft",
+				"ArrowRight",
+				"ArrowUp",
+				"ArrowDown",
+				"PageUp",
+				"PageDown",
+				"Home",
+				"End",
+				" ",
+				"Backspace",
+				"Escape",
+			]);
 
 			if (this.away) {
 				if (key === "Escape") {
@@ -364,6 +380,12 @@ export class Presentation extends Component {
 			}
 
 			if (this.browser?.isOpen) {
+				// Typing must still reach the search box, so only the keys the
+				// list steers with are taken.
+				if (["Escape", "ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight", "Enter"].includes(key)) {
+					e.preventDefault();
+					e.stopPropagation();
+				}
 				if (key === "Escape") {
 					handled();
 					this.browser.hide();
@@ -382,6 +404,10 @@ export class Presentation extends Component {
 
 			// The peek sits on top of everything and swallows navigation.
 			if (this.peek?.isOpen) {
+				if (NAVIGATION.has(key)) {
+					e.preventDefault();
+					e.stopPropagation();
+				}
 				if (key === "Escape") {
 					handled();
 					this.peek.close();
@@ -401,6 +427,17 @@ export class Presentation extends Component {
 					handled();
 					this.peek.scroller.scrollTo({ top: this.peek.scroller.scrollHeight, behavior: "smooth" });
 				}
+				return;
+			}
+
+			if (NAVIGATION.has(key)) {
+				e.preventDefault();
+				e.stopPropagation();
+			}
+
+			// While the map is up it owns the screen: moving the deck behind it
+			// is disorienting, and Escape should close the map first.
+			if (this.minimap?.isOpen && key !== "Escape" && key !== "m" && key !== "M") {
 				return;
 			}
 
