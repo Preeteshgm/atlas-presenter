@@ -1286,3 +1286,9 @@ settings:
    so the isolation it relied on is gone and it needs the reset restated. */
 .atl-was-shadow { display: block; width: 100%; height: 100%; }
 .atl-was-shadow > div { width: 100%; height: 100%; }
+
+/* The Remark button, when this card already carries a note. */
+.atl-map-btn.has-note {
+	color: var(--text-normal);
+	border-color: var(--atl-accent);
+}

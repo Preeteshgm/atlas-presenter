@@ -843,21 +843,32 @@ ${this.themeCss}`,
 		}
 	}
 
-	/** A note against whichever card is on screen. */
+	/**
+	 * A note against whichever card is on screen — or the one already there.
+	 *
+	 * Pressing N twice on the same card should let you add a line, not start a
+	 * blank note you cannot see. One card therefore holds one note, kept at the
+	 * time it was first made so the write-up stays in order.
+	 */
 	private captureNote(): void {
 		const stop = this.stopAt(this.index);
+		const title = titleOf(stop.node);
+		const existing = this.captures.filter((c) => c.nodeId === stop.node.id);
+		const firstAt = existing.length > 0 ? existing[0].at : Date.now();
+
 		this.capturing = true;
 		new CaptureModal(
 			this.app,
-			titleOf(stop.node),
+			title,
+			existing.map((c) => c.text).join("\n\n"),
 			(text) => {
-			this.captures.push({
-				nodeId: stop.node.id,
-				title: titleOf(stop.node),
-				text,
-				at: Date.now(),
-			});
-				new Notice(`Atlas: noted against “${titleOf(stop.node)}”`);
+				this.captures = this.captures.filter((c) => c.nodeId !== stop.node.id);
+				if (text) {
+					this.captures.push({ nodeId: stop.node.id, title, text, at: firstAt });
+					new Notice(`Atlas: noted against “${title}”`);
+				} else {
+					new Notice(`Atlas: note on “${title}” removed`);
+				}
 				this.updateHud(this.stopAt(this.index), 0);
 				for (const listener of this.listeners) listener();
 			},
@@ -1078,6 +1089,7 @@ ${this.themeCss}`,
 		const remark = this.hud.querySelector<HTMLElement>(".atl-map-btn[data-key='N']");
 		if (remark) {
 			remark.setText(this.captures.length ? `Remark ${this.captures.length}` : "Remark");
+			remark.toggleClass("has-note", this.captures.some((c) => c.nodeId === stop.node.id));
 		}
 
 		if (this.nextEl) {

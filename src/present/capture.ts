@@ -47,22 +47,32 @@ export class CaptureModal extends Modal {
 	constructor(
 		app: App,
 		private cardTitle: string,
+		/** What was already noted on this card, so it can be added to or edited. */
+		private initial: string,
 		private onSave: (text: string) => void,
 		/** Called however the box closes — saved, or dismissed. */
 		private onDismiss: () => void
 	) {
 		super(app);
+		this.value = initial;
 	}
 
 	onOpen(): void {
 		const { contentEl, titleEl } = this;
-		titleEl.setText(`Note on “${this.cardTitle}”`);
+		titleEl.setText(
+			this.initial
+				? `Note on “${this.cardTitle}” — editing`
+				: `Note on “${this.cardTitle}”`
+		);
 		contentEl.addClass("atl-capture");
 
 		const box = contentEl.createEl("textarea", { cls: "atl-capture-box" });
 		box.placeholder =
 			"What was said, what was asked, what to do next.\nA line starting - [ ] becomes an action.";
 		box.rows = 6;
+		// Pre-filled with whatever is already on this card: a second press adds
+		// to the note rather than starting a blank one you cannot see.
+		box.value = this.initial;
 		box.addEventListener("input", () => (this.value = box.value));
 		box.addEventListener("keydown", (e) => {
 			// Enter saves, Shift+Enter makes a new line. The event goes no further
@@ -77,18 +87,26 @@ export class CaptureModal extends Modal {
 		const row = contentEl.createDiv({ cls: "atl-capture-row" });
 		row.createDiv({
 			cls: "atl-capture-hint",
-			text: "Enter saves · Shift+Enter for a new line · Esc discards",
+			text: this.initial
+				? "Enter saves · Shift+Enter for a new line · clear it to delete the note"
+				: "Enter saves · Shift+Enter for a new line · Esc discards",
 		});
 		const save = row.createEl("button", { cls: "mod-cta", text: "Save" });
 		save.addEventListener("click", () => this.save());
 
-		window.setTimeout(() => box.focus(), 0);
+		window.setTimeout(() => {
+			box.focus();
+			// Land at the end, ready to add a line.
+			box.setSelectionRange(box.value.length, box.value.length);
+		}, 0);
 	}
 
 	private save(): void {
 		const text = this.value.trim();
 		this.close();
-		if (text) this.onSave(text);
+		// An emptied box on an existing note means delete it, which is why this
+		// is not guarded by `if (text)` any more.
+		if (text || this.initial) this.onSave(text);
 	}
 
 	onClose(): void {
@@ -130,7 +148,7 @@ export function minutesFor(session: Session, options: MinutesOptions): string {
 	lines.push(spans.join(" · "), "", `Deck: [[${session.deck}]]`, "");
 
 	const byCard = new Map<string, Capture[]>();
-	for (const c of session.captures) {
+	for (const c of [...session.captures].sort((a, b) => a.at - b.at)) {
 		const list = byCard.get(c.nodeId);
 		if (list) list.push(c);
 		else byCard.set(c.nodeId, [c]);

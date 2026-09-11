@@ -315,6 +315,12 @@ under the card if you enable it, and always in the presenter window.
 deck, already focused. Type, press Enter, it closes. What you typed is attached
 to **the card that was on screen**, with the time.
 
+Press `N` on that card again and the box comes back **with what you wrote in it**,
+cursor at the end — so a second thought adds a line rather than starting a blank
+note you cannot see. One card holds one note, kept at the time you first made it
+so the write-up stays in order. Clear the box and save to delete it. The Remark
+button in the bar is outlined when the card you are on already has one.
+
 Leaving the deck writes it all up as one note in `Meetings/`:
 
 ```markdown
