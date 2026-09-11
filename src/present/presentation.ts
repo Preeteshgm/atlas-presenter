@@ -726,6 +726,26 @@ export class Presentation extends Component {
 		}
 	}
 
+	/**
+	 * Cards, not stops.
+	 *
+	 * A section overview is a stop but not a card, so counting stops made the
+	 * number jump by two where the audience saw one new slide — and disagreed
+	 * with the numbered badges on the map, which count cards.
+	 */
+	private get cardTotal(): number {
+		return this.scene.stops.filter((s) => s.kind === "node").length;
+	}
+
+	private cardNumber(index: number): number {
+		let seen = 0;
+		for (let i = 0; i <= index; i++) {
+			if (this.scene.stops[i]?.kind === "node") seen++;
+		}
+		// On a section overview, name the card it is about to show.
+		return this.scene.stops[index]?.kind === "node" ? seen : Math.min(seen + 1, this.cardTotal);
+	}
+
 	private updateHud(stop: Stop, stepCount: number): void {
 		this.renderHeader(stop);
 
@@ -755,7 +775,7 @@ export class Presentation extends Component {
 		}
 		if (counter) {
 			const reveal = stepCount > 0 ? ` · ${this.stepIndex}/${stepCount}` : "";
-			counter.setText(`${this.index + 1} / ${this.scene.stops.length}${reveal}`);
+			counter.setText(`${this.cardNumber(this.index)} / ${this.cardTotal} ${reveal}`.trim());
 		}
 	}
 

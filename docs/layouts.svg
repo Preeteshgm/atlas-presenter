@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 560" width="760" height="560" role="img">
+<rect width="760" height="560" rx="10" fill="#F4F6F1"/>
+<text x="24" y="32" font-family="IBM Plex Sans, Segoe UI, system-ui, sans-serif" font-size="16" fill="#14232A" text-anchor="start" font-weight="600">Three ways to put pictures on one card</text>
+<text x="24" y="76" font-family="IBM Plex Mono, ui-monospace, monospace" font-size="13" fill="#1D5A78" text-anchor="start" font-weight="600">atl-gallery</text>
+<text x="24" y="94" font-family="IBM Plex Sans, Segoe UI, system-ui, sans-serif" font-size="12.5" fill="#5A6B72" text-anchor="start" font-weight="400">all at once, side by side</text>
+<rect x="250" y="60" width="470" height="120" rx="6" fill="#FFFFFF" stroke="#C3CBC5" stroke-width="1.5"/>
+<text x="24" y="234" font-family="IBM Plex Mono, ui-monospace, monospace" font-size="13" fill="#1D5A78" text-anchor="start" font-weight="600">atl-slideshow</text>
+<text x="24" y="252" font-family="IBM Plex Sans, Segoe UI, system-ui, sans-serif" font-size="12.5" fill="#5A6B72" text-anchor="start" font-weight="400">one at a time, in place</text>
+<rect x="250" y="218" width="470" height="120" rx="6" fill="#FFFFFF" stroke="#C3CBC5" stroke-width="1.5"/>
+<text x="24" y="392" font-family="IBM Plex Mono, ui-monospace, monospace" font-size="13" fill="#1D5A78" text-anchor="start" font-weight="600">atl-scroll</text>
+<text x="24" y="410" font-family="IBM Plex Sans, Segoe UI, system-ui, sans-serif" font-size="12.5" fill="#5A6B72" text-anchor="start" font-weight="400">a column the card walks down</text>
+<rect x="250" y="376" width="470" height="120" rx="6" fill="#FFFFFF" stroke="#C3CBC5" stroke-width="1.5"/>
+<clipPath id="c26474"><rect x="264" y="74" width="100" height="72" rx="4"/></clipPath><g clip-path="url(#c26474)"><rect x="264" y="74" width="100" height="72" fill="#9FB3C8"/><circle cx="336" cy="95.6" r="9.36" fill="#FFFFFF" opacity="0.55"/><path d="M264 146 L299 106.4 L332 130.16 L364 146 Z" fill="#14232A" opacity="0.45"/></g>
+<clipPath id="c37874"><rect x="378" y="74" width="100" height="72" rx="4"/></clipPath><g clip-path="url(#c37874)"><rect x="378" y="74" width="100" height="72" fill="#A8C0A2"/><circle cx="450" cy="95.6" r="9.36" fill="#FFFFFF" opacity="0.55"/><path d="M378 146 L413 106.4 L446 130.16 L478 146 Z" fill="#14232A" opacity="0.45"/></g>
+<clipPath id="c49274"><rect x="492" y="74" width="100" height="72" rx="4"/></clipPath><g clip-path="url(#c49274)"><rect x="492" y="74" width="100" height="72" fill="#C9AE8E"/><circle cx="564" cy="95.6" r="9.36" fill="#FFFFFF" opacity="0.55"/><path d="M492 146 L527 106.4 L560 130.16 L592 146 Z" fill="#14232A" opacity="0.45"/></g>
+<clipPath id="c60674"><rect x="606" y="74" width="100" height="72" rx="4"/></clipPath><g clip-path="url(#c60674)"><rect x="606" y="74" width="100" height="72" fill="#B0A5C4"/><circle cx="678" cy="95.6" r="9.36" fill="#FFFFFF" opacity="0.55"/><path d="M606 146 L641 106.4 L674 130.16 L706 146 Z" fill="#14232A" opacity="0.45"/></g>
+<clipPath id="c392232"><rect x="392" y="232" width="186" height="78" rx="4"/></clipPath><g clip-path="url(#c392232)"><rect x="392" y="232" width="186" height="78" fill="#9FB3C8"/><circle cx="525.92" cy="255.4" r="10.14" fill="#FFFFFF" opacity="0.55"/><path d="M392 310 L457.1 267.1 L518.48 292.84 L578 310 Z" fill="#14232A" opacity="0.45"/></g>
+<rect x="384" y="226" width="186" height="78" rx="4" fill="none" stroke="#14232A" opacity="0.35"/>
+<rect x="376" y="220" width="186" height="78" rx="4" fill="none" stroke="#14232A" opacity="0.2"/>
+<text x="340" y="278" font-family="IBM Plex Sans, Segoe UI, system-ui, sans-serif" font-size="26" fill="#5A6B72" text-anchor="middle" font-weight="400">‹</text>
+<text x="632" y="278" font-family="IBM Plex Sans, Segoe UI, system-ui, sans-serif" font-size="26" fill="#5A6B72" text-anchor="middle" font-weight="400">›</text>
+<circle cx="455" cy="322" r="4" fill="#1D5A78"/>
+<circle cx="469" cy="322" r="4" fill="#C3CBC5"/>
+<circle cx="483" cy="322" r="4" fill="#C3CBC5"/>
+<circle cx="497" cy="322" r="4" fill="#C3CBC5"/>
+<clipPath id="c300388"><rect x="300" y="388" width="370" height="58" rx="4"/></clipPath><g clip-path="url(#c300388)"><rect x="300" y="388" width="370" height="58" fill="#9FB3C8"/><circle cx="566.4" cy="405.4" r="7.54" fill="#FFFFFF" opacity="0.55"/><path d="M300 446 L429.5 414.1 L551.6 433.24 L670 446 Z" fill="#14232A" opacity="0.45"/></g>
+<clipPath id="c300454"><rect x="300" y="454" width="370" height="58" rx="4"/></clipPath><g clip-path="url(#c300454)"><rect x="300" y="454" width="370" height="58" fill="#A8C0A2"/><circle cx="566.4" cy="471.4" r="7.54" fill="#FFFFFF" opacity="0.55"/><path d="M300 512 L429.5 480.1 L551.6 499.24 L670 512 Z" fill="#14232A" opacity="0.45"/></g>
+<rect x="300" y="520" width="370" height="18" rx="4" fill="#C9AE8E" opacity="0.5"/>
+<text x="690" y="452" font-family="IBM Plex Sans, Segoe UI, system-ui, sans-serif" font-size="20" fill="#5A6B72" text-anchor="middle" font-weight="400">↓</text>
+</svg>

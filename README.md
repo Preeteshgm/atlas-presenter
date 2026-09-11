@@ -1,12 +1,14 @@
-# Atlas
+# Atlas Presenter
 
 Turn an Obsidian **Canvas** into a presentation. Not a stack of slides — a camera
 flying across a map of your notes.
 
-Advanced Slides gives you one markdown file split by `---`. Atlas gives you
-the canvas you already drew: cards keep their positions, edges become the running
-order, groups become sections, and you can leave the path at any moment and come
-back.
+Advanced Slides gives you one markdown file split by `---`. Atlas Presenter gives
+you the canvas you already drew: cards keep their positions, edges become the
+running order, groups become sections, and you can leave the path at any moment
+and come back.
+
+![A canvas, its edges and groups, and the camera arcing between cards](docs/canvas-to-deck.svg)
 
 ---
 
@@ -71,6 +73,8 @@ control inside a card never advances the slide.
 | Card with no edges | Still on the map, reachable by jumping |
 | Card colour | Mirrored on the map |
 
+![The map overlay: every card to scale, numbered, the current one highlighted](docs/map.svg)
+
 Traversal is depth-first: a branch is told to its end before the next begins. The
 start is the card with outgoing edges and none incoming, or any card containing
 `#start`. A canvas with no edges presents in reading order.
@@ -96,6 +100,8 @@ work.
 | A very long card | Scrolls a screenful per press, then moves on |
 
 ### Pictures
+
+![Gallery, slideshow and scroll compared](docs/layouts.svg)
 
 Three layouts, all taking the same markup:
 
@@ -226,10 +232,16 @@ Settings are read when a deck **starts** — change them, then present.
 Atlas/
   1 · Start here.canvas     the rules, in the smallest deck that shows them
   2 · Themed deck.canvas    #title #section #quote #stat #dark #split #full
-  3 · A real deck.canvas    a genuine plan, HTML slides, an animated card
+  3 · A real deck.canvas    a full plan: HTML slides and an animated card
+  4 · Everything.canvas     a talk that happens to use every feature
+  5 · Cheat sheet.canvas    every feature *with the syntax that produces it*
   Theme.css                 a commented example theme
-  Assets/                   slides and images the decks point at
+  Assets/                   the slides, pictures and audio the decks point at
 ```
+
+Start with **1**, present **5** when you want to look something up, and read
+**4** to see what a finished deck feels like. They are built on an invented
+project, so everything in them is safe to copy.
 
 ---
 
