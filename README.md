@@ -57,6 +57,7 @@ starts at the beginning.
 | `N` | Note something against the card on screen |
 | `W` | Write the session up now |
 | `P` | Open the presenter window on your second screen |
+| `Enter` | Dive into the sub-deck on this card |
 | `E` | Export the deck to one standalone HTML file |
 | `F` | Fullscreen |
 | `Esc` | Close the map or the note, then leave the deck |
@@ -281,6 +282,11 @@ keys. It opens in any browser — no Obsidian, no network, no plugin.
 Scripts are dropped from the export, so an interactive card renders but does not
 run.
 
+**For PDF, print it.** The exported file carries a print stylesheet: one card per
+landscape page, the camera and the bottom bar hidden. Open it in a browser and
+print to PDF. That keeps the deck a deck on screen and gives you pages on paper,
+without a second export path to maintain.
+
 ---
 
 ## The presenter window
@@ -336,14 +342,14 @@ all are in **Settings → Notes and minutes**.
 
 ---
 
-## Not built yet
+## Sub-decks
 
-Nested canvases as sub-decks — a `.canvas` card renders as a signpost. `M`
-already reaches any card, which is most of what a sub-deck would buy.
+Drop a `.canvas` on a canvas and the card draws **that canvas to scale** — its
+cards, groups and edges in miniature — so you can see how big the detour is
+before taking it. Press **`Enter`** to present it.
 
-PDF, deliberately: printing flattens the camera, which is the thing that makes
-this different. The browser's own print of an exported deck is the better answer
-when paper is genuinely needed.
+The parent is hidden, not torn down: `Esc` comes back to the same card, with the
+same history and the same remarks still gathering.
 
 ---
 

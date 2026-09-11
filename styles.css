@@ -1158,3 +1158,48 @@
 .atl-overlay.is-blank {
 	background: #000;
 }
+
+/* --- A canvas on a canvas ----------------------------------------------- */
+
+.atl-subdeck {
+	display: flex;
+	flex-direction: column;
+	gap: 10px;
+	align-items: center;
+	justify-content: center;
+	font-style: normal;
+}
+
+.atl-subdeck-name {
+	font-size: 22px;
+	font-weight: 600;
+	color: var(--text-normal);
+}
+
+.atl-subdeck-map {
+	flex: 1 1 auto;
+	width: 100%;
+	min-height: 0;
+	max-height: 70%;
+}
+
+.atl-subdeck-hint {
+	font-size: 13px;
+	color: var(--text-faint);
+}
+
+.atl-sub-card {
+	fill: var(--background-primary);
+	stroke: var(--background-modifier-border);
+}
+
+.atl-sub-group {
+	fill: none;
+	stroke: var(--background-modifier-border);
+	stroke-dasharray: 10 8;
+}
+
+.atl-sub-edge { stroke: var(--text-faint); opacity: 0.5; }
+
+/* The parent stays put behind a sub-deck, just out of the way. */
+.atl-overlay.is-behind { display: none; }

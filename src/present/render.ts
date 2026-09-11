@@ -1,6 +1,6 @@
 import { App, Component, MarkdownRenderer, TFile, normalizePath } from "obsidian";
 import { CanvasNode } from "../types";
-import { outsideCode, rectOf } from "../canvas/parse";
+import { boundsOf, outsideCode, parseCanvas, rectOf } from "../canvas/parse";
 
 const IMAGE_EXT = /\.(png|jpe?g|gif|svg|webp|avif|bmp)$/i;
 const VIDEO_EXT = /\.(mp4|webm|ogv|mov|m4v)$/i;
@@ -438,8 +438,7 @@ async function renderFileNode(
 		return;
 	}
 	if (file.extension === "canvas") {
-		// Nested decks land in v0.2; for now show it as a signpost.
-		body.createDiv({ cls: "atl-subdeck", text: `↳ ${file.basename}` });
+		await renderSubdeck(app, body, file);
 		return;
 	}
 
@@ -534,6 +533,75 @@ export function buildSteps(body: HTMLElement): HTMLElement[] {
 		if (wrapper) wrapper.appendChild(kid);
 	}
 	return steps;
+}
+
+const NS = "http://www.w3.org/2000/svg";
+
+/**
+ * A canvas on a canvas: draw it to scale rather than name it.
+ *
+ * A signpost told you a sub-deck existed but nothing about it. This is the same
+ * shape the map draws, small — you can see how big the detour is before taking
+ * it.
+ */
+async function renderSubdeck(app: App, body: HTMLElement, file: TFile): Promise<void> {
+	body.addClass("atl-subdeck");
+	let data;
+	try {
+		data = parseCanvas(await app.vault.cachedRead(file));
+	} catch {
+		body.createDiv({ cls: "atl-missing", text: `Could not read ${file.basename}.` });
+		return;
+	}
+
+	const cards = data.nodes.filter((n) => n.type !== "group");
+	body.createDiv({ cls: "atl-subdeck-name", text: file.basename });
+
+	const bounds = rectOf(boundsOf(data.nodes));
+	const m = Math.max(bounds.width, bounds.height) * 0.04;
+	const svg = document.createElementNS(NS, "svg");
+	svg.setAttribute(
+		"viewBox",
+		`${bounds.x - m} ${bounds.y - m} ${bounds.width + m * 2} ${bounds.height + m * 2}`
+	);
+	svg.addClass("atl-subdeck-map");
+
+	const stroke = Math.max(bounds.width * 0.002, 1);
+	for (const node of data.nodes) {
+		const r = rectOf(node);
+		const el = document.createElementNS(NS, "rect");
+		el.setAttribute("x", String(r.x));
+		el.setAttribute("y", String(r.y));
+		el.setAttribute("width", String(r.width));
+		el.setAttribute("height", String(r.height));
+		el.setAttribute("rx", String(Math.min(r.width, r.height) * 0.06));
+		el.setAttribute("stroke-width", String(stroke));
+		el.addClass(node.type === "group" ? "atl-sub-group" : "atl-sub-card");
+		if (node.color) el.setAttribute("data-color", node.color);
+		svg.appendChild(el);
+	}
+	const byId = new Map(data.nodes.map((n) => [n.id, n]));
+	for (const edge of data.edges) {
+		const a = byId.get(edge.fromNode);
+		const b = byId.get(edge.toNode);
+		if (!a || !b) continue;
+		const ra = rectOf(a);
+		const rb = rectOf(b);
+		const line = document.createElementNS(NS, "line");
+		line.setAttribute("x1", String(ra.x + ra.width / 2));
+		line.setAttribute("y1", String(ra.y + ra.height / 2));
+		line.setAttribute("x2", String(rb.x + rb.width / 2));
+		line.setAttribute("y2", String(rb.y + rb.height / 2));
+		line.setAttribute("stroke-width", String(stroke * 1.4));
+		line.addClass("atl-sub-edge");
+		svg.appendChild(line);
+	}
+	body.appendChild(svg);
+
+	body.createDiv({
+		cls: "atl-subdeck-hint",
+		text: `${cards.length} cards · Enter to present it, Esc to come back`,
+	});
 }
 
 /** Build the DOM for one card, positioned in canvas coordinates on the stage. */

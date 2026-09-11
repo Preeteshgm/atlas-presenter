@@ -150,6 +150,31 @@ const RUNTIME = `
 })();
 `;
 
+/**
+ * The same deck as pages, for printing.
+ *
+ * The screen version is a camera over a plane, which a printer cannot follow.
+ * These are the same cards laid out one per page, hidden until you print — so
+ * one file serves both, and PDF is the browser's job rather than ours.
+ */
+function printPages(clone: HTMLElement, stops: ExportInput["stops"]): string {
+	const pages: string[] = [];
+	for (const stop of stops) {
+		const card = clone.querySelector<HTMLElement>(`[data-node-id="${stop.nodeId}"]`);
+		if (!card) continue;
+		const page = card.cloneNode(true) as HTMLElement;
+		// On a page a card is the page, not a rectangle on a plane.
+		page.style.position = "static";
+		page.style.left = "";
+		page.style.top = "";
+		page.style.width = "100%";
+		page.style.height = `${(stop.height / stop.width) * 100}%`;
+		page.addClass("is-active");
+		pages.push(`<div class="page">${page.outerHTML}</div>`);
+	}
+	return pages.join("\n");
+}
+
 export async function exportDeck(app: App, input: ExportInput): Promise<string | null> {
 	const clone = input.stage.cloneNode(true) as HTMLElement;
 	flattenShadows(input.stage, clone);
@@ -170,12 +195,23 @@ export async function exportDeck(app: App, input: ExportInput): Promise<string |
   #bar { position: fixed; left: 0; right: 0; bottom: 0; display: flex;
     justify-content: space-between; padding: 10px 18px; font-size: 13px;
     color: #6b7a80; pointer-events: none; }
+  #print { display: none; }
+  @media print {
+    html, body { height: auto; overflow: visible; background: #fff; }
+    #view, #bar { display: none !important; }
+    #print { display: block; }
+    .page { page-break-after: always; break-after: page; padding: 0; }
+    .page:last-child { page-break-after: auto; break-after: auto; }
+    .atl-node { box-shadow: none !important; border: 1px solid #ddd; }
+  }
+  @page { size: landscape; margin: 12mm; }
 ${input.css}
 </style>
 </head>
 <body>
 <div id="view"><div id="stage"></div></div>
 <div id="bar"><span>${input.title}</span><span id="counter"></span></div>
+<div id="print">__PRINT__</div>
 <script>
   window.__ATLAS_STOPS__ = ${JSON.stringify(input.stops)};
   window.__ATLAS_PAD__ = ${input.padding};
@@ -186,7 +222,9 @@ ${input.css}
 </html>`;
 
 	const stageHtml = clone.innerHTML;
-	const out = html.replace('<div id="stage"></div>', `<div id="stage">${stageHtml}</div>`);
+	const out = html
+		.replace('<div id="stage"></div>', `<div id="stage">${stageHtml}</div>`)
+		.replace("__PRINT__", printPages(clone, input.stops.filter((s) => !s.label)));
 
 	const folder = input.title.replace(/[\\/:*?"<>|]/g, "-");
 	const path = normalizePath(`${folder} — deck.html`);
@@ -194,7 +232,10 @@ ${input.css}
 		const existing = app.vault.getAbstractFileByPath(path);
 		if (existing instanceof TFile) await app.vault.modify(existing, out);
 		else await app.vault.create(path, out);
-		new Notice(`Atlas: exported to ${path} (${inlined} files inlined)`);
+		new Notice(
+			`Atlas: exported to ${path} — ${inlined} files inlined. ` +
+				"Open it in a browser and print to PDF."
+		);
 		return path;
 	} catch (e) {
 		new Notice(`Atlas: could not write the export — ${String(e)}`);

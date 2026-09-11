@@ -60,6 +60,9 @@ export class Presentation extends Component {
 	/** A blanked screen, and the unattended-run timer. */
 	private blanked = false;
 	private autoAdvance = 0;
+	/** A sub-deck opened from a card, and the deck it was opened from. */
+	private child: Presentation | null = null;
+	private onReturn: (() => void) | null = null;
 	private scene!: Scene;
 
 	private index = 0;
@@ -301,6 +304,16 @@ export class Presentation extends Component {
 			this.ticker = window.setInterval(() => this.tickClock(), 1000);
 		}
 
+		// The same treatment as Map and Notes: a key nobody can guess needs a
+		// control they can see.
+		const remarkBtn = right.createEl("button", { cls: "atl-map-btn", text: "Remark" });
+		remarkBtn.setAttribute("aria-label", "Note something against this card (N)");
+		remarkBtn.dataset.key = "N";
+		remarkBtn.addEventListener("click", (e) => {
+			e.stopPropagation();
+			this.captureNote();
+		});
+
 		const counter = right.createDiv({ cls: "atl-counter" });
 		counter.toggleClass("is-hidden", !this.settings.showCounter);
 
@@ -396,7 +409,7 @@ export class Presentation extends Component {
 
 			// The note box is a Modal with its own key scope. Touching the event
 			// here would either steal the keystroke or let it through to the deck.
-			if (this.capturing) return;
+			if (this.capturing || this.child) return;
 			this.stopAutoAdvance();
 
 			if (this.away) {
@@ -498,6 +511,9 @@ export class Presentation extends Component {
 			} else if (key === "o" || key === "O") {
 				handled();
 				this.overview();
+			} else if (key === "Enter") {
+				handled();
+				void this.enterSubdeck();
 			} else if (key === "b" || key === "B") {
 				handled();
 				this.blanked = !this.blanked;
@@ -889,6 +905,40 @@ ${this.themeCss}`,
 		this.autoAdvance = 0;
 	}
 
+	/**
+	 * Dive into the canvas this card points at, and come back to it.
+	 *
+	 * The parent is not torn down, only hidden — so returning lands on the same
+	 * card, with the same history and the same notes still gathering.
+	 */
+	private async enterSubdeck(): Promise<void> {
+		const node = this.stopAt(this.index).node;
+		if (node.type !== "file" || !node.file?.endsWith(".canvas")) return;
+		const file = this.app.vault.getAbstractFileByPath(normalizePath(node.file));
+		if (!(file instanceof TFile)) {
+			new Notice(`Atlas: ${node.file} is missing.`);
+			return;
+		}
+
+		const child = new Presentation(this.app, file, this.settings);
+		this.child = child;
+		this.overlay.addClass("is-behind");
+		child.onReturn = () => {
+			this.child = null;
+			this.overlay.removeClass("is-behind");
+			// The parent went quiet while the child had the keyboard.
+			setDeck(this);
+			for (const listener of this.listeners) listener();
+		};
+		this.addChild(child);
+		try {
+			await child.start();
+		} catch (e) {
+			new Notice(`Atlas: ${String(e)}`);
+			child.stop();
+		}
+	}
+
 	private overview(): void {
 		void this.camera.flyTo(this.scene.bounds, this.settings.duration);
 	}
@@ -1001,6 +1051,11 @@ ${this.themeCss}`,
 			this.notesEl.toggleClass("is-shown", !!text);
 		}
 
+		const remark = this.hud.querySelector<HTMLElement>(".atl-map-btn[data-key='N']");
+		if (remark) {
+			remark.setText(this.captures.length ? `Remark ${this.captures.length}` : "Remark");
+		}
+
 		if (this.nextEl) {
 			const upcoming = this.scene.stops[this.index + 1];
 			this.nextEl.setText(
@@ -1027,7 +1082,9 @@ ${this.themeCss}`,
 			void writeMinutes(this.app, this.session(), this.settings.minutesFolder);
 			this.written = true;
 		}
-		setDeck(null);
+		this.onReturn?.();
+		this.onReturn = null;
+		if (!this.child) setDeck(null);
 		this.listeners.clear();
 		// Obsidian restores its own windows, so leave the leaf alone on unload.
 		if (!unloading) {
