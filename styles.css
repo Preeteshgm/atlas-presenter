@@ -57,6 +57,13 @@ settings:
         type: variable-number
         default: 96
         format: px
+    -
+        id: atl-band
+        title: Title band height
+        description: The space the deck's title block occupies on a section overview.
+        type: variable-number
+        default: 24
+        format: vh
 
 */
 
@@ -842,27 +849,74 @@ settings:
 	font-size: 11px;
 }
 
-/* --- The band a wide card leaves empty --------------------------------- */
+/* --- The title band ------------------------------------------------------
+   The space a section overview leaves above the group is the deck's title
+   block, not a caption — so it is a band with the text set in it, rather than
+   a line pinned to the top edge. */
+
+.atl-overlay { --atl-band: 24vh; }
 
 .atl-header {
+	position: absolute;
+	top: 0;
+	left: 0;
+	right: 0;
+	height: var(--atl-band);
+	z-index: 3;
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
+	gap: 2px;
+	padding: 0 6vw;
+	pointer-events: none;
 	opacity: 0;
 	transition: opacity 420ms ease;
-	position: absolute;
-	top: 26px;
-	left: 44px;
-	right: 44px;
-	z-index: 3;
-	pointer-events: none;
-	font-size: 15px;
-	letter-spacing: 0.04em;
+	font-size: clamp(15px, 1.5vh, 22px);
+	line-height: 1.35;
 	color: var(--text-muted);
-	white-space: pre-wrap;
+	font-family: var(--atl-heading-font, var(--font-interface));
 }
 
 .atl-header.is-shown { opacity: 1; }
-.atl-header[data-position="top-centre"] { text-align: center; }
-.atl-header[data-position="top-right"] { text-align: right; }
 
+.atl-header[data-position="top-left"] { align-items: flex-start; text-align: left; }
+.atl-header[data-position="top-centre"] { align-items: center; text-align: center; }
+.atl-header[data-position="top-right"] { align-items: flex-end; text-align: right; }
+
+/* A real type scale: a heading in the deck card should read as the title of
+   the talk, not as small print. */
+.atl-header h1,
+.atl-header h2,
+.atl-header h3 {
+	margin: 0;
+	line-height: 1.04;
+	letter-spacing: -0.015em;
+	color: var(--text-normal);
+	font-weight: 700;
+}
+
+.atl-header h1 { font-size: 3.2em; }
+.atl-header h2 { font-size: 2.5em; }
+.atl-header h3 { font-size: 1.9em; }
+
+.atl-header p {
+	margin: 0.35em 0 0;
+	max-width: 70ch;
+	font-size: 1em;
+}
+
+.atl-header strong { color: var(--text-normal); font-weight: 600; }
+.atl-header em { font-style: normal; color: var(--text-faint); }
+
+/* A logo or a mark in the deck card, rather than only in the corner. */
+.atl-header img {
+	max-height: 5em;
+	width: auto;
+	margin: 0 0 0.3em;
+}
+
+.atl-header > :first-child { margin-top: 0; }
+.atl-header > :last-child { margin-bottom: 0; }
 
 /* --- Progress rail ------------------------------------------------------ */
 
@@ -940,15 +994,6 @@ settings:
 }
 
 /* The header is whatever the #deck card says — rendered, not just a line. */
-.atl-header > :first-child { margin-top: 0; }
-.atl-header > :last-child { margin-bottom: 0; }
-.atl-header p { margin: 0.15em 0; }
-.atl-header h1,
-.atl-header h2,
-.atl-header h3 { margin: 0 0 0.1em; line-height: 1.1; }
-.atl-header img { max-height: 2.4em; width: auto; vertical-align: middle; }
-.atl-header[data-position="top-centre"] > * { text-align: center; }
-.atl-header[data-position="top-right"] > * { text-align: right; }
 
 /* Settings -> On screen -> Section titles */
 .atl-overlay.hide-sections .atl-group-label { display: none; }

@@ -8,7 +8,7 @@
 			"y": -1180,
 			"width": 1000,
 			"height": 420,
-			"text": "#deck\n\ntheme: Atlas/Themes/Paper.css\naccent: #1D5A78\n\n### Northwind Depot\n**Sam Avery** · controls plan · {section}"
+			"text": "#deck\n\ntheme: Atlas/Themes/Paper.css\naccent: #1D5A78\n\n# Northwind Depot\nControls plan, rev A · **Sam Avery** · *{section}*"
 		},
 		{
 			"id": "p0",

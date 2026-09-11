@@ -184,7 +184,20 @@ transition: slide
 **Sam Avery** · {section} · {date}
 ```
 
-Anything that is not a `key: value` line is the header, **rendered as markdown**.
+Anything that is not a `key: value` line is the **title block**, rendered as
+markdown into the band above a section overview — a heading at full size, a line
+of subtitle, and an image if you want one:
+
+```
+# Northwind Depot
+Controls plan, rev A · **Sam Avery** · *{section}*
+
+![[logo.png]]
+```
+
+`#` is the talk's title, `##` a size down, `###` smaller again; a plain line
+becomes the subtitle. The band is 24% of the screen by default — adjust it in
+Style Settings, or with `--atl-band` in a theme.
 Wrap a note to yourself in `%%…%%` and it is ignored, the same as a speaker note
 — otherwise it would end up on screen.
 Every key becomes a token — `{title}`, plus built-in `{deck}` `{section}` `{n}`

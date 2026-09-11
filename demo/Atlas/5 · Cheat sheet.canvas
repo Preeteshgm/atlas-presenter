@@ -8,7 +8,7 @@
 			"y": -1300,
 			"width": 1000,
 			"height": 420,
-			"text": "#deck\n\ntheme: Atlas/Themes/Paper.css\naccent: #1D5A78\n\n### Atlas Presenter — cheat sheet\nEvery feature, with the syntax that makes it · {section}"
+			"text": "#deck\n\ntheme: Atlas/Themes/Paper.css\naccent: #1D5A78\n\n# Cheat sheet\nEvery feature, with the syntax that makes it · *{section}*"
 		},
 		{
 			"id": "s1",

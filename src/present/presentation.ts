@@ -1,7 +1,6 @@
 import {
 	App,
 	Component,
-	MarkdownRenderer,
 	Notice,
 	TFile,
 	WorkspaceLeaf,
@@ -18,6 +17,7 @@ import { Browser } from "./browse";
 import {
 	buildSteps,
 	renderNode,
+	renderMarkdownInto,
 	resourcePath,
 	slideshowsIn,
 	speakerNotes,
@@ -1114,7 +1114,7 @@ ${this.themeCss}`,
 			if (filled !== this.headerRendered) {
 				this.headerRendered = filled;
 				this.header.empty();
-				void MarkdownRenderer.render(this.app, filled, this.header, this.file.path, this);
+				void renderMarkdownInto(this.app, this, this.header, filled, this.file.path);
 			}
 		}
 
