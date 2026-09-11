@@ -138,7 +138,7 @@
 		{
 			"id": "deck-meta",
 			"type": "text",
-			"text": "#deck\n\ntitle: Atlas — a themed deck\npresenter: Sam Avery\nevent: Northwind Depot\nheader: {title}   ·   {presenter}   ·   {section}\n\nThis card is never presented and never appears on the map.\nIt is the deck's title block, and it belongs to this canvas alone.",
+			"text": "#deck\n\ntitle: Atlas — a themed deck\npresenter: Sam Avery\nheader: {title}   ·   {presenter}   ·   {section}\n\n%% This card is never presented and never appears on the map.\nIt is the deck's title block, and it belongs to this canvas alone.\nAnything between double percent signs is a note to yourself. %%",
 			"x": -120,
 			"y": -1220,
 			"width": 900,

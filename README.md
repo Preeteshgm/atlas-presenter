@@ -176,6 +176,8 @@ transition: slide
 ```
 
 Anything that is not a `key: value` line is the header, **rendered as markdown**.
+Wrap a note to yourself in `%%…%%` and it is ignored, the same as a speaker note
+— otherwise it would end up on screen.
 Every key becomes a token — `{title}`, plus built-in `{deck}` `{section}` `{n}`
 `{total}` `{date}`.
 

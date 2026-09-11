@@ -56,7 +56,10 @@ function readDeckMeta(nodes: CanvasNode[]): Record<string, string> {
 	if (!card) return {};
 	const meta: Record<string, string> = {};
 	const body: string[] = [];
-	for (const line of (card.text ?? "").split("\n")) {
+	// Anything that is not a key becomes header text, so the card needs a way to
+	// carry a note to itself. %%…%% is what the rest of Atlas already uses.
+	const source = (card.text ?? "").replace(/%%[\s\S]*?%%/g, "");
+	for (const line of source.split("\n")) {
 		if (/^[ \t]*#deck[ \t]*$/.test(line)) continue;
 		const m = line.match(/^[ \t]*([A-Za-z][\w -]*)[ \t]*:[ \t]*(.+?)[ \t]*$/);
 		if (m) {
