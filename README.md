@@ -345,9 +345,16 @@ Cards appear **in the order you actually visited them**, detours through the map
 included. A card nobody wrote anything about is left out. Any line you type
 beginning `- [ ]` is gathered into **Actions** at the end.
 
-**`W`**, or the *Write up* button in the bar, writes it without leaving — and
-**opens the note behind the deck**, so it is waiting when you exit rather than
-being a file you have to go and find. Leaving does the same thing.
+**`W`**, or the *Write up* button in the bar, opens the session for review: every
+card that carries anything, in the order you visited it, each one **editable in
+place**. Fix a typo, add the thing you meant to say, watch the action count
+change — then **Create the note**, and it opens behind the deck.
+
+Editing there writes into the same store the cards use, so pressing `N` on a card
+afterwards shows what you changed. *Keep presenting* closes the review and
+changes nothing.
+
+Leaving the deck writes the note directly, without the review.
 
 The folder is **Settings → Notes and minutes → Where minutes are filed**
 (`Meetings` by default), along with whether leaving writes at all, what gets

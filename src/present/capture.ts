@@ -115,6 +115,111 @@ export class CaptureModal extends Modal {
 	}
 }
 
+export interface ReviewEntry {
+	nodeId: string;
+	title: string;
+	section: string;
+	/** The `%%note%%` written into the card beforehand. Not editable here. */
+	prepared: string;
+	/** What was typed during the talk. */
+	text: string;
+}
+
+export interface ReviewOptions {
+	title: string;
+	subtitle: string;
+	entries: ReviewEntry[];
+	onEdit: (nodeId: string, text: string) => void;
+	onWrite: () => void;
+}
+
+/**
+ * The session, before it becomes a file.
+ *
+ * Writing minutes you have not read is how a meeting record ends up wrong. This
+ * shows every card that carries anything, in the order it was visited, and lets
+ * each one be fixed — into the same store the cards use, so pressing N on a card
+ * afterwards shows the edit.
+ */
+export class ReviewModal extends Modal {
+	private actionsEl!: HTMLElement;
+
+	constructor(app: App, private options: ReviewOptions) {
+		super(app);
+	}
+
+	private countActions(): number {
+		return this.options.entries
+			.flatMap((e) => e.text.split("\n"))
+			.filter((l) => /^\s*-\s*\[ \]/.test(l)).length;
+	}
+
+	private paintActions(): void {
+		const n = this.countActions();
+		this.actionsEl.setText(
+			n === 0
+				? "No actions yet \u2014 a line beginning - [ ] becomes one"
+				: `${n} action${n === 1 ? "" : "s"}`
+		);
+	}
+
+	onOpen(): void {
+		const { contentEl, titleEl, modalEl } = this;
+		modalEl.addClass("atl-review-modal");
+		titleEl.setText(this.options.title);
+		contentEl.addClass("atl-review");
+		contentEl.createDiv({ cls: "atl-review-sub", text: this.options.subtitle });
+
+		const list = contentEl.createDiv({ cls: "atl-review-list" });
+		if (this.options.entries.length === 0) {
+			list.createDiv({
+				cls: "atl-review-empty",
+				text: "Nothing noted yet. Press N on a card to start.",
+			});
+		}
+
+		let section = "";
+		for (const entry of this.options.entries) {
+			if (entry.section && entry.section !== section) {
+				section = entry.section;
+				list.createDiv({ cls: "atl-review-section", text: section });
+			}
+			const block = list.createDiv({ cls: "atl-review-entry" });
+			block.createDiv({ cls: "atl-review-card", text: entry.title });
+			if (entry.prepared) {
+				block.createDiv({ cls: "atl-review-prepared", text: entry.prepared });
+			}
+			const box = block.createEl("textarea", { cls: "atl-review-box" });
+			box.value = entry.text;
+			box.rows = Math.max(2, entry.text.split("\n").length + 1);
+			box.placeholder = "Nothing typed on this card \u2014 you can add it here.";
+			box.addEventListener("keydown", (e) => e.stopPropagation());
+			box.addEventListener("input", () => {
+				entry.text = box.value;
+				this.options.onEdit(entry.nodeId, box.value.trim());
+				this.paintActions();
+			});
+		}
+
+		const foot = contentEl.createDiv({ cls: "atl-review-foot" });
+		this.actionsEl = foot.createDiv({ cls: "atl-review-actions" });
+		this.paintActions();
+
+		const buttons = foot.createDiv({ cls: "atl-review-buttons" });
+		const later = buttons.createEl("button", { text: "Keep presenting" });
+		later.addEventListener("click", () => this.close());
+		const write = buttons.createEl("button", { cls: "mod-cta", text: "Create the note" });
+		write.addEventListener("click", () => {
+			this.close();
+			this.options.onWrite();
+		});
+	}
+
+	onClose(): void {
+		this.contentEl.empty();
+	}
+}
+
 function hhmm(ms: number): string {
 	return new Date(ms).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
 }

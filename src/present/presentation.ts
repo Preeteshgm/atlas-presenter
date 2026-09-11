@@ -30,6 +30,7 @@ import {
 	Capture,
 	CaptureModal,
 	MinutesOptions,
+	ReviewModal,
 	Session,
 	Visit,
 	writeMinutes,
@@ -326,7 +327,7 @@ export class Presentation extends Component {
 		writeBtn.dataset.key = "W";
 		writeBtn.addEventListener("click", (e) => {
 			e.stopPropagation();
-			void this.writeUp();
+			this.reviewSession();
 		});
 
 		const counter = right.createDiv({ cls: "atl-counter" });
@@ -538,7 +539,7 @@ export class Presentation extends Component {
 				this.captureNote();
 			} else if (key === "w" || key === "W") {
 				handled();
-				void this.writeUp();
+				this.reviewSession();
 			} else if (key === "p" || key === "P") {
 				handled();
 				void this.openPresenter();
@@ -886,6 +887,59 @@ ${this.themeCss}`,
 				this.capturing = false;
 			}
 		).open();
+	}
+
+	/**
+	 * Read the session before it becomes a file.
+	 *
+	 * Editing here writes into the same store the cards use, so pressing N on a
+	 * card afterwards shows what was changed.
+	 */
+	private reviewSession(): void {
+		const seen = new Set<string>();
+		const entries = [];
+		for (const visit of this.visits) {
+			if (seen.has(visit.nodeId)) continue;
+			seen.add(visit.nodeId);
+			const prepared = this.notes.get(visit.nodeId) ?? "";
+			const typed = this.captures.find((c) => c.nodeId === visit.nodeId)?.text ?? "";
+			if (!prepared && !typed) continue;
+			entries.push({
+				nodeId: visit.nodeId,
+				title: visit.title,
+				section: visit.section,
+				prepared,
+				text: typed,
+			});
+		}
+
+		const span = `${new Date(this.began).toLocaleTimeString([], {
+			hour: "2-digit",
+			minute: "2-digit",
+		})} \u2014 now`;
+
+		this.capturing = true;
+		const modal = new ReviewModal(this.app, {
+			title: `${this.file.basename} \u2014 the session so far`,
+			subtitle: `${span}  \u00b7  ${this.visits.length} cards visited  \u00b7  ${entries.length} with notes`,
+			entries,
+			onEdit: (nodeId, text) => {
+				const visit = this.visits.find((v) => v.nodeId === nodeId);
+				const at = this.captures.find((c) => c.nodeId === nodeId)?.at ?? Date.now();
+				this.captures = this.captures.filter((c) => c.nodeId !== nodeId);
+				if (text) {
+					this.captures.push({ nodeId, title: visit?.title ?? "", text, at });
+				}
+				this.updateHud(this.stopAt(this.index), 0);
+			},
+			onWrite: () => void this.writeUp(),
+		});
+		const close = modal.onClose.bind(modal);
+		modal.onClose = () => {
+			close();
+			this.capturing = false;
+		};
+		modal.open();
 	}
 
 	private minutesOptions(): MinutesOptions {

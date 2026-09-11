@@ -1292,3 +1292,95 @@ settings:
 	color: var(--text-normal);
 	border-color: var(--atl-accent);
 }
+
+/* --- Reviewing a session before it becomes a note ----------------------- */
+
+.atl-review-modal {
+	width: min(860px, 92vw);
+	max-height: 86vh;
+}
+
+.atl-review {
+	display: flex;
+	flex-direction: column;
+	min-height: 0;
+}
+
+.atl-review-sub {
+	font-size: 13px;
+	color: var(--text-faint);
+	padding-bottom: 12px;
+	border-bottom: 1px solid var(--background-modifier-border);
+}
+
+.atl-review-list {
+	flex: 1 1 auto;
+	min-height: 0;
+	overflow-y: auto;
+	padding: 6px 2px 4px;
+}
+
+.atl-review-section {
+	margin: 18px 0 6px;
+	font-size: 12px;
+	letter-spacing: 0.08em;
+	text-transform: uppercase;
+	color: var(--text-faint);
+}
+
+.atl-review-entry {
+	padding: 12px 0 14px;
+	border-bottom: 1px solid var(--background-modifier-border);
+}
+
+.atl-review-card {
+	font-weight: 600;
+	font-size: 15px;
+	margin-bottom: 6px;
+}
+
+/* The prepared note is context, not something to edit here — it belongs to
+   the card, and editing it would mean writing to the canvas. */
+.atl-review-prepared {
+	margin: 0 0 8px;
+	padding: 8px 12px;
+	border-left: 2px solid var(--background-modifier-border);
+	color: var(--text-muted);
+	font-size: 13px;
+	line-height: 1.5;
+	white-space: pre-wrap;
+}
+
+.atl-review-box {
+	width: 100%;
+	resize: vertical;
+	font-size: 14px;
+	line-height: 1.55;
+	padding: 8px 10px;
+}
+
+.atl-review-empty {
+	padding: 26px 0;
+	color: var(--text-faint);
+	font-style: italic;
+	text-align: center;
+}
+
+.atl-review-foot {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	gap: 16px;
+	padding-top: 14px;
+	border-top: 1px solid var(--background-modifier-border);
+}
+
+.atl-review-actions {
+	font-size: 13px;
+	color: var(--text-muted);
+}
+
+.atl-review-buttons {
+	display: flex;
+	gap: 10px;
+}
