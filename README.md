@@ -56,7 +56,7 @@ starts at the beginning.
 | `B` | Blank the screen — attention on the room, not the slide |
 | `N` | Note something against the card on screen |
 | `W` | Write the session up now |
-| `P` | Open the presenter window on your second screen |
+| `P` | Open the presenter panel — notes, the clock, what is next, and a box to write a remark in |
 | `Enter` | Dive into the sub-deck on this card |
 | `E` | Export the deck to one standalone HTML file |
 | `F` | Fullscreen |

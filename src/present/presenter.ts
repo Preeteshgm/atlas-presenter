@@ -5,9 +5,13 @@ export const PRESENTER_VIEW = "atlas-presenter-view";
 
 export interface DeckSnapshot {
 	deck: string;
+	/** Which card, so the note box knows when it is looking at a different one. */
+	nodeId: string;
 	section: string;
 	card: string;
 	notes: string;
+	/** What has been written against this card already. */
+	remark: string;
 	next: string;
 	index: number;
 	total: number;
@@ -19,6 +23,7 @@ export interface DeckHandle {
 	snapshot(): DeckSnapshot;
 	next(): void;
 	prev(): void;
+	setRemark(text: string): void;
 	onChange(listener: () => void): () => void;
 }
 
@@ -55,6 +60,9 @@ export class PresenterView extends ItemView {
 	private cardEl!: HTMLElement;
 	private sectionEl!: HTMLElement;
 	private notesEl!: HTMLElement;
+	private remarkEl!: HTMLTextAreaElement;
+	/** The card the box is showing, so typing is never wiped by a repaint. */
+	private remarkFor = "";
 	private nextEl!: HTMLElement;
 	private timeEl!: HTMLElement;
 	private countEl!: HTMLElement;
@@ -93,6 +101,25 @@ export class PresenterView extends ItemView {
 
 		this.cardEl = this.bodyEl.createDiv({ cls: "atl-presenter-card" });
 		this.notesEl = this.bodyEl.createDiv({ cls: "atl-presenter-notes" });
+
+		// A box that is already open, on the screen you are already looking at.
+		// N opens the same note in a modal on the deck; this is for when your
+		// eyes are here anyway and reaching for the deck would be the long way
+		// round. One card holds one note, so the two are the same thing.
+		const remark = this.bodyEl.createDiv({ cls: "atl-presenter-remark" });
+		remark.createDiv({ cls: "atl-presenter-label", text: "Your remark on this card" });
+		this.remarkEl = remark.createEl("textarea", {
+			cls: "atl-presenter-input",
+			attr: { placeholder: "Type here, or press N on the deck…", rows: "4" },
+		});
+		this.remarkEl.addEventListener("input", () => {
+			// Written straight through rather than on blur: a talk can end with
+			// the cursor still in the box, and a note lost that way is the one
+			// you most wanted.
+			current?.setRemark(this.remarkEl.value);
+		});
+		// The deck must not steal keys from a box that is being typed into.
+		this.remarkEl.addEventListener("keydown", (e) => e.stopPropagation());
 
 		const foot = this.bodyEl.createDiv({ cls: "atl-presenter-foot" });
 		this.nextEl = foot.createDiv({ cls: "atl-presenter-next" });
@@ -154,6 +181,14 @@ export class PresenterView extends ItemView {
 		this.notesEl.setText(s.notes);
 		this.notesEl.toggleClass("is-empty", !s.notes);
 		if (!s.notes) this.notesEl.setText("No note on this card.");
+		// Only when the card changes: replacing the value on every repaint would
+		// take the cursor from under you mid-word.
+		if (s.nodeId !== this.remarkFor) {
+			this.remarkFor = s.nodeId;
+			this.remarkEl.value = s.remark;
+		}
+		this.remarkEl.toggleClass("has-text", !!this.remarkEl.value.trim());
+
 		this.nextEl.setText(s.next ? `Next  ·  ${s.next}` : "Last card");
 		this.countEl.setText(`${s.index} / ${s.total}`);
 		this.paintTime();

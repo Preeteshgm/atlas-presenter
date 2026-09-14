@@ -970,9 +970,11 @@ ${this.themeCss}`,
 		const upcoming = this.scene.stops[this.index + 1];
 		return {
 			deck: this.file.basename,
+			nodeId: stop.node.id,
 			section: stop.group?.label ?? "",
 			card: titleOf(stop.node),
 			notes: this.notes.get(stop.node.id) ?? "",
+			remark: this.remarkOn(stop.node.id),
 			next: upcoming ? titleOf(upcoming.node) : "",
 			index: this.cardNumber(this.index),
 			total: this.cardTotal,
@@ -1131,6 +1133,35 @@ ${this.themeCss}`,
 	 * blank note you cannot see. One card therefore holds one note, kept at the
 	 * time it was first made so the write-up stays in order.
 	 */
+	/** What has been written against a card so far, wherever it was written. */
+	private remarkOn(nodeId: string): string {
+		return this.captures
+			.filter((c) => c.nodeId === nodeId)
+			.map((c) => c.text)
+			.join("\n\n");
+	}
+
+	/**
+	 * Write a remark against the card on screen, from wherever you are.
+	 *
+	 * N opens a box on the deck; the presenter panel has one always open. They
+	 * are the same note — one card holds one — so typing in either shows up in
+	 * the other and in the write-up. The time is the time it was first made, so
+	 * editing a remark later does not move it in the minutes.
+	 */
+	setRemark(text: string): void {
+		const stop = this.stopAt(this.index);
+		const title = titleOf(stop.node);
+		const existing = this.captures.filter((c) => c.nodeId === stop.node.id);
+		const firstAt = existing.length > 0 ? existing[0].at : Date.now();
+		const body = text.trim();
+
+		this.captures = this.captures.filter((c) => c.nodeId !== stop.node.id);
+		if (body) this.captures.push({ nodeId: stop.node.id, title, text: body, at: firstAt });
+		this.updateHud(stop, 0);
+		for (const listener of this.listeners) listener();
+	}
+
 	private captureNote(): void {
 		const stop = this.stopAt(this.index);
 		const title = titleOf(stop.node);

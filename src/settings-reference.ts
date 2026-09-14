@@ -305,7 +305,7 @@ The conclusion.`);
 		["B", "blank the screen — attention on the room, not the slide"],
 		["N", "note something against the card on screen"],
 		["W", "write the session up now"],
-		["P", "open the presenter window"],
+		["P", "the presenter panel — notes, the clock, what is next, and a box to write a remark in"],
 		["E", "export the deck to one standalone HTML file"],
 		["F", "fullscreen"],
 		["Esc", "close the map or the note, then leave the deck"],

@@ -1801,3 +1801,44 @@ settings:
 	pointer-events: none;
 	z-index: 6;
 }
+
+/* ---- the presenter's own note box ---------------------------------------- */
+
+.atl-presenter-remark {
+	margin: 12px 0 4px;
+	flex: 0 0 auto;
+}
+
+.atl-presenter-label {
+	margin-bottom: 5px;
+	font-size: 0.78em;
+	letter-spacing: 0.06em;
+	text-transform: uppercase;
+	color: var(--text-faint);
+}
+
+.atl-presenter-input {
+	width: 100%;
+	min-height: 72px;
+	padding: 9px 11px;
+	resize: vertical;
+	font-family: var(--font-text);
+	font-size: 0.95em;
+	line-height: 1.5;
+	color: var(--text-normal);
+	background: var(--background-primary);
+	border: 1px solid var(--background-modifier-border);
+	border-radius: 8px;
+}
+
+.atl-presenter-input:focus {
+	outline: none;
+	border-color: var(--interactive-accent);
+}
+
+/* Something written here goes into the write-up, so it should look different
+   from an empty box you have not touched. */
+.atl-presenter-input.has-text {
+	border-left: 3px solid var(--interactive-accent);
+	background: var(--background-primary-alt);
+}
