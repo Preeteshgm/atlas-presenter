@@ -35,7 +35,7 @@ export default class AtlasPlugin extends Plugin {
 
 		this.addCommand({
 			id: "present-canvas",
-			name: "Present this canvas",
+			name: "Present",
 			// No default binding on purpose: Obsidian's plugin guidelines warn
 			// that defaults collide between plugins and differ across platforms.
 			// The settings tab links straight to the hotkey pane instead.
@@ -49,7 +49,7 @@ export default class AtlasPlugin extends Plugin {
 
 		this.addCommand({
 			id: "present-canvas-windowed",
-			name: "Present this canvas in a separate window",
+			name: "Present on a second screen",
 			checkCallback: (checking: boolean) => {
 				const file = this.app.workspace.getActiveFile();
 				if (!file || file.extension !== "canvas") return false;
@@ -62,7 +62,7 @@ export default class AtlasPlugin extends Plugin {
 
 		this.addCommand({
 			id: "present-canvas-variant",
-			name: "Present this canvas as…",
+			name: "Present a variant…",
 			checkCallback: (checking: boolean) => {
 				const file = this.app.workspace.getActiveFile();
 				if (!file || file.extension !== "canvas") return false;
@@ -73,7 +73,7 @@ export default class AtlasPlugin extends Plugin {
 
 		this.addCommand({
 			id: "present-canvas-from-start",
-			name: "Present this canvas from the beginning",
+			name: "Present from the beginning",
 			checkCallback: (checking: boolean) => {
 				const file = this.app.workspace.getActiveFile();
 				if (!file || file.extension !== "canvas") return false;
@@ -101,7 +101,7 @@ export default class AtlasPlugin extends Plugin {
 
 		this.addCommand({
 			id: "export-deck",
-			name: "Export the running deck to a single HTML file",
+			name: "Export to HTML",
 			checkCallback: (checking: boolean) => {
 				if (!this.active) return false;
 				if (!checking) void this.active.exportToHtml();
@@ -126,7 +126,7 @@ export default class AtlasPlugin extends Plugin {
 				);
 				menu.addItem((item) =>
 					item
-						.setTitle("Present with Atlas in a separate window")
+						.setTitle("Present with Atlas on a second screen")
 						.setIcon(ICON_ID)
 						.onClick(() => void this.present(file, undefined, "", { windowed: true }))
 				);

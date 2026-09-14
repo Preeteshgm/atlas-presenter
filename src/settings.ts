@@ -962,38 +962,57 @@ The conclusion.`);
 		}
 
 		// ------------------------------------------------- two screens
-		const screens = section("Presenting on two screens");
+		const screens = section("Which command to use");
 
 		screens.createDiv({
 			cls: "atl-ref-lead",
 			text:
-				"There are two ways round, and they differ in which window the deck takes " +
-				"over. Both leave your notes off the projector.",
+				"Six commands, and only two of them are ones you need day to day. They " +
+				"all appear in the command palette under Atlas Presenter, and every one " +
+				"needs a canvas to be the open tab.",
 		});
 
 		entry(
 			screens,
-			"Present this canvas",
-			"The deck fills the main Obsidian window. Press P for a presenter window — " +
-				"notes, the clock and what is coming — and put that on your own screen. " +
-				"Best when the projector is your main display."
+			"Present",
+			"One screen. The deck fills this window, starting on the card you have " +
+				"selected on the canvas — or at the beginning if none is. This is the " +
+				"everyday one."
 		);
 		entry(
 			screens,
-			"Present this canvas in a separate window",
-			"The deck opens in a window of its own; drag it to the projector and press F. " +
-				"The main window is never touched, so the canvas, your notes and the " +
-				"minutes stay in front of you, and G opens the vault graph on your screen " +
-				"without the projector ever leaving the card."
+			"Present on a second screen",
+			"Two screens. The deck opens in a window of its own: drag it to the " +
+				"projector and press F. This window is never touched, so the canvas stays " +
+				"in front of you, and the presenter panel — notes, the clock, what is " +
+				"coming — opens in the sidebar beside it. Speaker notes are taken off the " +
+				"deck entirely, because the deck is now what the room sees."
 		);
-
+		entry(
+			screens,
+			"Present from the beginning",
+			"The same as Present, but ignores what is selected and starts at the first " +
+				"card."
+		);
+		entry(
+			screens,
+			"Present a variant…",
+			"Asks which talk to give, if the canvas has cards tagged #only-x or #skip-x."
+		);
 		entry(
 			screens,
 			"Stop presenting",
-			"Ends the talk from the main window. Escape works too, but it is on the " +
-				"deck's own window — which may be behind something, or on a screen you " +
-				"cannot see. Give this one a hotkey alongside whichever present command " +
-				"you bind, and you have a pair that starts and stops the deck."
+			"Ends the talk from this window. Escape works too, but it is on the deck's " +
+				"own window — which may be behind something, or on a screen you cannot " +
+				"see. Bind this one alongside a present command and you have a pair that " +
+				"starts and stops a talk."
+		);
+		entry(
+			screens,
+			"Export to HTML",
+			"Only while a deck is running; the same as pressing E. Writes one standalone " +
+				"file to the vault root. Edit the canvas, present and export again, and " +
+				"the same file is overwritten — refresh the browser tab to see the change."
 		);
 
 		screens.createDiv({

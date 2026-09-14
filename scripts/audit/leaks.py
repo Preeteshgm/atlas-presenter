@@ -45,11 +45,25 @@ def handler_body(text, start):
     return text[start:start + 1200]
 
 
+
+def outside_templates(text, path=""):
+    """Drop template literals from export.ts.
+
+    That file carries the exported deck's stylesheet, markup and runtime as
+    strings. They are a separate document, torn down by closing a browser tab
+    and styled by their own <style> block, so the checks here do not apply to
+    them.
+    """
+    if not path.replace("/", os.sep).endswith(os.sep + "export.ts"):
+        return text
+    return re.sub(r"`[^`]*`", "``", text)
+
+
 risky = []
 fine = 0
 for path in files:
     rel = os.path.relpath(path, SRC)
-    text = io.open(path, encoding="utf-8").read()
+    text = outside_templates(io.open(path, encoding="utf-8").read(), path)
     for m in re.finditer(r'addEventListener\(\s*["\'](\w+)["\']', text):
         event = m.group(1)
         if event not in ("keydown", "keyup", "click", "dblclick", "wheel",
@@ -80,7 +94,7 @@ else:
 print("\nLISTENERS ON A SHARED TARGET")
 for path in files:
     rel = os.path.relpath(path, SRC)
-    text = io.open(path, encoding="utf-8").read()
+    text = outside_templates(io.open(path, encoding="utf-8").read(), path)
     for m in re.finditer(r"(document|window|ownerDocument)\.addEventListener\(\s*[\"'](\w+)", text):
         line = text[: m.start()].count("\n") + 1
         removed = ("removeEventListener" in text) or ("registerDomEvent" in text)

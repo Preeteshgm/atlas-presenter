@@ -64,13 +64,26 @@ missing_ui = [k for k in keys if not re.search(r"\bs\.%s\b" % k, ui)]
     "settings: all exposed in the UI" if not missing_ui
     else "settings: no UI control -> %s" % ", ".join(missing_ui))
 
+def outside_templates(text, path=""):
+    """Drop template literals from export.ts.
+
+    That file carries the exported deck's stylesheet, markup and runtime as
+    strings. They are a separate document, torn down by closing a browser tab
+    and styled by their own <style> block, so the checks here do not apply to
+    them.
+    """
+    if not path.replace("/", os.sep).endswith(os.sep + "export.ts"):
+        return text
+    return re.sub(r"`[^`]*`", "``", text)
+
+
 # ------------------------------------------------------------------ 3. CSS
 css = read(ROOT, "styles.css")
 shadow = read(ROOT, "src", "present", "render.ts")
 defined = set(re.findall(r"\.(atl-[\w-]+)", css)) | set(re.findall(r"\.(atl-[\w-]+)", shadow))
 used = set()
 for path in walk(os.path.join(ROOT, "src"), {".ts"}):
-    body = read(path)
+    body = outside_templates(read(path), path)
     used |= set(re.findall(r"[\"'`](atl-[\w-]+)", body))
     used |= set(re.findall(r"cls: \"(atl-[\w-]+)", body))
 

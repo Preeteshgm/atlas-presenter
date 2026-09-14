@@ -139,6 +139,7 @@ export class Presentation extends Component {
 		this.minimap = new Minimap(this.overlay, this.app, this.scene, (i) => this.jumpTo(i));
 		this.began = Date.now();
 		setDeck(this);
+		if (this.windowed) await this.openPresenterPanel();
 		this.startAutoAdvance();
 		this.goTo(this.startIndex(), { animate: false });
 		this.bindKeys();
@@ -956,6 +957,24 @@ ${this.themeCss}`,
 	 * A second screen: notes, the clock, and what is coming — while the
 	 * projector shows only the deck.
 	 */
+	/**
+	 * With the deck on its own screen, the presenter belongs in the sidebar of
+	 * the window you are actually looking at — beside the canvas, not covering
+	 * it, and opened for you rather than waiting to be asked for. Notes have
+	 * just come off the deck, so there has to be somewhere they still are.
+	 */
+	private async openPresenterPanel(): Promise<void> {
+		try {
+			const leaf = this.app.workspace.getRightLeaf(false);
+			if (!leaf) return;
+			await leaf.setViewState({ type: PRESENTER_VIEW, active: false });
+			this.app.workspace.revealLeaf(leaf);
+			this.presenterLeaf = leaf;
+		} catch {
+			// No sidebar to put it in; P still opens a window.
+		}
+	}
+
 	private async openPresenter(): Promise<void> {
 		if (this.presenterLeaf) {
 			this.app.workspace.setActiveLeaf(this.presenterLeaf, { focus: true });
@@ -1277,11 +1296,13 @@ ${this.themeCss}`,
 		if (this.notesEl) {
 			const text = this.notes.get(stop.node.id) ?? "";
 			this.notesEl.setText(text);
-			// Never both. The deck is what the room sees, so the moment there is
-			// a presenter window to read them in, notes come off the deck — no
-			// setting overrides this, because the cost of getting it wrong is
-			// your private notes on a wall.
-			this.notesEl.toggleClass("is-shown", !!text && !this.presenterLeaf);
+			// Never on the audience's screen. Notes come off the deck the moment
+			// there is anywhere else to read them — and always when the deck has
+			// a window of its own, because then the deck *is* the projector and
+			// the main window is where you are looking. No setting overrides
+			// this: the cost of getting it wrong is your notes on a wall.
+			const elsewhere = !!this.presenterLeaf || this.windowed;
+			this.notesEl.toggleClass("is-shown", !!text && !elsewhere);
 		}
 
 		const remark = this.hud.querySelector<HTMLElement>(".atl-map-btn[data-key='N']");

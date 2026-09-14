@@ -106,47 +106,193 @@ function flattenShadows(live: HTMLElement, clone: HTMLElement): void {
 	});
 }
 
+/**
+ * The deck's behaviour, shipped with the file.
+ *
+ * This used to be a camera and two arrow keys, which made the export a much
+ * poorer thing than the deck it came from: a `+++` reveal is `opacity: 0` until
+ * something shows it, so every revealed point was *invisible* rather than
+ * merely un-animated, and a slide show sat on its first frame for ever.
+ *
+ * It now walks a card the way the deck does — reveals, then the pictures, then
+ * the next card — and carries the map, blanking and the progress rail with it.
+ * Plain ES5 in one string: no build step, no dependency, and it has to run from
+ * a file:// URL on whatever browser is on the machine in the room.
+ */
 const RUNTIME = `
 (function () {
   var stage = document.getElementById('stage');
   var view = document.getElementById('view');
   var counter = document.getElementById('counter');
+  var railfill = document.getElementById('railfill');
+  var blank = document.getElementById('blank');
+  var map = document.getElementById('map');
   var stops = window.__ATLAS_STOPS__, pad = window.__ATLAS_PAD__, max = window.__ATLAS_MAX__;
-  var i = 0;
-  function go(n) {
-    i = Math.max(0, Math.min(n, stops.length - 1));
+  var i = 0, step = 0;
+
+  function cardAt(n) {
+    return stage.querySelector('[data-node-id="' + stops[n].nodeId + '"]');
+  }
+  function stepsIn(el) {
+    return el ? [].slice.call(el.querySelectorAll('.atl-step')) : [];
+  }
+  function showsIn(el) {
+    return el ? [].slice.call(el.querySelectorAll('.atl-slideshow')) : [];
+  }
+  function framesIn(show) {
+    return [].slice.call(show.querySelectorAll('.atl-frame-item'));
+  }
+
+  /* A slide show is a stack of frames with one marked current; the deck and the
+     export agree on that, so moving one is a matter of moving the mark. */
+  function frameAt(show) {
+    var f = framesIn(show);
+    for (var n = 0; n < f.length; n++) if (f[n].classList.contains('is-current')) return n;
+    return 0;
+  }
+  function setFrame(show, n) {
+    var f = framesIn(show), dots = [].slice.call(show.querySelectorAll('.atl-show-dots > *'));
+    if (!f.length) return;
+    n = Math.max(0, Math.min(n, f.length - 1));
+    for (var k = 0; k < f.length; k++) f[k].classList.toggle('is-current', k === n);
+    for (var d = 0; d < dots.length; d++) dots[d].classList.toggle('is-current', d === n);
+    return n;
+  }
+
+  function resetCard(el, shown) {
+    var st = stepsIn(el);
+    for (var n = 0; n < st.length; n++) st[n].classList.toggle('is-shown', shown);
+    var sh = showsIn(el);
+    for (var m = 0; m < sh.length; m++) setFrame(sh[m], shown ? framesIn(sh[m]).length - 1 : 0);
+  }
+
+  function paint(animate) {
     var s = stops[i];
     var scale = Math.min(
       view.clientWidth / (s.width * (1 + pad * 2)),
       view.clientHeight / (s.height * (1 + pad * 2)),
       max
     );
+    stage.style.transition = animate ? '' : 'none';
     stage.style.transform =
       'translate(' + view.clientWidth / 2 + 'px,' + view.clientHeight / 2 + 'px) ' +
       'scale(' + scale + ') ' +
       'translate(' + -(s.x + s.width / 2) + 'px,' + -(s.y + s.height / 2) + 'px)';
+    if (!animate) { void stage.offsetWidth; stage.style.transition = ''; }
     var cards = stage.querySelectorAll('.atl-node');
     for (var c = 0; c < cards.length; c++) cards[c].classList.remove('is-active');
-    var active = stage.querySelector('[data-node-id="' + s.nodeId + '"]');
+    var active = cardAt(i);
     if (active) active.classList.add('is-active');
-    counter.textContent = (i + 1) + ' / ' + stops.length + (s.label ? '  ·  ' + s.label : '');
+    var total = stops.length;
+    counter.textContent = (i + 1) + ' / ' + total + (s.label ? '  \\u00b7  ' + s.label : '');
+    railfill.style.width = (total < 2 ? 100 : (i / (total - 1)) * 100) + '%';
+    if (map.classList.contains('on')) markMap();
   }
+
+  /* Arriving forwards starts a card folded; arriving backwards starts it fully
+     open, so stepping back into a card does not replay it. */
+  function go(n, back) {
+    n = Math.max(0, Math.min(n, stops.length - 1));
+    if (n === i) { paint(true); return; }
+    resetCard(cardAt(i), false);
+    i = n;
+    var el = cardAt(i);
+    resetCard(el, !!back);
+    step = back ? stepsIn(el).length : 0;
+    paint(true);
+  }
+
+  /* Reveals, then the pictures, then the next card — the deck's own order. */
+  function advance() {
+    var el = cardAt(i), st = stepsIn(el);
+    if (step < st.length) { st[step].classList.add('is-shown'); step++; return; }
+    var sh = showsIn(el);
+    for (var m = 0; m < sh.length; m++) {
+      var f = framesIn(sh[m]);
+      if (f.length > 1 && frameAt(sh[m]) < f.length - 1) { setFrame(sh[m], frameAt(sh[m]) + 1); return; }
+    }
+    go(i + 1);
+  }
+  function retreat() {
+    var el = cardAt(i), sh = showsIn(el);
+    for (var m = sh.length - 1; m >= 0; m--) {
+      if (framesIn(sh[m]).length > 1 && frameAt(sh[m]) > 0) { setFrame(sh[m], frameAt(sh[m]) - 1); return; }
+    }
+    var st = stepsIn(el);
+    if (step > 0) { step--; st[step].classList.remove('is-shown'); return; }
+    go(i - 1, true);
+  }
+
+  /* ---- the map ---------------------------------------------------------- */
+
+  function buildMap() {
+    var minx = Infinity, miny = Infinity, maxx = -Infinity, maxy = -Infinity;
+    for (var n = 0; n < stops.length; n++) {
+      var s = stops[n];
+      minx = Math.min(minx, s.x); miny = Math.min(miny, s.y);
+      maxx = Math.max(maxx, s.x + s.width); maxy = Math.max(maxy, s.y + s.height);
+    }
+    var pad2 = 120;
+    var svg = '<svg viewBox="' + (minx - pad2) + ' ' + (miny - pad2) + ' ' +
+      (maxx - minx + pad2 * 2) + ' ' + (maxy - miny + pad2 * 2) + '" preserveAspectRatio="xMidYMid meet">';
+    for (var k = 0; k < stops.length; k++) {
+      var t = stops[k];
+      svg += '<rect class="' + (t.label ? 'mg' : 'mn') + '" data-i="' + k + '" x="' + t.x +
+        '" y="' + t.y + '" width="' + t.width + '" height="' + t.height + '" rx="14"></rect>';
+      if (t.label) {
+        svg += '<text class="ml" x="' + (t.x + 16) + '" y="' + (t.y - 14) + '">' +
+          String(t.label).replace(/[<&]/g, ' ') + '</text>';
+      }
+    }
+    map.insertAdjacentHTML('beforeend', svg + '</svg>');
+    map.addEventListener('click', function (e) {
+      var hit = e.target.closest('rect[data-i]');
+      if (hit) { toggleMap(false); go(+hit.getAttribute('data-i')); }
+    });
+  }
+  function markMap() {
+    var r = map.querySelectorAll('rect[data-i]');
+    for (var n = 0; n < r.length; n++) r[n].classList.toggle('on', +r[n].getAttribute('data-i') === i);
+  }
+  function toggleMap(on) {
+    if (!map.querySelector('svg')) buildMap();
+    map.classList.toggle('on', on === undefined ? !map.classList.contains('on') : on);
+    if (map.classList.contains('on')) markMap();
+  }
+
+  /* ---- keys ------------------------------------------------------------- */
+
   document.addEventListener('keydown', function (e) {
-    if (['ArrowRight', ' ', 'PageDown', 'ArrowDown'].indexOf(e.key) > -1) { e.preventDefault(); go(i + 1); }
-    else if (['ArrowLeft', 'PageUp', 'ArrowUp'].indexOf(e.key) > -1) { e.preventDefault(); go(i - 1); }
-    else if (e.key === 'Home') { go(0); }
-    else if (e.key === 'End') { go(stops.length - 1); }
-    else if (e.key === 'f' || e.key === 'F') {
+    if (e.ctrlKey || e.metaKey || e.altKey) return;
+    var k = e.key;
+    if (map.classList.contains('on')) {
+      if (k === 'Escape' || k === 'm' || k === 'M') { e.preventDefault(); toggleMap(false); }
+      return;
+    }
+    if (['ArrowRight', ' ', 'PageDown', 'ArrowDown'].indexOf(k) > -1) { e.preventDefault(); advance(); }
+    else if (['ArrowLeft', 'PageUp', 'ArrowUp'].indexOf(k) > -1) { e.preventDefault(); retreat(); }
+    else if (k === 'Home') { e.preventDefault(); go(0); }
+    else if (k === 'End') { e.preventDefault(); go(stops.length - 1); }
+    else if (k === 'm' || k === 'M') { e.preventDefault(); toggleMap(); }
+    else if (k === 'b' || k === 'B') { e.preventDefault(); blank.classList.toggle('on'); }
+    else if (k === 'f' || k === 'F') {
+      e.preventDefault();
       if (document.fullscreenElement) document.exitFullscreen();
       else document.documentElement.requestFullscreen();
     }
   });
+
+  blank.addEventListener('click', function () { blank.classList.remove('on'); });
   view.addEventListener('click', function (e) {
-    if (e.target.closest('a, button, video, audio, input')) return;
-    go(e.clientX > window.innerWidth / 3 ? i + 1 : i - 1);
+    if (e.target.closest('a, button, video, audio, input, .atl-show-controls')) return;
+    if (e.clientX > window.innerWidth / 3) advance(); else retreat();
   });
-  addEventListener('resize', function () { go(i); });
-  go(0);
+  addEventListener('resize', function () { paint(false); });
+
+  /* Every card starts folded, or a reveal would be showing before its turn. */
+  var all = stage.querySelectorAll('.atl-node');
+  for (var z = 0; z < all.length; z++) resetCard(all[z], false);
+  paint(false);
 })();
 `;
 
@@ -170,6 +316,15 @@ function printPages(clone: HTMLElement, stops: ExportInput["stops"]): string {
 		page.style.width = "100%";
 		page.style.height = `${(stop.height / stop.width) * 100}%`;
 		page.addClass("is-active");
+		// A page cannot be pressed through, so everything on the card has to be
+		// there at once: a reveal is invisible until something shows it, and a
+		// slide show would print its first frame and lose the rest.
+		for (const s of Array.from(page.querySelectorAll(".atl-step"))) s.addClass("is-shown");
+		for (const show of Array.from(page.querySelectorAll<HTMLElement>(".atl-slideshow"))) {
+			const frames = Array.from(show.querySelectorAll<HTMLElement>(".atl-frame-item"));
+			for (const f of frames) f.addClass("is-current");
+			show.addClass("print-all");
+		}
 		pages.push(`<div class="page">${page.outerHTML}</div>`);
 	}
 	return pages.join("\n");
@@ -230,6 +385,23 @@ export async function exportDeck(app: App, input: ExportInput): Promise<string |
   #bar { position: fixed; left: 0; right: 0; bottom: 0; display: flex;
     justify-content: space-between; padding: 10px 18px; font-size: 13px;
     color: #6b7a80; pointer-events: none; }
+  #rail { position: fixed; left: 0; right: 0; top: 0; height: 3px; background: rgb(0 0 0 / 0.08); }
+  #railfill { height: 100%; width: 0; background: #1d5a78; transition: width 420ms ease; }
+  #blank { position: fixed; inset: 0; background: #000; display: none; z-index: 40; }
+  #blank.on { display: block; }
+  #map { position: fixed; inset: 0; z-index: 50; display: none;
+    background: rgb(16 22 26 / 0.93); padding: 4vh 4vw; box-sizing: border-box; }
+  #map.on { display: block; }
+  #map svg { width: 100%; height: 100%; }
+  #map .mn { fill: rgb(255 255 255 / 0.16); stroke: rgb(255 255 255 / 0.3);
+    stroke-width: 2; cursor: pointer; }
+  #map .mn:hover { fill: rgb(255 255 255 / 0.3); }
+  #map .mn.on { fill: #7cc6ff; stroke: #7cc6ff; }
+  #map .mg { fill: none; stroke: rgb(255 255 255 / 0.22); stroke-dasharray: 10 8; }
+  #map .ml { fill: rgb(255 255 255 / 0.85); font: 500 13px system-ui, sans-serif;
+    pointer-events: none; }
+  #map .mh { position: absolute; left: 4vw; top: 1.6vh; color: rgb(255 255 255 / 0.6);
+    font: 13px system-ui, sans-serif; }
   #print { display: none; }
   @media print {
     html, body { height: auto; overflow: visible; background: #fff; }
@@ -238,6 +410,13 @@ export async function exportDeck(app: App, input: ExportInput): Promise<string |
     .page { page-break-after: always; break-after: page; padding: 0; }
     .page:last-child { page-break-after: auto; break-after: auto; }
     .atl-node { box-shadow: none !important; border: 1px solid #ddd; }
+    /* Stacked frames have to be un-stacked, or every picture but one prints
+       underneath the others. */
+    .print-all { position: static !important; height: auto !important;
+      display: flex !important; flex-wrap: wrap; gap: 8px; }
+    .print-all .atl-frame-item { position: static !important; opacity: 1 !important;
+      transform: none !important; width: 48% !important; height: auto !important; }
+    .print-all .atl-show-controls { display: none !important; }
   }
   @page { size: landscape; margin: 12mm; }
 ${input.css}
@@ -245,6 +424,9 @@ ${input.css}
 </head>
 <body>
 <div id="view"><div id="stage"></div></div>
+<div id="rail"><div id="railfill"></div></div>
+<div id="blank"></div>
+<div id="map"><div class="mh">Click a card to fly to it &middot; M or Esc to close</div></div>
 <div id="bar"><span>${input.title}</span><span id="counter"></span></div>
 <div id="print">__PRINT__</div>
 <script>
