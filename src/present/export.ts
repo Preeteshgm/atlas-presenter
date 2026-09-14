@@ -1,7 +1,7 @@
 import { App, Notice, TFile, normalizePath } from "obsidian";
 import { safeFileName } from "../format";
 import { mimeFor } from "../media";
-import { fail, offer } from "../notice";
+import { fail, offer, say } from "../notice";
 
 /**
  * Write the running deck out as one HTML file.
@@ -25,7 +25,24 @@ export interface ExportInput {
 		label: string;
 		/** The card's own name — the same one the deck and the minutes use. */
 		title: string;
+		/** The colour given in the canvas editor, mirrored on the map. */
+		colour: string;
+		/** Its place in the running order, for the badge on the map. */
+		order: number;
 	}[];
+	/**
+	 * What the map is drawn from.
+	 *
+	 * The exported map used to be rectangles and nothing else — no group names,
+	 * no numbers, no arrows, no colours — which made it useless for the one
+	 * thing a map is for. It is drawn from the same shapes and with the same
+	 * class names as the deck's own, so the plugin stylesheet that travels with
+	 * the file styles both.
+	 */
+	map: {
+		groups: { x: number; y: number; width: number; height: number; label: string }[];
+		edges: { x1: number; y1: number; x2: number; y2: number }[];
+	};
 	/** The plugin stylesheet plus the deck's own theme. */
 	css: string;
 	padding: number;
@@ -47,6 +64,15 @@ export interface ExportInput {
 	 * should not start running because it was sent to somebody.
 	 */
 	allowScripts: boolean;
+	/**
+	 * Open the file as soon as it is written.
+	 *
+	 * A notice with a button in it can be missed — you look away, it goes, and
+	 * you are left with a path. The file is always written to the same place and
+	 * always replaces what was there, so opening it is safe to do without being
+	 * asked.
+	 */
+	openAfter: boolean;
 }
 
 /** The logo markup, with its source inlined along with everything else. */
@@ -249,6 +275,7 @@ const RUNTIME = `
   var map = document.getElementById('map');
   var keys = document.getElementById('keys');
   var stops = window.__ATLAS_STOPS__, pad = window.__ATLAS_PAD__, max = window.__ATLAS_MAX__;
+  var mapData = window.__ATLAS_MAP__;
   var i = 0, step = 0;
 
   function cardAt(n) {
@@ -337,7 +364,7 @@ const RUNTIME = `
     counter.textContent =
       '? for keys  \\u00b7  ' + (i + 1) + ' / ' + total + (name ? '  \\u00b7  ' + name : '');
     railfill.style.width = (total < 2 ? 100 : (i / (total - 1)) * 100) + '%';
-    if (map.classList.contains('on')) markMap();
+    if (map.classList.contains('is-open')) markMap();
   }
 
   /* A card is told when it arrives and when it leaves, under the same names
@@ -484,36 +511,99 @@ const RUNTIME = `
     if (at === undefined) paint(true); else go(at);
   }
 
+  /* The same shapes and the same class names as the deck's own map, so the
+     plugin stylesheet that travels with this file styles both: groups with
+     their names, the arrows between cards, each card's canvas colour, its
+     title, and its number in the running order. It used to be grey rectangles
+     and nothing else, which is not a map. */
+  function esc(t) {
+    return String(t).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  }
+  /* Break a title into at most max lines of about per characters. */
+  function wrap(text, per, max) {
+    var words = String(text).split(/\\s+/), out = [], line = '';
+    for (var i = 0; i < words.length; i++) {
+      var next = line ? line + ' ' + words[i] : words[i];
+      if (next.length <= per || !line) { line = next; continue; }
+      out.push(line); line = words[i];
+      if (out.length === max - 1) break;
+    }
+    if (line && out.length < max) out.push(line);
+    if (out.length === max && words.join(' ').length > out.join(' ').length) {
+      out[max - 1] = out[max - 1].replace(/.$/, '\u2026');
+    }
+    return out;
+  }
+
   function buildMap() {
     var b = bounds();
-    var minx = b.x, miny = b.y, maxx = b.x + b.width, maxy = b.y + b.height;
-    var pad2 = 120;
-    var svg = '<svg viewBox="' + (minx - pad2) + ' ' + (miny - pad2) + ' ' +
-      (maxx - minx + pad2 * 2) + ' ' + (maxy - miny + pad2 * 2) + '" preserveAspectRatio="xMidYMid meet">';
-    for (var k = 0; k < stops.length; k++) {
-      var t = stops[k];
-      svg += '<rect class="' + (t.label ? 'mg' : 'mn') + '" data-i="' + k + '" x="' + t.x +
-        '" y="' + t.y + '" width="' + t.width + '" height="' + t.height + '" rx="14"></rect>';
-      var label = t.label || t.title;
-      if (label) {
-        svg += '<text class="ml" x="' + (t.x + 16) + '" y="' + (t.y - 14) + '">' +
-          String(label).replace(/[<&]/g, ' ') + '</text>';
+    var m = Math.max(b.width, b.height) * 0.05;
+    var unit = Math.max(b.width, b.height) / 900;
+    var stroke = Math.max(unit, 1);
+    var svg = '<svg class="atl-minimap-svg" viewBox="' + (b.x - m) + ' ' + (b.y - m) + ' ' +
+      (b.width + m * 2) + ' ' + (b.height + m * 2) + '" preserveAspectRatio="xMidYMid meet">';
+
+    for (var g = 0; g < mapData.groups.length; g++) {
+      var gr = mapData.groups[g];
+      svg += '<rect class="atl-mm-group" x="' + gr.x + '" y="' + gr.y + '" width="' + gr.width +
+        '" height="' + gr.height + '" rx="' + stroke * 12 + '" stroke-width="' + stroke + '"></rect>';
+      if (gr.label) {
+        svg += '<text class="atl-mm-grouplabel" x="' + (gr.x + stroke * 8) + '" y="' +
+          (gr.y - stroke * 8) + '" font-size="' + stroke * 22 + '">' + esc(gr.label) + '</text>';
       }
     }
+
+    for (var e = 0; e < mapData.edges.length; e++) {
+      var ed = mapData.edges[e];
+      svg += '<line class="atl-mm-edge" x1="' + ed.x1 + '" y1="' + ed.y1 + '" x2="' + ed.x2 +
+        '" y2="' + ed.y2 + '" stroke-width="' + stroke * 1.6 + '"></line>';
+    }
+
+    for (var k = 0; k < stops.length; k++) {
+      var t = stops[k];
+      if (t.label) continue; /* a section overview is the group, already drawn */
+      var rx = Math.min(t.width, t.height) * 0.05;
+      svg += '<g class="atl-mm-card" data-i="' + k + '">';
+      svg += '<rect class="atl-mm-node" data-i="' + k + '" x="' + t.x + '" y="' + t.y +
+        '" width="' + t.width + '" height="' + t.height + '" rx="' + rx +
+        '" stroke-width="' + stroke + '"' +
+        (t.colour ? ' data-color="' + esc(t.colour) + '"' : '') + '></rect>';
+
+      var size = Math.max(Math.min(t.height * 0.15, t.width * 0.08, 44), 9);
+      var lines = wrap(t.title, Math.floor(t.width / (size * 0.54)), 3);
+      var top = t.y + t.height / 2 - ((lines.length - 1) * size * 1.25) / 2 + size * 0.34;
+      svg += '<text class="atl-mm-label" text-anchor="middle" font-size="' + size + '">';
+      for (var L = 0; L < lines.length; L++) {
+        svg += '<tspan x="' + (t.x + t.width / 2) + '" y="' + (top + L * size * 1.25) + '">' +
+          esc(lines[L]) + '</tspan>';
+      }
+      svg += '</text>';
+
+      var br = Math.max(Math.min(t.width, t.height) * 0.07, stroke * 7);
+      svg += '<circle class="atl-mm-badge" cx="' + (t.x + br * 1.35) + '" cy="' + (t.y + br * 1.35) +
+        '" r="' + br + '"></circle>';
+      svg += '<text class="atl-mm-badgetext" x="' + (t.x + br * 1.35) + '" y="' +
+        (t.y + br * 1.35 + br * 0.36) + '" text-anchor="middle" font-size="' + br * 1.05 + '">' +
+        t.order + '</text>';
+      svg += '</g>';
+    }
+
     map.insertAdjacentHTML('beforeend', svg + '</svg>');
-    map.addEventListener('click', function (e) {
-      var hit = e.target.closest('rect[data-i]');
+    map.addEventListener('click', function (ev) {
+      var hit = ev.target.closest('[data-i]');
       if (hit) { toggleMap(false); go(+hit.getAttribute('data-i')); }
     });
   }
   function markMap() {
-    var r = map.querySelectorAll('rect[data-i]');
-    for (var n = 0; n < r.length; n++) r[n].classList.toggle('on', +r[n].getAttribute('data-i') === i);
+    var r = map.querySelectorAll('rect.atl-mm-node');
+    for (var n = 0; n < r.length; n++) {
+      r[n].classList.toggle('is-current', +r[n].getAttribute('data-i') === i);
+    }
   }
   function toggleMap(on) {
     if (!map.querySelector('svg')) buildMap();
-    map.classList.toggle('on', on === undefined ? !map.classList.contains('on') : on);
-    if (map.classList.contains('on')) markMap();
+    map.classList.toggle('is-open', on === undefined ? !map.classList.contains('is-open') : on);
+    if (map.classList.contains('is-open')) markMap();
   }
 
   /* ---- keys ------------------------------------------------------------- */
@@ -532,7 +622,7 @@ const RUNTIME = `
       keys.classList.add('on');
       return;
     }
-    if (map.classList.contains('on')) {
+    if (map.classList.contains('is-open')) {
       if (k === 'Escape' || k === 'm' || k === 'M') { e.preventDefault(); toggleMap(false); }
       return;
     }
@@ -707,7 +797,27 @@ function printPages(clone: HTMLElement, stops: ExportInput["stops"]): string {
  * instead. Opening it needs the desktop app; on mobile the path alone is all
  * there is to give, so that is what is given.
  */
-function reveal(app: App, path: string, inlined: number): void {
+function launcher(app: App): ((p: string) => void) | null {
+	const open = (app as unknown as { openWithDefaultApp?: (p: string) => void })
+		.openWithDefaultApp;
+	return typeof open === "function" ? (p: string) => open.call(app, p) : null;
+}
+
+function reveal(app: App, path: string, inlined: number, openAfter: boolean): void {
+	const open = launcher(app);
+	const files = `${inlined} file${inlined === 1 ? "" : "s"} inlined.`;
+
+	if (openAfter && open) {
+		try {
+			open(path);
+			say(`exported to ${path} and opened. ${files}`, 7000);
+			return;
+		} catch {
+			// Fall through to the notice with a button, which is the same offer
+			// made a second time rather than a failure worth reporting.
+		}
+	}
+
 	offer((el, close) => {
 		el.createDiv({ text: `Atlas: exported to ${path}` });
 		el.createDiv({
@@ -717,15 +827,13 @@ function reveal(app: App, path: string, inlined: number): void {
 				"Print it from the browser for a PDF.",
 		});
 
-		const open = (app as unknown as { openWithDefaultApp?: (p: string) => void })
-			.openWithDefaultApp;
-		if (typeof open !== "function") return;
+		if (!open) return;
 
 		const btn = el.createEl("button", { cls: "atl-notice-btn", text: "Open in browser" });
 		btn.addEventListener("click", (e) => {
 			e.stopPropagation();
 			try {
-				open.call(app, path);
+				open(path);
 			} catch {
 				fail(`could not launch ${path} — open it yourself`);
 			}
@@ -778,19 +886,11 @@ export async function buildDeckHtml(
   #railfill { height: 100%; width: 0; background: #1d5a78; transition: width 420ms ease; }
   #blank { position: fixed; inset: 0; background: #000; display: none; z-index: 40; }
   #blank.on { display: block; }
-  #map { position: fixed; inset: 0; z-index: 50; display: none;
-    background: rgb(16 22 26 / 0.93); padding: 4vh 4vw; box-sizing: border-box; }
-  #map.on { display: block; }
-  #map svg { width: 100%; height: 100%; }
-  #map .mn { fill: rgb(255 255 255 / 0.16); stroke: rgb(255 255 255 / 0.3);
-    stroke-width: 2; cursor: pointer; }
-  #map .mn:hover { fill: rgb(255 255 255 / 0.3); }
-  #map .mn.on { fill: #7cc6ff; stroke: #7cc6ff; }
-  #map .mg { fill: none; stroke: rgb(255 255 255 / 0.22); stroke-dasharray: 10 8; }
-  #map .ml { fill: rgb(255 255 255 / 0.85); font: 500 13px system-ui, sans-serif;
-    pointer-events: none; }
-  #map .mh { position: absolute; left: 4vw; top: 1.6vh; color: rgb(255 255 255 / 0.6);
-    font: 13px system-ui, sans-serif; }
+  /* The map carries .atl-minimap, so the plugin's own stylesheet — which
+     travels with this file — draws it exactly as the deck does. Only the
+     stacking is stated here, because .atl-minimap is positioned inside the
+     overlay and this one is a layer over the whole page. */
+  #map { position: fixed; z-index: 50; }
   /* The overview: the same map, readable, every card clickable. Off-camera
      cards are dimmed by the plugin stylesheet so the audience keeps its
      bearings; here that is exactly wrong. */
@@ -852,7 +952,7 @@ ${input.css}
 <div id="hint">Drag or scroll &middot; Ctrl+wheel or +/&minus; to zoom &middot; 0 shows all &middot; click a card to go there &middot; Esc</div>
 <div id="rail"><div id="railfill"></div></div>
 <div id="blank"></div>
-<div id="map"><div class="mh">Click a card to fly to it &middot; M or Esc to close</div></div>
+<div id="map" class="atl-minimap"><div class="atl-minimap-hint">Click a card to fly to it &middot; M or Esc to close</div></div>
 <div id="bar"><span>${input.title}</span><span id="counter"></span></div>
 <div id="keys"><table>
 <caption>Keys</caption>
@@ -871,6 +971,7 @@ ${input.css}
   window.__ATLAS_STOPS__ = ${JSON.stringify(input.stops)};
   window.__ATLAS_PAD__ = ${input.padding};
   window.__ATLAS_MAX__ = ${input.maxScale};
+  window.__ATLAS_MAP__ = ${JSON.stringify(input.map)};
 </script>
 __SCRIPTS__
 <script>${RUNTIME}</script>
@@ -913,7 +1014,7 @@ export async function exportDeck(app: App, input: ExportInput): Promise<string |
 		const existing = app.vault.getAbstractFileByPath(path);
 		if (existing instanceof TFile) await app.vault.modify(existing, out);
 		else await app.vault.create(path, out);
-		reveal(app, path, inlined);
+		reveal(app, path, inlined, input.openAfter);
 		return path;
 	} catch (e) {
 		new Notice(`Atlas: could not write the export — ${String(e)}`);

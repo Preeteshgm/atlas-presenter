@@ -140,6 +140,8 @@ export interface AtlasSettings {
 	minutesOnExit: boolean;
 	/** Put the cards' own %%notes%% into the write-up. Off: they are private. */
 	minutesIncludeNotes: boolean;
+	/** Open the exported file in your browser as soon as it is written. */
+	openExport: boolean;
 	/** Appended to every action, e.g. a tag the Tasks plugin can query. */
 	actionSuffix: string;
 	/** Link each action back to the card it came from. */
@@ -185,6 +187,7 @@ export const DEFAULT_SETTINGS: AtlasSettings = {
 	minutesFolder: "Meetings",
 	minutesOnExit: true,
 	minutesIncludeNotes: false,
+	openExport: true,
 	actionSuffix: "",
 	actionsLinkBack: true,
 	showHud: true,

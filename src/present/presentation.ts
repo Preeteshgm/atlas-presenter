@@ -190,10 +190,14 @@ export class Presentation extends Component {
 			this.startNodeId && opening.node.id === this.startNodeId
 				? `starting on “${titleOf(opening.node)}”`
 				: `${this.cardTotal} cards${talk}`;
+		// In its own window the first thing to do is not to advance: it is to get
+		// the window onto the other screen and make it fill that screen.
 		new Notice(
 			`Atlas · ${where}\n` +
-				"→ advances · M for the map · click a link to peek · Esc exits",
-			6000
+				(this.windowed
+					? "Drag this window to your other screen, then F for fullscreen · Esc leaves"
+					: "→ advances · O for the overview · M for the map · Esc exits"),
+			8000
 		);
 	}
 
@@ -979,6 +983,7 @@ ${this.themeCss}`,
 			maxScale: this.settings.maxScale,
 			duration: this.settings.duration,
 			allowScripts: this.settings.allowScripts,
+			openAfter: this.settings.openExport,
 			logo: this.settings.logo
 				? {
 						src: resourcePath(this.app, this.settings.logo),
@@ -987,7 +992,26 @@ ${this.themeCss}`,
 						opacity: this.settings.logoOpacity,
 					}
 				: undefined,
-			stops: this.scene.stops.map((stop) => {
+			map: {
+				groups: this.scene.groups.map((g) => {
+					const r = rectOf(g);
+					return { ...r, label: g.label ?? "" };
+				}),
+				edges: this.scene.data.edges.flatMap((e) => {
+					const a = this.scene.data.nodes.find((n) => n.id === e.fromNode);
+					const b = this.scene.data.nodes.find((n) => n.id === e.toNode);
+					if (!a || !b) return [];
+					const ra = rectOf(a);
+					const rb = rectOf(b);
+					return [{
+						x1: ra.x + ra.width / 2,
+						y1: ra.y + ra.height / 2,
+						x2: rb.x + rb.width / 2,
+						y2: rb.y + rb.height / 2,
+					}];
+				}),
+			},
+			stops: this.scene.stops.map((stop, i) => {
 				const r = rectOf(stop.node);
 				return {
 					nodeId: stop.node.id,
@@ -999,6 +1023,8 @@ ${this.themeCss}`,
 					// The export had no card names at all, so its counter and its
 					// map could only ever label the sections.
 					title: stop.kind === "node" ? titleOf(stop.node) : "",
+					colour: stop.node.color ?? "",
+					order: stop.kind === "node" ? this.cardNumber(i) : 0,
 				};
 			}),
 		};

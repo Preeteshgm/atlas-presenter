@@ -664,6 +664,24 @@ export class AtlasSettingTab extends PluginSettingTab {
 					})
 			);
 
+		// ------------------------------------------------------- exporting
+		new Setting(containerEl).setName("Exporting").setHeading();
+
+		new Setting(containerEl)
+			.setName("Open the file after exporting")
+			.setDesc(
+				"Obsidian will not render an HTML file, so an export you are not shown " +
+					"is a path you have to go and find. The file is always written to the " +
+					"same place and always replaces what was there, so opening it costs " +
+					"nothing."
+			)
+			.addToggle((c) =>
+				c.setValue(s.openExport).onChange(async (v) => {
+					s.openExport = v;
+					await this.save();
+				})
+			);
+
 		// --------------------------------------------------- html cards
 		new Setting(containerEl).setName("HTML cards").setHeading();
 
