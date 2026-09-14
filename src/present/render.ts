@@ -676,6 +676,38 @@ function spaceRules(md: string): string {
 	return out.join("\n");
 }
 
+/**
+ * Three ways of showing a card's pictures.
+ *
+ * The tags were documented, demonstrated and styled — and never implemented for
+ * a markdown card. `.atl-gallery`, `.atl-scroll` and `.atl-slideshow` had rules,
+ * but the only thing that ever carried one was an HTML card writing the div
+ * itself. So `#slideshow` produced a column of stacked images, and the
+ * transition setting had nothing to act on, which is what it looked like.
+ *
+ * Every element holding a picture is gathered into one container where the
+ * first of them was. The rest of the card — heading, text — stays where it is.
+ */
+const PICTURES: [string, string][] = [
+	["atl-tag-gallery", "atl-gallery"],
+	["atl-tag-slideshow", "atl-slideshow"],
+	["atl-tag-scroll", "atl-scroll"],
+];
+
+function layOutPictures(card: HTMLElement, body: HTMLElement): void {
+	const kind = PICTURES.find(([tag]) => card.hasClass(tag));
+	if (!kind) return;
+
+	const media = Array.from(body.children).filter(
+		(el) => isElement(el) && !!el.querySelector("img, video")
+	) as HTMLElement[];
+	if (media.length === 0) return;
+
+	const box = body.createDiv({ cls: kind[1] });
+	body.insertBefore(box, media[0]);
+	for (const el of media) box.appendChild(el);
+}
+
 function isHeading(el: Element): boolean {
 	return /^H[1-3]$/.test(el.tagName);
 }
@@ -886,6 +918,9 @@ export async function renderNode(
 	} catch (e) {
 		body.createDiv({ cls: "atl-missing", text: `Could not render this card: ${String(e)}` });
 	}
-	layOutPanes(el, body);
+	// Pictures first: a card is one or the other, and a paned card splits on a
+	// rule rather than gathering its images.
+	if (PANED.some((c) => el.hasClass(c))) layOutPanes(el, body);
+	else layOutPictures(el, body);
 	return el;
 }
