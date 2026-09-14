@@ -566,7 +566,7 @@
 		{
 			"id": "O5",
 			"type": "text",
-			"text": "#compare\n## The exported file does\n\n- `→` `←` through reveals and pictures\n- `M` the map — click to fly\n- `B` blank, `F` fullscreen\n- Slide shows, galleries, scrolling cards\n- Video, audio, tables, every layout\n- Your theme, your camera speed\n---\n## It does not\n\n- **Run card scripts.** Stripped on purpose — an exported file should\n  render, not execute. An animation exports as a still.\n- **Peek a note.** There is no vault on the other end.\n- **`G`, `N`, `W`.** No graph, no remarks, no minutes.\n- **Speaker notes.** They never leave Obsidian, by design.",
+			"text": "#compare\n## The exported file does\n\n- `→` `←` through reveals and pictures\n- `M` the map — click to fly\n- `B` blank, `F` fullscreen\n- Slide shows, galleries, scrolling cards\n- Video, audio, tables, every layout\n- Your theme, your logo, your camera speed\n- **Card scripts**, if you have them turned on\n---\n## It does not\n\n- **Peek a note.** There is no vault on the other end.\n- **`G`, `N`, `W`.** No graph, no remarks, no minutes.\n- **Speaker notes.** They never leave Obsidian, by design.\n\n%%Scripts are only exported when *Run scripts in HTML cards* is on. A\ncard you do not trust to run here should not start running because it\nwas sent to somebody.%%",
 			"x": 6080,
 			"y": 10240,
 			"width": 1280,

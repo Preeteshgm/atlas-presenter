@@ -426,10 +426,16 @@ function renderRawHtml(
  */
 function runCardScripts(shadow: ShadowRoot, host: HTMLElement, wrap: HTMLElement): void {
 	const scripts = Array.from(wrap.querySelectorAll("script"));
+	const sources: string[] = [];
 	for (const el of scripts) {
 		const code = el.textContent ?? "";
 		el.remove();
 		if (!code.trim()) continue;
+		// Kept, because running a script destroys it: it is compiled here and
+		// the element removed, so by the time the export clones the stage there
+		// is nothing left to find. An exported card animated in Obsidian and
+		// sat still in the browser, with no sign of why.
+		sources.push(code);
 		try {
 			// Compiled here rather than inserted, so it runs exactly once and we
 			// can hand it what it needs.
@@ -447,6 +453,7 @@ function runCardScripts(shadow: ShadowRoot, host: HTMLElement, wrap: HTMLElement
 			console.error("Atlas card script:", e);
 		}
 	}
+	if (sources.length > 0) host.dataset.atlScripts = JSON.stringify(sources);
 }
 
 /**

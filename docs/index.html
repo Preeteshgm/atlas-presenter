@@ -597,7 +597,11 @@ host.addEventListener('atlas:leave', stop);</code></pre>
 <p>
 	Look things up through <code>root</code>: <code>document</code> sees a different
 	tree and finds nothing. Anything thrown is printed on the card rather than lost.
-	Scripts are stripped from exports — an exported file should render, not execute.
+	Scripts travel with an export, wrapped so that <code>root</code> and <code>host</code>
+	mean the same there, and the card is told <code>atlas:enter</code> and
+	<code>atlas:leave</code> as it comes on and off camera. They are only included
+	when this setting is on: a card not trusted to run in Obsidian should not start
+	running because it was sent to somebody.
 </p>
 
 <h2 id="naming">How a card is named</h2>

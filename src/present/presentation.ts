@@ -861,6 +861,7 @@ ${this.themeCss}`,
 			padding: this.settings.padding,
 			maxScale: this.settings.maxScale,
 			duration: this.settings.duration,
+			allowScripts: this.settings.allowScripts,
 			logo: this.settings.logo
 				? {
 						src: resourcePath(this.app, this.settings.logo),

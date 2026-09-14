@@ -480,18 +480,40 @@ children, so leaving one out never severs the chain.
 
 ## Export
 
-Press **`E`** while presenting, or run **Export the running deck to a single HTML
-file**. You get one `.html` in your vault: the cards as they stand, every image,
-video and audio file inlined as a data URI, and a small camera with the same
-keys. It opens in any browser — no Obsidian, no network, no plugin.
+Press **`E`** while presenting, or run **Export to HTML** — which no longer needs
+a deck running. You get one `.html` at your vault root: the cards as they stand,
+every image, video and audio file inlined as a data URI, your theme and your
+logo, and a camera with the same keys. It opens in any browser — no Obsidian, no
+network, no plugin.
 
-Scripts are dropped from the export, so an interactive card renders but does not
-run.
+The exported file behaves like the deck. `→` steps through reveals and picture
+stacks in the same order, `M` opens a map you can click, `B` blanks, `F` goes
+fullscreen. Card scripts travel too, wrapped so `root` and `host` mean the same
+there, and the card is told `atlas:enter` and `atlas:leave` as it comes on and
+off camera — but **only when *Run scripts in HTML cards* is on**. A card not
+trusted to run here should not start running because it was sent to somebody.
 
-**For PDF, print it.** The exported file carries a print stylesheet: one card per
-landscape page, the camera and the bottom bar hidden. Open it in a browser and
-print to PDF. That keeps the deck a deck on screen and gives you pages on paper,
-without a second export path to maintain.
+Four things stay behind, and cannot sensibly travel: peeking a note, the vault
+graph, remarks and minutes, and your speaker notes.
+
+### Preview it first
+
+**Preview the export** opens that same document, running, in a tab beside the
+canvas, with a **Refresh** button that rebuilds it. Nothing is written to the
+vault. It exists to answer *what will the person I send this to actually see* —
+a question only the exported document can answer.
+
+There is no auto-refresh, because a page opened from `file://` cannot watch your
+vault. Re-exporting overwrites the same path, so the loop is edit → export →
+`F5`.
+
+### For PDF, print it
+
+The exported file carries a print stylesheet: one card per landscape page, the
+camera and bottom bar hidden, every reveal shown and picture stacks un-stacked
+so nothing is lost on paper. Open it in a browser and print to PDF. That keeps
+the deck a deck on screen and gives you pages on paper, without a second export
+path to maintain.
 
 ---
 

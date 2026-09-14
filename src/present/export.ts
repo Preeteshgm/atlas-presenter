@@ -40,6 +40,13 @@ export interface ExportInput {
 	 * where the branding was the point.
 	 */
 	logo?: { src: string; corner: string; height: number; opacity: number };
+	/**
+	 * Whether this vault runs card scripts.
+	 *
+	 * The export follows the same answer. A card not trusted to run in Obsidian
+	 * should not start running because it was sent to somebody.
+	 */
+	allowScripts: boolean;
 }
 
 /** The logo markup, with its source inlined along with everything else. */
@@ -101,6 +108,59 @@ async function inlineMedia(app: App, root: HTMLElement): Promise<number> {
 	return inlined;
 }
 
+/**
+ * The cards' own scripts, rewritten to run in a plain document.
+ *
+ * In Obsidian a card script is handed `root` — its shadow root — and `host`,
+ * the card element. The export has no shadow roots, because flattening them is
+ * how the cloned DOM survives at all, so both names point at the card's body
+ * here. `root.querySelector` means the same thing either way, which is the part
+ * every script actually uses.
+ *
+ * Only emitted when the vault has script execution turned on: a card that is
+ * not trusted to run in Obsidian should not start running because it was sent
+ * to somebody.
+ */
+function cardScripts(clone: HTMLElement): string {
+	const out: string[] = [];
+	for (const body of Array.from(clone.querySelectorAll<HTMLElement>("[data-atl-scripts]"))) {
+		const raw = body.dataset.atlScripts ?? "";
+		body.removeAttribute("data-atl-scripts");
+		const card = body.closest<HTMLElement>("[data-node-id]");
+		const id = card?.dataset.nodeId;
+		if (!id) continue;
+
+		let sources: string[];
+		try {
+			sources = JSON.parse(raw) as string[];
+		} catch {
+			continue;
+		}
+
+		const selector = `[data-node-id="${id}"] .atl-body`;
+		for (const code of sources) {
+			// A literal </script> inside the card would close this one early.
+			const safe = code.replace(/<\/script/gi, "<\\/script");
+			out.push(`<script>
+(function () {
+  var host = document.querySelector(${JSON.stringify(selector)});
+  if (!host) return;
+  var root = host;
+  try {
+${safe}
+  } catch (e) {
+    var note = document.createElement('div');
+    note.className = 'atl-script-error';
+    note.textContent = "This card's script failed: " + ((e && e.message) || e);
+    host.appendChild(note);
+  }
+})();
+</script>`);
+		}
+	}
+	return out.join("\n");
+}
+
 /** Shadow roots do not survive cloneNode, so their content is folded back in. */
 function flattenShadows(live: HTMLElement, clone: HTMLElement): void {
 	const liveHosts = Array.from(live.querySelectorAll<HTMLElement>(".atl-body"));
@@ -111,7 +171,10 @@ function flattenShadows(live: HTMLElement, clone: HTMLElement): void {
 		if (!shadow || !target) return;
 		target.empty();
 		for (const child of Array.from(shadow.children)) {
-			// Scripts are dropped: an exported file should render, not execute.
+			// Not copied as markup. A card's scripts are re-emitted at the foot
+			// of the document by cardScripts(), wrapped so `root` and `host`
+			// mean there what they mean here — copying the tag would run it
+			// with neither in scope.
 			if (child.tagName === "SCRIPT") continue;
 			target.appendChild(child.cloneNode(true));
 		}
@@ -203,17 +266,29 @@ const RUNTIME = `
     if (map.classList.contains('on')) markMap();
   }
 
+  /* A card is told when it arrives and when it leaves, under the same names
+     the deck uses, so a script that stops its animation off camera behaves the
+     same here. Without this an exported animation would run for every card in
+     the file at once, for as long as the tab stayed open. */
+  function signal(el, kind) {
+    var body = el && el.querySelector('.atl-body');
+    if (body) body.dispatchEvent(new CustomEvent('atlas:' + kind));
+  }
+
   /* Arriving forwards starts a card folded; arriving backwards starts it fully
      open, so stepping back into a card does not replay it. */
   function go(n, back) {
     n = Math.max(0, Math.min(n, stops.length - 1));
     if (n === i) { paint(true); return; }
-    resetCard(cardAt(i), false);
+    var leaving = cardAt(i);
+    resetCard(leaving, false);
+    signal(leaving, 'leave');
     i = n;
     var el = cardAt(i);
     resetCard(el, !!back);
     step = back ? stepsIn(el).length : 0;
     paint(true);
+    signal(el, 'enter');
   }
 
   /* Reveals, then the pictures, then the next card — the deck's own order. */
@@ -308,6 +383,7 @@ const RUNTIME = `
   var all = stage.querySelectorAll('.atl-node');
   for (var z = 0; z < all.length; z++) resetCard(all[z], false);
   paint(false);
+  signal(cardAt(i), 'enter');
 })();
 `;
 
@@ -474,15 +550,21 @@ ${input.css}
   window.__ATLAS_MAX__ = ${input.maxScale};
 </script>
 <script>${RUNTIME}</script>
+__SCRIPTS__
 </body>
 </html>`;
 
+	// Read before the stage is serialised: it strips the attribute it reads.
+	const scripts = input.allowScripts ? cardScripts(clone) : "";
 	const stageHtml = clone.innerHTML;
 	return {
 		inlined,
 		html: html
 			.replace('<div id="stage" class="atl-stage"></div>', `<div id="stage" class="atl-stage">${stageHtml}</div>`)
-			.replace("__PRINT__", printPages(clone, input.stops.filter((s) => !s.label))),
+			.replace("__PRINT__", printPages(clone, input.stops.filter((s) => !s.label)))
+			// After the runtime, so a script that listens for atlas:enter is
+			// bound before the opening card is announced.
+			.replace("__SCRIPTS__", scripts),
 	};
 }
 
