@@ -151,6 +151,55 @@
 			"y": 4590,
 			"width": 1540,
 			"height": 980
+		},
+		{
+			"id": "r-options",
+			"type": "text",
+			"text": "#compare\n## Option A — patch\n\nRe-terminate the six failed loops, leave the head end alone.\n\n- Four weeks, one shutdown\n- £18k\n- We are back here in 2028\n---\n## Option B — replace\n\nNew head end, new backbone, re-use the field devices.\n\n- Eleven weeks, three shutdowns\n- £52k\n- Good for a decade",
+			"x": 0,
+			"y": 5990,
+			"width": 1280,
+			"height": 860,
+			"color": "4"
+		},
+		{
+			"id": "r-costs",
+			"type": "text",
+			"text": "## What it costs, line by line\n\n| | Patch | Replace |\n| --- | ---: | ---: |\n| Materials | £6,400 | £29,000 |\n| Labour | £9,100 | £18,500 |\n| Shutdown cover | £2,500 | £4,500 |\n| **Total** | **£18,000** | **£52,000** |\n\n%%They will ask about the shutdown cover. It is three nights at\nweekend rates, and it is the number most likely to move.%%",
+			"x": 1520,
+			"y": 5990,
+			"width": 1280,
+			"height": 860,
+			"color": "6"
+		},
+		{
+			"id": "r-ask",
+			"type": "text",
+			"text": "#agenda\n# What we need today\n\n1. A decision between A and B\n2. Sign-off on the shutdown windows\n3. A name for the commissioning witness",
+			"x": 3040,
+			"y": 5990,
+			"width": 1280,
+			"height": 860,
+			"color": "3"
+		},
+		{
+			"id": "r-close",
+			"type": "text",
+			"text": "#end\n# Thank you\n\nQuestions, and then the walk-round at two.\n\n- [ ] Confirm the shutdown dates with operations\n- [ ] Send the cost breakdown to finance",
+			"x": 4560,
+			"y": 5990,
+			"width": 1280,
+			"height": 860,
+			"color": "2"
+		},
+		{
+			"id": "grp-r-options",
+			"type": "group",
+			"label": "The ask",
+			"x": -130,
+			"y": 5860,
+			"width": 6100,
+			"height": 1120
 		}
 	],
 	"edges": [
@@ -207,6 +256,30 @@
 			"fromNode": "s8",
 			"toNode": "s9",
 			"label": "9."
+		},
+		{
+			"id": "y10",
+			"fromNode": "s9",
+			"toNode": "r-options",
+			"label": "10."
+		},
+		{
+			"id": "y11",
+			"fromNode": "r-options",
+			"toNode": "r-costs",
+			"label": "11."
+		},
+		{
+			"id": "y12",
+			"fromNode": "r-costs",
+			"toNode": "r-ask",
+			"label": "12."
+		},
+		{
+			"id": "y13",
+			"fromNode": "r-ask",
+			"toNode": "r-close",
+			"label": "13."
 		}
 	]
 }

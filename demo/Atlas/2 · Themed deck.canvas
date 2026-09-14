@@ -144,6 +144,75 @@
 			"width": 900,
 			"height": 420,
 			"color": "3"
+		},
+		{
+			"id": "t-agenda",
+			"type": "text",
+			"text": "#agenda\n# What we will cover\n\n1. Where the site stands today\n2. The three options on the table\n3. What each one costs\n4. What we need decided in this room",
+			"x": 0,
+			"y": 4800,
+			"width": 1280,
+			"height": 860,
+			"color": "3"
+		},
+		{
+			"id": "t-two",
+			"type": "text",
+			"text": "#two\n# Two columns, placed\n---\n`#split` flows — text spills out of this column into the next one, and\nyou cannot say what goes where.\n\nCompare it with the `#split` card earlier in this deck.\n---\n`#two` places. The `---` rule is the break, so this paragraph is here\nbecause it was written second.\n\nThe heading above spans both.",
+			"x": 1520,
+			"y": 4800,
+			"width": 1280,
+			"height": 860,
+			"color": "4"
+		},
+		{
+			"id": "t-compare",
+			"type": "text",
+			"text": "#compare\n## Patch it\n\n- Four weeks\n- £18k\n- Buys eighteen months\n---\n## Replace it\n\n- Eleven weeks\n- £52k\n- Buys a decade",
+			"x": 3040,
+			"y": 4800,
+			"width": 1280,
+			"height": 860,
+			"color": "4"
+		},
+		{
+			"id": "t-left",
+			"type": "text",
+			"text": "#left\n![[surfaces.svg]]\n---\n## Picture one side\n\n`#left` fills the left half with the picture. `#right` is the mirror —\nwrite the picture second.\n\nUseful alternating down a run, so a sequence does not read as one long\ncolumn.",
+			"x": 4560,
+			"y": 4800,
+			"width": 1280,
+			"height": 860,
+			"color": "5"
+		},
+		{
+			"id": "t-table",
+			"type": "text",
+			"text": "## And a table\n\nNo tag. Every theme styles these for a slide — ruled header, banded\nrows, tabular figures.\n\n| Option | Weeks | Cost | Risk |\n| --- | ---: | ---: | :---: |\n| Do nothing | 0 | £0 | High |\n| Patch it | 4 | £18k | Medium |\n| Replace | 11 | £52k | Low |",
+			"x": 6080,
+			"y": 4800,
+			"width": 1280,
+			"height": 860,
+			"color": "6"
+		},
+		{
+			"id": "t-end",
+			"type": "text",
+			"text": "#end\n# Swap the theme\n\nChange the `theme:` line on this canvas's `#deck` card and present again.\nNot one card changes.\n\nPaper · Slate · Plain",
+			"x": 7600,
+			"y": 4800,
+			"width": 1280,
+			"height": 860,
+			"color": "2"
+		},
+		{
+			"id": "grp-t-agenda",
+			"type": "group",
+			"label": "Newer roles, in this theme",
+			"x": -130,
+			"y": 4670,
+			"width": 9140,
+			"height": 1120
 		}
 	],
 	"edges": [
@@ -206,6 +275,42 @@
 			"fromNode": "c10",
 			"toNode": "c11",
 			"label": "10."
+		},
+		{
+			"id": "y11",
+			"fromNode": "c11",
+			"toNode": "t-agenda",
+			"label": "11."
+		},
+		{
+			"id": "y12",
+			"fromNode": "t-agenda",
+			"toNode": "t-two",
+			"label": "12."
+		},
+		{
+			"id": "y13",
+			"fromNode": "t-two",
+			"toNode": "t-compare",
+			"label": "13."
+		},
+		{
+			"id": "y14",
+			"fromNode": "t-compare",
+			"toNode": "t-left",
+			"label": "14."
+		},
+		{
+			"id": "y15",
+			"fromNode": "t-left",
+			"toNode": "t-table",
+			"label": "15."
+		},
+		{
+			"id": "y16",
+			"fromNode": "t-table",
+			"toNode": "t-end",
+			"label": "16."
 		}
 	]
 }

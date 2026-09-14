@@ -861,6 +861,14 @@ ${this.themeCss}`,
 			padding: this.settings.padding,
 			maxScale: this.settings.maxScale,
 			duration: this.settings.duration,
+			logo: this.settings.logo
+				? {
+						src: resourcePath(this.app, this.settings.logo),
+						corner: this.settings.logoCorner,
+						height: this.settings.logoHeight,
+						opacity: this.settings.logoOpacity,
+					}
+				: undefined,
 			stops: this.scene.stops.map((stop) => {
 				const r = rectOf(stop.node);
 				return {

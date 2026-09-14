@@ -32,8 +32,25 @@ export interface ExportInput {
 	maxScale: number;
 	/** Camera flight, in milliseconds. The export used to hardcode its own. */
 	duration: number;
+	/**
+	 * The deck's logo, if it has one.
+	 *
+	 * It lives on the overlay rather than the stage, so cloning the stage left
+	 * it behind — a branded deck exported unbranded, which is the one context
+	 * where the branding was the point.
+	 */
+	logo?: { src: string; corner: string; height: number; opacity: number };
 }
 
+/** The logo markup, with its source inlined along with everything else. */
+function logoTag(input: ExportInput): string {
+	const logo = input.logo;
+	if (!logo?.src) return "";
+	return (
+		`<img class="atl-logo" data-corner="${logo.corner}" src="${logo.src}" ` +
+		`style="height:${logo.height}px;opacity:${logo.opacity}">`
+	);
+}
 
 function base64(buffer: ArrayBuffer): string {
 	const bytes = new Uint8Array(buffer);
@@ -51,29 +68,33 @@ function base64(buffer: ArrayBuffer): string {
  * An exported file that still points at `app://` paths only works on the
  * machine that made it, which defeats the purpose.
  */
+async function dataUri(app: App, src: string): Promise<string | null> {
+	if (!src || src.startsWith("data:")) return src || null;
+
+	// A resource path carries the vault-relative path in its query or body.
+	const match = decodeURIComponent(src).match(/([^/?#]+\.\w+)(?:\?|$)/);
+	const name = match?.[1];
+	const file = name ? app.vault.getFiles().find((f) => f.name === name) : undefined;
+	if (!file) return null;
+	try {
+		const data = await app.vault.readBinary(file);
+		return `data:${mimeFor(file.extension)};base64,${base64(data)}`;
+	} catch {
+		return null;
+	}
+}
+
 async function inlineMedia(app: App, root: HTMLElement): Promise<number> {
 	let inlined = 0;
 	const holders = Array.from(root.querySelectorAll<HTMLElement>("img, video, audio, source"));
 	for (const el of holders) {
 		const src = el.getAttribute("src");
 		if (!src || src.startsWith("data:")) continue;
-
-		// A resource path carries the vault-relative path in its query or body.
-		const match = decodeURIComponent(src).match(/([^/?#]+\.\w+)(?:\?|$)/);
-		const name = match?.[1];
-		const file = name
-			? app.vault.getFiles().find((f) => f.name === name)
-			: undefined;
-		if (!file) {
-			el.removeAttribute("src");
-			continue;
-		}
-		try {
-			const data = await app.vault.readBinary(file);
-			const mime = mimeFor(file.extension);
-			el.setAttribute("src", `data:${mime};base64,${base64(data)}`);
+		const uri = await dataUri(app, src);
+		if (uri) {
+			el.setAttribute("src", uri);
 			inlined++;
-		} catch {
+		} else {
 			el.removeAttribute("src");
 		}
 	}
@@ -375,6 +396,13 @@ export async function buildDeckHtml(
 	flattenShadows(input.stage, clone);
 	const inlined = await inlineMedia(app, clone);
 
+	// The logo is written into the template rather than cloned, so it misses
+	// the pass above and has to be inlined on its own.
+	if (input.logo?.src) {
+		const uri = await dataUri(app, input.logo.src);
+		input = { ...input, logo: uri ? { ...input.logo, src: uri } : undefined };
+	}
+
 	const html = `<!doctype html>
 <html lang="en">
 <head>
@@ -415,6 +443,12 @@ export async function buildDeckHtml(
     .page { page-break-after: always; break-after: page; padding: 0; }
     .page:last-child { page-break-after: auto; break-after: auto; }
     .atl-node { box-shadow: none !important; border: 1px solid #ddd; }
+    /* #print carries .atl-overlay so the theme's tokens reach it, but the
+       overlay is a fixed, clipped full-screen layer — which on paper would
+       print one page and swallow the rest. */
+    #print.atl-overlay { position: static !important; inset: auto !important;
+      overflow: visible !important; height: auto !important; background: none !important; }
+    .atl-logo { display: none !important; }
     /* Stacked frames have to be un-stacked, or every picture but one prints
        underneath the others. */
     .print-all { position: static !important; height: auto !important;
@@ -428,12 +462,12 @@ ${input.css}
 </style>
 </head>
 <body>
-<div id="view"><div id="stage"></div></div>
+<div id="view" class="atl-overlay"><div id="stage" class="atl-stage"></div>${logoTag(input)}</div>
 <div id="rail"><div id="railfill"></div></div>
 <div id="blank"></div>
 <div id="map"><div class="mh">Click a card to fly to it &middot; M or Esc to close</div></div>
 <div id="bar"><span>${input.title}</span><span id="counter"></span></div>
-<div id="print">__PRINT__</div>
+<div id="print" class="atl-overlay">__PRINT__</div>
 <script>
   window.__ATLAS_STOPS__ = ${JSON.stringify(input.stops)};
   window.__ATLAS_PAD__ = ${input.padding};
@@ -447,7 +481,7 @@ ${input.css}
 	return {
 		inlined,
 		html: html
-			.replace('<div id="stage"></div>', `<div id="stage">${stageHtml}</div>`)
+			.replace('<div id="stage" class="atl-stage"></div>', `<div id="stage" class="atl-stage">${stageHtml}</div>`)
 			.replace("__PRINT__", printPages(clone, input.stops.filter((s) => !s.label))),
 	};
 }
