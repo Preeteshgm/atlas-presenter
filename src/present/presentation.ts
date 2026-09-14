@@ -496,20 +496,23 @@ export class Presentation extends Component {
 			// and the camera follows at the same zoom. Nothing here moves the
 			// talk on — you are looking for a card, and the deck stays where it
 			// was until you choose one or give up.
-			if (this.overviewing && (NAVIGATION.has(key) || key === "Enter")) {
+			if (this.overviewing && NAVIGATION.has(key)) {
 				handled();
+				const w = this.overlay.clientWidth * 0.6;
+				const h = this.overlay.clientHeight * 0.6;
 				if (key === "Escape" || key === "Backspace") this.closeOverview();
-				else if (key === "Enter" || key === " ") this.closeOverview(this.picked);
-				else if (key === "ArrowRight" || key === "PageDown" || key === "ArrowDown") {
-					this.movePick(1);
-				} else if (key === "ArrowLeft" || key === "PageUp" || key === "ArrowUp") {
-					this.movePick(-1);
-				} else if (key === "Home") {
-					this.picked = 0;
-					this.showPick(240);
-				} else if (key === "End") {
-					this.picked = this.scene.stops.length - 1;
-					this.showPick(240);
+				else if (key === "ArrowRight") this.pan(w, 0);
+				else if (key === "ArrowLeft") this.pan(-w, 0);
+				else if (key === "ArrowDown" || key === "PageDown" || key === " ") this.pan(0, h);
+				else if (key === "ArrowUp" || key === "PageUp") this.pan(0, -h);
+				else if (key === "Home" || key === "End") {
+					// The ends of the deck, without picking anything there.
+					const r = rectOf(
+						this.stopAt(key === "Home" ? 0 : this.scene.stops.length - 1).node
+					);
+					this.viewCx = r.x + r.width / 2;
+					this.viewCy = r.y + r.height / 2;
+					this.look(260);
 				}
 				return;
 			}
@@ -662,15 +665,7 @@ export class Presentation extends Component {
 			(e: WheelEvent) => {
 				if (!this.overviewing) return;
 				e.preventDefault();
-				const now = this.camera.current;
-				void this.camera.moveTo(
-					{
-						cx: now.cx + (e.shiftKey ? e.deltaY : e.deltaX) / now.scale,
-						cy: now.cy + (e.shiftKey ? 0 : e.deltaY) / now.scale,
-						scale: now.scale,
-					},
-					0
-				);
+				this.pan(e.shiftKey ? e.deltaY : e.deltaX, e.shiftKey ? 0 : e.deltaY, 0);
 			},
 			{ passive: false }
 		);
@@ -1364,9 +1359,10 @@ ${this.themeCss}`,
 	 * cards themselves, for picking the one you can see.
 	 */
 	private overviewing = false;
-	/** The card the overview is pointing at, which is not where the deck is. */
-	private picked = 0;
-	private pickScale = 1;
+	/** Where the overview is looking, and how close. Held while you scroll. */
+	private viewCx = 0;
+	private viewCy = 0;
+	private viewScale = 1;
 
 	private toggleOverview(): void {
 		if (this.overviewing) this.closeOverview();
@@ -1382,52 +1378,48 @@ ${this.themeCss}`,
 	 * the current section, or about two and a half cards where there is no
 	 * section, and then held while you scroll.
 	 */
-	private readableScale(): number {
-		const vw = this.overlay.clientWidth || 1;
-		const stop = this.stopAt(this.index);
-		const card = rectOf(stop.node);
-		const across = stop.group ? rectOf(stop.group).width : card.width * 2.5;
-		return Math.min(vw / (across * 1.08 || 1), this.settings.maxScale);
-	}
-
 	private openOverview(): void {
 		if (this.overviewing) return;
 		this.overviewing = true;
-		this.picked = this.index;
-		this.pickScale = this.readableScale();
 		this.overlay.addClass("is-overview");
-		this.showPick(this.settings.duration);
+
+		// Exactly the framing the camera uses when it pulls back between
+		// sections — the same call, so it is the same picture rather than a
+		// near miss. Where there is no section, the card's own neighbourhood.
+		const stop = this.stopAt(this.index);
+		const frame = stop.group ?? stop.node;
+		const pose = this.camera.poseFor(rectOf(frame));
+		this.viewScale = stop.group ? pose.scale : pose.scale / 2.2;
+		this.viewCx = pose.cx;
+		this.viewCy = pose.cy;
+		this.look(this.settings.duration);
 	}
 
-	/** Pan to the picked card, holding the zoom: scrolling, not travelling. */
-	private showPick(duration: number): void {
-		const r = rectOf(this.stopAt(this.picked).node);
-		for (const [id, el] of this.nodeEls) {
-			el.toggleClass("is-picked", id === this.stopAt(this.picked).node.id);
-		}
+	/**
+	 * Pan, holding the zoom.
+	 *
+	 * Nothing here chooses a card. Moving a selection about meant an arrow key
+	 * yanked the camera back to whatever was selected, throwing away wherever
+	 * you had scrolled to — so the arrows scroll too, and a card is chosen by
+	 * clicking the one you can see.
+	 */
+	private look(duration: number): void {
 		void this.camera.moveTo(
-			{ cx: r.x + r.width / 2, cy: r.y + r.height / 2, scale: this.pickScale },
+			{ cx: this.viewCx, cy: this.viewCy, scale: this.viewScale },
 			duration
 		);
 	}
 
-	/** Step the pick through the cards, skipping the section overviews. */
-	private movePick(delta: number): void {
-		let at = this.picked;
-		for (let n = 0; n < this.scene.stops.length; n++) {
-			at += delta;
-			if (at < 0 || at >= this.scene.stops.length) return;
-			if (this.scene.stops[at].kind === "node") break;
-		}
-		this.picked = at;
-		this.showPick(240);
+	private pan(dx: number, dy: number, duration = 180): void {
+		this.viewCx += dx / this.viewScale;
+		this.viewCy += dy / this.viewScale;
+		this.look(duration);
 	}
 
 	private closeOverview(go?: number): void {
 		if (!this.overviewing) return;
 		this.overviewing = false;
 		this.overlay.removeClass("is-overview");
-		for (const el of this.nodeEls.values()) el.removeClass("is-picked");
 		if (go === undefined) this.goTo(this.index, { animate: true });
 		else this.jumpTo(go);
 	}

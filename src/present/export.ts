@@ -400,7 +400,7 @@ const RUNTIME = `
 
   /* O — the whole map, readable, every card clickable. Its counterpart is M,
      the schematic index; this one is the cards themselves. */
-  var overview = false, picked = 0, pickScale = 1, viewCx = 0, viewCy = 0;
+  var overview = false, pickScale = 1, viewCx = 0, viewCy = 0;
 
   /* Pan at a scale already chosen, rather than re-deciding it: browsing holds
      the zoom and only moves. Fitting the whole deck is what M is for, and on a
@@ -414,44 +414,39 @@ const RUNTIME = `
       'translate(' + -cx + 'px,' + -cy + 'px)';
     if (!animate) { void stage.offsetWidth; stage.style.transition = ''; }
   }
-  function readableScale() {
-    var s = stops[i];
-    return Math.min(view.clientWidth / (s.width * 2.5 * 1.08), max);
+  /* The framing the camera uses between sections: the group this card is in,
+     or its own neighbourhood where there is no group. Then it is held while
+     you scroll — nothing here selects a card, because a selection meant an
+     arrow key yanked the view back to it and threw away where you had got to. */
+  function sectionOf(n) {
+    for (var k = n; k >= 0; k--) if (stops[k].label) return stops[k];
+    return null;
   }
-  function showPick(animate) {
-    var s = stops[picked];
-    var all = stage.querySelectorAll('.atl-node');
-    for (var n = 0; n < all.length; n++) {
-      all[n].classList.toggle('is-picked', all[n].getAttribute('data-node-id') === s.nodeId);
-    }
-    viewCx = s.x + s.width / 2;
-    viewCy = s.y + s.height / 2;
-    placeAt(viewCx, viewCy, pickScale, animate);
-  }
-  function movePick(delta) {
-    var at = picked;
-    for (var n = 0; n < stops.length; n++) {
-      at += delta;
-      if (at < 0 || at >= stops.length) return;
-      if (!stops[at].label) break;
-    }
-    picked = at;
-    showPick(true);
+  function look(animate) { placeAt(viewCx, viewCy, pickScale, animate); }
+  function pan(dx, dy, animate) {
+    viewCx += dx / pickScale;
+    viewCy += dy / pickScale;
+    look(animate);
   }
   function openOverview() {
     if (overview) return;
     overview = true;
-    picked = i;
-    pickScale = readableScale();
     view.classList.add('is-overview');
-    showPick(true);
+    var g = sectionOf(i), r = g || stops[i];
+    pickScale = Math.min(
+      view.clientWidth / (r.width * (1 + pad * 2)),
+      view.clientHeight / (r.height * (1 + pad * 2)),
+      max
+    );
+    if (!g) pickScale = pickScale / 2.2;
+    viewCx = r.x + r.width / 2;
+    viewCy = r.y + r.height / 2;
+    look(true);
   }
   function closeOverview(at) {
     if (!overview) return;
     overview = false;
     view.classList.remove('is-overview');
-    var all = stage.querySelectorAll('.atl-node');
-    for (var n = 0; n < all.length; n++) all[n].classList.remove('is-picked');
     if (at === undefined) paint(true); else go(at);
   }
 
@@ -510,12 +505,16 @@ const RUNTIME = `
     /* The overview is a look, not a place. */
     if (overview) {
       e.preventDefault();
+      var w = view.clientWidth * 0.6, h = view.clientHeight * 0.6;
       if (k === 'o' || k === 'O' || k === 'Escape') closeOverview();
-      else if (k === 'Enter' || k === ' ') closeOverview(picked);
-      else if (['ArrowRight', 'PageDown', 'ArrowDown'].indexOf(k) > -1) movePick(1);
-      else if (['ArrowLeft', 'PageUp', 'ArrowUp'].indexOf(k) > -1) movePick(-1);
-      else if (k === 'Home') { picked = 0; showPick(true); }
-      else if (k === 'End') { picked = stops.length - 1; showPick(true); }
+      else if (k === 'ArrowRight') pan(w, 0, true);
+      else if (k === 'ArrowLeft') pan(-w, 0, true);
+      else if (k === 'ArrowDown' || k === 'PageDown' || k === ' ') pan(0, h, true);
+      else if (k === 'ArrowUp' || k === 'PageUp') pan(0, -h, true);
+      else if (k === 'Home' || k === 'End') {
+        var e2 = stops[k === 'Home' ? 0 : stops.length - 1];
+        viewCx = e2.x + e2.width / 2; viewCy = e2.y + e2.height / 2; look(true);
+      }
       return;
     }
     if (['ArrowRight', ' ', 'PageDown', 'ArrowDown'].indexOf(k) > -1) { e.preventDefault(); advance(); }
@@ -567,7 +566,7 @@ const RUNTIME = `
     if (e.clientX > window.innerWidth / 3) advance(); else retreat();
   });
   addEventListener('resize', function () {
-    if (overview) showPick(false); else paint(false);
+    if (overview) look(false); else paint(false);
   });
 
   /* Scrolling is how you move around a map. The camera centre is its own pair
@@ -576,9 +575,7 @@ const RUNTIME = `
   view.addEventListener('wheel', function (e) {
     if (!overview) return;
     e.preventDefault();
-    viewCx += (e.shiftKey ? e.deltaY : e.deltaX) / pickScale;
-    viewCy += (e.shiftKey ? 0 : e.deltaY) / pickScale;
-    placeAt(viewCx, viewCy, pickScale, false);
+    pan(e.shiftKey ? e.deltaY : e.deltaX, e.shiftKey ? 0 : e.deltaY, false);
   }, { passive: false });
 
   /* Every card starts folded, or a reveal would be showing before its turn. */
@@ -723,7 +720,7 @@ export async function buildDeckHtml(
   #view.is-overview .atl-node:not(.atl-node-group) { outline: 2px solid transparent;
     outline-offset: 3px; transition: outline-color 140ms ease; }
   #view.is-overview .atl-node:not(.atl-node-group):hover { outline-color: #1d5a78; }
-  #view.is-overview .atl-node.is-active { outline-color: #1d5a78; outline-width: 3px; }
+  #view.is-overview .atl-node.is-active { outline-color: #1d5a78; outline-style: dashed; }
   #hint { position: fixed; left: 50%; bottom: 22px; transform: translateX(-50%);
     z-index: 31; display: none; padding: 7px 15px; border-radius: 999px;
     font-size: 13px; color: #6b7a80; background: #fff; border: 1px solid #dfe4dd;
@@ -771,7 +768,7 @@ ${input.css}
 </head>
 <body>
 <div id="view" class="atl-overlay"><div id="stage" class="atl-stage"></div>${logoTag(input)}</div>
-<div id="hint">Click a card to go to it &middot; O or Esc to come back</div>
+<div id="hint">Scroll to look around &middot; click a card to go there &middot; O or Esc to come back</div>
 <div id="rail"><div id="railfill"></div></div>
 <div id="blank"></div>
 <div id="map"><div class="mh">Click a card to fly to it &middot; M or Esc to close</div></div>
