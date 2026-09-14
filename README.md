@@ -448,10 +448,11 @@ Settings are read when a deck **starts** — change them, then present.
 ```
 Atlas/
   1 · Start here.canvas     the rules, in the smallest deck that shows them
-  2 · Themed deck.canvas    #title #section #quote #stat #dark #split #full
-  3 · A real deck.canvas    a full plan: HTML slides and an animated card
-  4 · Everything.canvas     a talk that happens to use every feature
+  2 · Themed deck.canvas    every card role, so you can compare the themes
+  3 · A real deck.canvas    a plan: HTML slides and an animated card
+  4 · Everything.canvas     the feature test — one card per thing it does
   5 · Cheat sheet.canvas    every feature *with the syntax that produces it*
+  6 · A full talk.canvas    a talk you could stand up and give, start to end
   Themes/                   Paper, Slate and Plain
   Assets/                   the slides, pictures and audio the decks point at
 ```

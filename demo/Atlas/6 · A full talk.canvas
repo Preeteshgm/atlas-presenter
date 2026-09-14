@@ -1,0 +1,501 @@
+{
+	"nodes": [
+		{
+			"id": "deck",
+			"type": "text",
+			"x": -130,
+			"y": -1320,
+			"width": 1280,
+			"height": 620,
+			"text": "#deck\n\ntheme: Atlas/Themes/Paper.css\naccent: #1D5A78\nheader: {deck}  ·  {section}  ·  {n}/{total}\n\n# Northwind Depot\nThe controls upgrade · **Sam Avery** · *{section}*\n\n%%This card never appears in the talk. Everything above the blank line is\na setting; everything below is the band drawn over a section overview.%%"
+		},
+		{
+			"id": "o1",
+			"x": 0,
+			"y": 0,
+			"width": 1280,
+			"height": 860,
+			"type": "text",
+			"text": "#title\n# The depot controls are out of time\n\nWhat it would take to put them right, and what it costs to wait.\n\n%%Twenty minutes, then questions. Say at the top that we are asking for a\ndecision today, not a discussion.%%",
+			"color": "4"
+		},
+		{
+			"id": "o2",
+			"x": 1520,
+			"y": 0,
+			"width": 1280,
+			"height": 860,
+			"type": "text",
+			"text": "#agenda\n# What we will cover\n\n1. Where the system stands today\n2. What the survey found\n3. The two options\n4. What each one costs\n5. What we need decided\n\n%%Do not read this out. Point at it and move on.%%",
+			"color": "3"
+		},
+		{
+			"id": "g-o1",
+			"type": "group",
+			"label": "Opening",
+			"x": -130,
+			"y": -130,
+			"width": 3060,
+			"height": 1120
+		},
+		{
+			"id": "w1",
+			"x": 0,
+			"y": 1320,
+			"width": 1280,
+			"height": 860,
+			"type": "text",
+			"text": "## The short version\n\nThe head end is twenty-one years old and the spares are gone.\n\n+++\n\nSix loops have failed since March. Each one was re-terminated by hand.\n\n+++\n\nThere is no supported upgrade path from where we are.\n\n%%Pause after each. The third one is the one that lands.%%"
+		},
+		{
+			"id": "w2",
+			"x": 1520,
+			"y": 1320,
+			"width": 1280,
+			"height": 860,
+			"type": "text",
+			"text": "#stat\n# 21\n\nyears since the head end was commissioned. Its supported life was twelve.",
+			"color": "6"
+		},
+		{
+			"id": "w3",
+			"x": 3040,
+			"y": 1320,
+			"width": 1280,
+			"height": 860,
+			"type": "text",
+			"text": "#quote\n\n> We can keep it running. I cannot tell you for how long, and I cannot\n> get you a part if the wrong thing goes.\n\n— the maintenance lead, February",
+			"color": "5"
+		},
+		{
+			"id": "w4",
+			"x": 4560,
+			"y": 1320,
+			"width": 1280,
+			"height": 860,
+			"type": "text",
+			"text": "#dark\n## The risk is not the controls\n\nIt is the eleven days of cold storage that sit behind them.\n\n%%This is the line the finance director will remember. Let it sit.%%"
+		},
+		{
+			"id": "g-w1",
+			"type": "group",
+			"label": "Where we are",
+			"x": -130,
+			"y": 1190,
+			"width": 6100,
+			"height": 1120
+		},
+		{
+			"id": "e1",
+			"x": 0,
+			"y": 2640,
+			"width": 1280,
+			"height": 860,
+			"type": "text",
+			"text": "#section\n## What the survey found"
+		},
+		{
+			"id": "e2",
+			"x": 1520,
+			"y": 2640,
+			"width": 1280,
+			"height": 860,
+			"type": "text",
+			"text": "#left\n![[surfaces.svg]]\n---\n## Surveyed in January\n\nEvery panel opened, every loop traced, every termination photographed.\n\nThe full record is in [[Northwind Depot Plan]] — click it while presenting\nand it opens over the slide.\n\n%%Click the link. It is the quickest way to answer “is that in writing”.%%",
+			"color": "5"
+		},
+		{
+			"id": "e3",
+			"x": 3040,
+			"y": 2640,
+			"width": 1280,
+			"height": 860,
+			"type": "text",
+			"text": "#gallery\n## The four worst panels\n\n![[site-1.svg]]\n![[site-2.svg]]\n![[site-3.svg]]\n![[site-4.svg]]\n\n%%All four at once, on purpose: the point is that it is not one bad panel.%%",
+			"color": "6"
+		},
+		{
+			"id": "e4",
+			"x": 4560,
+			"y": 2640,
+			"width": 1280,
+			"height": 860,
+			"type": "text",
+			"text": "#slideshow\n## One at a time\n\n![[site-1.svg]]\n![[site-2.svg]]\n![[site-3.svg]]\n\n%%Right arrow steps through these before it leaves the card.%%",
+			"color": "6"
+		},
+		{
+			"id": "e5",
+			"x": 6080,
+			"y": 2640,
+			"width": 1280,
+			"height": 860,
+			"type": "text",
+			"text": "#right\n## Everything is on the plan\n\nLoop numbers, panel references, the date each was last certified.\n---\n![[motion.svg]]",
+			"color": "5"
+		},
+		{
+			"id": "g-e1",
+			"type": "group",
+			"label": "The evidence",
+			"x": -130,
+			"y": 2510,
+			"width": 9140,
+			"height": 1120
+		},
+		{
+			"id": "p1",
+			"x": 0,
+			"y": 3960,
+			"width": 1280,
+			"height": 860,
+			"type": "text",
+			"text": "#section\n## Two ways forward"
+		},
+		{
+			"id": "p2",
+			"x": 1520,
+			"y": 3960,
+			"width": 1280,
+			"height": 860,
+			"type": "text",
+			"text": "#compare\n## Patch it\n\n- Re-terminate the six failed loops\n- Leave the head end alone\n- Four weeks, one shutdown\n- Buys eighteen months\n---\n## Replace it\n\n- New head end and backbone\n- Re-use the field devices\n- Eleven weeks, three shutdowns\n- Buys a decade",
+			"color": "4"
+		},
+		{
+			"id": "p3",
+			"x": 3040,
+			"y": 3960,
+			"width": 1280,
+			"height": 860,
+			"type": "text",
+			"text": "#two\n# Where they differ\n---\n**Patching** is cheap now and expensive later. It does not remove the\nspares problem; it defers it, and the deferral has a date on it.\n---\n**Replacing** costs three shutdowns we have to schedule around the\nautumn intake, and nothing after that until the next decade.",
+			"color": "4"
+		},
+		{
+			"id": "p4",
+			"x": 4560,
+			"y": 3960,
+			"width": 1280,
+			"height": 860,
+			"type": "text",
+			"text": "#split\n## The things neither option changes\n\nThe field devices stay. The cabling in the roof void stays. The two\nchillers are on their own controller and are out of scope entirely.\n\nWhichever we choose, the January survey is the record we work from, and\nthe loop numbering does not move.\n\n%%This is a flowed two-column card — #split. The text runs out of the\nfirst column into the second. #two is the one that lets you place it.%%"
+		},
+		{
+			"id": "g-p1",
+			"type": "group",
+			"label": "The options",
+			"x": -130,
+			"y": 3830,
+			"width": 6100,
+			"height": 1120
+		},
+		{
+			"id": "c1",
+			"x": 0,
+			"y": 5280,
+			"width": 1280,
+			"height": 860,
+			"type": "text",
+			"text": "## Line by line\n\n| | Patch | Replace |\n| --- | ---: | ---: |\n| Materials | £6,400 | £29,000 |\n| Labour | £9,100 | £18,500 |\n| Shutdown cover | £2,500 | £4,500 |\n| **Total** | **£18,000** | **£52,000** |\n\n%%They will ask about the shutdown cover. Three nights at weekend rates,\nand it is the number most likely to move.%%",
+			"color": "6"
+		},
+		{
+			"id": "c2",
+			"x": 1520,
+			"y": 5280,
+			"width": 1280,
+			"height": 860,
+			"type": "text",
+			"text": "#stat\n# £34k\n\nthe difference — and about eighteen months of it.",
+			"color": "6"
+		},
+		{
+			"id": "c3",
+			"x": 3040,
+			"y": 5280,
+			"width": 1280,
+			"height": 860,
+			"type": "text",
+			"text": "#only-short\n## The short version of the money\n\nPatching is £18k and buys eighteen months. Replacing is £52k and buys a\ndecade.\n\n%%This card only appears in the talk called “short”. Run Present a\nvariant… to see it.%%",
+			"color": "2"
+		},
+		{
+			"id": "c4",
+			"x": 4560,
+			"y": 5280,
+			"width": 1280,
+			"height": 860,
+			"type": "text",
+			"text": "#skip-short\n## How the estimate was built\n\n- Materials at list, less the standing 12% discount\n- Labour at the framework rate, two engineers\n- Shutdown cover from the 2025 schedule of rates\n- No contingency — add 10% if you want one\n\n%%Left out of the “short” talk. Detail for the people who want it.%%",
+			"color": "1"
+		},
+		{
+			"id": "g-c1",
+			"type": "group",
+			"label": "What it costs",
+			"x": -130,
+			"y": 5150,
+			"width": 6100,
+			"height": 1120
+		},
+		{
+			"id": "m1",
+			"x": 0,
+			"y": 6600,
+			"width": 1280,
+			"height": 860,
+			"type": "file",
+			"file": "Atlas/Assets/tone.wav",
+			"color": "6"
+		},
+		{
+			"id": "m2",
+			"x": 1520,
+			"y": 6600,
+			"width": 1280,
+			"height": 860,
+			"type": "text",
+			"text": "## What that was\n\nThe alarm tone the panel makes when a loop drops. Every engineer on site\nknows it; nobody in this room has heard it.\n\n![[tone.wav]]\n\n%%The card before this is the sound on its own. This is the same sound\ninside a card, which is the better way: you choose the heading.%%"
+		},
+		{
+			"id": "m3",
+			"x": 3040,
+			"y": 6600,
+			"width": 1280,
+			"height": 860,
+			"type": "file",
+			"file": "Atlas/Assets/00-motion.html",
+			"color": "2"
+		},
+		{
+			"id": "m4",
+			"x": 4560,
+			"y": 6600,
+			"width": 1280,
+			"height": 860,
+			"type": "file",
+			"file": "Atlas/5 · Cheat sheet.canvas",
+			"color": "3"
+		},
+		{
+			"id": "m5",
+			"x": 6080,
+			"y": 6600,
+			"width": 1280,
+			"height": 860,
+			"type": "text",
+			"text": "#full\n![[site-4.svg]]",
+			"color": "5"
+		},
+		{
+			"id": "g-m1",
+			"type": "group",
+			"label": "Things a slide can hold",
+			"x": -130,
+			"y": 6470,
+			"width": 7620,
+			"height": 1120
+		},
+		{
+			"id": "a1",
+			"x": 0,
+			"y": 7920,
+			"width": 1280,
+			"height": 860,
+			"type": "text",
+			"text": "#section\n## What we need today"
+		},
+		{
+			"id": "a2",
+			"x": 1520,
+			"y": 7920,
+			"width": 1280,
+			"height": 860,
+			"type": "text",
+			"text": "#agenda\n# Three decisions\n\n1. Patch or replace\n2. Sign-off on the shutdown windows\n3. A name for the commissioning witness\n\n%%Press N here and type what they say. It goes into the minutes against\nthis card.%%",
+			"color": "3"
+		},
+		{
+			"id": "a3",
+			"x": 3040,
+			"y": 7920,
+			"width": 1280,
+			"height": 860,
+			"type": "text",
+			"text": "## What happens next, either way\n\n- [ ] Confirm the shutdown dates with operations\n- [ ] Send the cost breakdown to finance\n- [ ] Name a commissioning witness\n\nA line beginning `- [ ]` becomes an action in the write-up.\n\n%%Read these out. They are the minutes.%%",
+			"color": "1"
+		},
+		{
+			"id": "a4",
+			"x": 4560,
+			"y": 7920,
+			"width": 1280,
+			"height": 860,
+			"type": "text",
+			"text": "#end\n# Thank you\n\nQuestions — and the walk-round at two.\n\n**Sam Avery** · sam@example.org",
+			"color": "2"
+		},
+		{
+			"id": "g-a1",
+			"type": "group",
+			"label": "The ask",
+			"x": -130,
+			"y": 7790,
+			"width": 6100,
+			"height": 1120
+		},
+		{
+			"id": "e6",
+			"type": "text",
+			"color": "6",
+			"x": 7600,
+			"y": 2640,
+			"width": 1280,
+			"height": 860,
+			"text": "#scroll\n## Panel by panel\n\n![[site-1.svg]]\n![[site-2.svg]]\n![[site-3.svg]]\n![[site-4.svg]]\n\n%%A column you scroll through — the right arrow scrolls this card\nbefore it moves on. For when the pictures are a sequence rather than\na set.%%"
+		}
+	],
+	"edges": [
+		{
+			"id": "e1",
+			"fromNode": "o1",
+			"toNode": "o2"
+		},
+		{
+			"id": "e2",
+			"fromNode": "o2",
+			"toNode": "w1"
+		},
+		{
+			"id": "e3",
+			"fromNode": "w1",
+			"toNode": "w2"
+		},
+		{
+			"id": "e4",
+			"fromNode": "w2",
+			"toNode": "w3"
+		},
+		{
+			"id": "e5",
+			"fromNode": "w3",
+			"toNode": "w4"
+		},
+		{
+			"id": "e6",
+			"fromNode": "w4",
+			"toNode": "e1"
+		},
+		{
+			"id": "e7",
+			"fromNode": "e1",
+			"toNode": "e2"
+		},
+		{
+			"id": "e8",
+			"fromNode": "e2",
+			"toNode": "e3"
+		},
+		{
+			"id": "e9",
+			"fromNode": "e3",
+			"toNode": "e4"
+		},
+		{
+			"id": "e10",
+			"fromNode": "e4",
+			"toNode": "e5"
+		},
+		{
+			"id": "e11",
+			"fromNode": "e6",
+			"toNode": "p1"
+		},
+		{
+			"id": "e12",
+			"fromNode": "p1",
+			"toNode": "p2"
+		},
+		{
+			"id": "e13",
+			"fromNode": "p2",
+			"toNode": "p3"
+		},
+		{
+			"id": "e14",
+			"fromNode": "p3",
+			"toNode": "p4"
+		},
+		{
+			"id": "e15",
+			"fromNode": "p4",
+			"toNode": "c1"
+		},
+		{
+			"id": "e16",
+			"fromNode": "c1",
+			"toNode": "c2"
+		},
+		{
+			"id": "e17",
+			"fromNode": "c2",
+			"toNode": "c3"
+		},
+		{
+			"id": "e18",
+			"fromNode": "c3",
+			"toNode": "c4"
+		},
+		{
+			"id": "e19",
+			"fromNode": "c4",
+			"toNode": "m1"
+		},
+		{
+			"id": "e20",
+			"fromNode": "m1",
+			"toNode": "m2"
+		},
+		{
+			"id": "e21",
+			"fromNode": "m2",
+			"toNode": "m3"
+		},
+		{
+			"id": "e22",
+			"fromNode": "m3",
+			"toNode": "m4"
+		},
+		{
+			"id": "e23",
+			"fromNode": "m4",
+			"toNode": "m5"
+		},
+		{
+			"id": "e24",
+			"fromNode": "m5",
+			"toNode": "a1"
+		},
+		{
+			"id": "e25",
+			"fromNode": "a1",
+			"toNode": "a2"
+		},
+		{
+			"id": "e26",
+			"fromNode": "a2",
+			"toNode": "a3"
+		},
+		{
+			"id": "e27",
+			"fromNode": "a3",
+			"toNode": "a4"
+		},
+		{
+			"id": "e-scroll",
+			"fromNode": "e5",
+			"toNode": "e6"
+		}
+	]
+}
