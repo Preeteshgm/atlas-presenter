@@ -247,6 +247,7 @@ const RUNTIME = `
   var railfill = document.getElementById('railfill');
   var blank = document.getElementById('blank');
   var map = document.getElementById('map');
+  var keys = document.getElementById('keys');
   var stops = window.__ATLAS_STOPS__, pad = window.__ATLAS_PAD__, max = window.__ATLAS_MAX__;
   var i = 0, step = 0;
 
@@ -333,7 +334,8 @@ const RUNTIME = `
     if (active) active.classList.add('is-active');
     var total = stops.length;
     var name = s.label || s.title;
-    counter.textContent = (i + 1) + ' / ' + total + (name ? '  \\u00b7  ' + name : '');
+    counter.textContent =
+      '? for keys  \\u00b7  ' + (i + 1) + ' / ' + total + (name ? '  \\u00b7  ' + name : '');
     railfill.style.width = (total < 2 ? 100 : (i / (total - 1)) * 100) + '%';
     if (map.classList.contains('on')) markMap();
   }
@@ -460,6 +462,17 @@ const RUNTIME = `
   document.addEventListener('keydown', function (e) {
     if (e.ctrlKey || e.metaKey || e.altKey) return;
     var k = e.key;
+    /* The key card is modal: it closes, and nothing else happens. */
+    if (keys.classList.contains('on')) {
+      e.preventDefault();
+      keys.classList.remove('on');
+      return;
+    }
+    if (k === '?' || k === '/' || k === 'h' || k === 'H') {
+      e.preventDefault();
+      keys.classList.add('on');
+      return;
+    }
     if (map.classList.contains('on')) {
       if (k === 'Escape' || k === 'm' || k === 'M') { e.preventDefault(); toggleMap(false); }
       return;
@@ -490,6 +503,7 @@ const RUNTIME = `
   });
 
   blank.addEventListener('click', function () { blank.classList.remove('on'); });
+  keys.addEventListener('click', function () { keys.classList.remove('on'); });
   /* A click inside a card's shadow root is retargeted to the host, so e.target
      is the card and never the button that was pressed — pressing a control in
      an interactive card advanced the slide instead of working. The composed
@@ -675,6 +689,20 @@ export async function buildDeckHtml(
     font-size: 13px; color: #6b7a80; background: #fff; border: 1px solid #dfe4dd;
     box-shadow: 0 4px 18px rgb(0 0 0 / 0.18); pointer-events: none; }
   #view.is-overview ~ #hint { display: block; }
+  /* The keys, for someone who was sent this file and has never seen the
+     plugin. Discoverable from the bar rather than only by being told. */
+  #keys { position: fixed; inset: 0; z-index: 60; display: none;
+    background: rgb(16 22 26 / 0.9); }
+  #keys.on { display: flex; align-items: center; justify-content: center; }
+  #keys table { border-collapse: collapse; font: 15px/1.7 inherit; color: #e9eef3;
+    background: #1a232b; border-radius: 14px; padding: 10px 8px;
+    box-shadow: 0 20px 60px rgb(0 0 0 / 0.45); }
+  #keys caption { padding: 16px 22px 10px; font-weight: 600; font-size: 17px;
+    color: #fff; text-align: left; }
+  #keys td { padding: 5px 22px; }
+  #keys td:first-child { color: #7cc6ff; font-family: ui-monospace, Consolas, monospace;
+    white-space: nowrap; }
+  #keys tr:last-child td { color: #8a98a4; padding-top: 14px; padding-bottom: 16px; }
   #print { display: none; }
   @media print {
     html, body { height: auto; overflow: visible; background: #fff; }
@@ -708,6 +736,18 @@ ${input.css}
 <div id="blank"></div>
 <div id="map"><div class="mh">Click a card to fly to it &middot; M or Esc to close</div></div>
 <div id="bar"><span>${input.title}</span><span id="counter"></span></div>
+<div id="keys"><table>
+<caption>Keys</caption>
+<tr><td>→  Space</td><td>Reveal, then the pictures, then the next card</td></tr>
+<tr><td>←</td><td>Back, the same way</td></tr>
+<tr><td>O</td><td>The overview — the whole deck, click a card to go to it</td></tr>
+<tr><td>M</td><td>The map — the same thing as a diagram</td></tr>
+<tr><td>Home  End</td><td>First and last card</td></tr>
+<tr><td>B</td><td>Blank the screen</td></tr>
+<tr><td>F</td><td>Fullscreen</td></tr>
+<tr><td>Ctrl+P</td><td>Print, or save as PDF — one card to a page</td></tr>
+<tr><td>?</td><td>Close this</td></tr>
+</table></div>
 <div id="print" class="atl-overlay">__PRINT__</div>
 <script>
   window.__ATLAS_STOPS__ = ${JSON.stringify(input.stops)};
