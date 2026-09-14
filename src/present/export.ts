@@ -175,6 +175,41 @@ function printPages(clone: HTMLElement, stops: ExportInput["stops"]): string {
 	return pages.join("\n");
 }
 
+/**
+ * Say where the file went, and offer to open it.
+ *
+ * An exported deck is an HTML file in the vault, and Obsidian will not render
+ * one — so a notice naming a path leaves you with a file you cannot look at,
+ * which is exactly how the minutes used to behave. The notice is a button
+ * instead. Opening it needs the desktop app; on mobile the path alone is all
+ * there is to give, so that is what is given.
+ */
+function reveal(app: App, path: string, inlined: number): void {
+	const notice = new Notice("", 12000);
+	const el = notice.noticeEl;
+	el.empty();
+	el.createDiv({ text: `Exported to ${path}` });
+	el.createDiv({
+		cls: "atl-notice-sub",
+		text: `${inlined} file${inlined === 1 ? "" : "s"} inlined. Print it from the browser for a PDF.`,
+	});
+
+	const open = (app as unknown as { openWithDefaultApp?: (p: string) => void })
+		.openWithDefaultApp;
+	if (typeof open !== "function") return;
+
+	const btn = el.createEl("button", { cls: "atl-notice-btn", text: "Open in browser" });
+	btn.addEventListener("click", (e) => {
+		e.stopPropagation();
+		try {
+			open.call(app, path);
+		} catch {
+			new Notice(`Atlas: open ${path} yourself — this vault could not launch it.`);
+		}
+		notice.hide();
+	});
+}
+
 export async function exportDeck(app: App, input: ExportInput): Promise<string | null> {
 	const clone = input.stage.cloneNode(true) as HTMLElement;
 	flattenShadows(input.stage, clone);
@@ -232,10 +267,7 @@ ${input.css}
 		const existing = app.vault.getAbstractFileByPath(path);
 		if (existing instanceof TFile) await app.vault.modify(existing, out);
 		else await app.vault.create(path, out);
-		new Notice(
-			`Atlas: exported to ${path} — ${inlined} files inlined. ` +
-				"Open it in a browser and print to PDF."
-		);
+		reveal(app, path, inlined);
 		return path;
 	} catch (e) {
 		new Notice(`Atlas: could not write the export — ${String(e)}`);

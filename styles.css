@@ -1675,3 +1675,26 @@ settings:
 /* The view draws nothing: the overlay is `position: fixed`, so it covers this
    window whole, which is what a projector wants. */
 .atl-deck-host { padding: 0; }
+
+/* ---- a notice you can act on -------------------------------------------- */
+
+/* An export is a file you then have to find. The notice carries the way to
+   open it, rather than naming a path and leaving you to go looking. */
+.atl-notice-sub {
+	margin-top: 4px;
+	font-size: 0.85em;
+	color: var(--text-muted);
+}
+
+.atl-notice-btn {
+	margin-top: 9px;
+	padding: 4px 12px;
+	font-size: 0.88em;
+	cursor: pointer;
+	color: var(--text-on-accent);
+	background: var(--interactive-accent);
+	border: 0;
+	border-radius: var(--radius-s, 4px);
+}
+
+.atl-notice-btn:hover { background: var(--interactive-accent-hover); }
