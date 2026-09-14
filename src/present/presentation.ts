@@ -556,7 +556,13 @@ export class Presentation extends Component {
 			this.stopAutoAdvance();
 
 			if (this.away) {
-				if (key === "Escape") {
+				// While the deck has stepped aside you are using Obsidian: the
+				// graph, or a note you opened from it. Escape belongs to whatever
+				// you are typing in before it belongs to us.
+				const typing = (e.target as HTMLElement | null)?.closest(
+					"input, textarea, [contenteditable='true'], .cm-editor"
+				);
+				if (key === "Escape" && !typing) {
 					handled();
 					this.closeVaultGraph();
 				}
@@ -896,19 +902,32 @@ export class Presentation extends Component {
 	 * to detach leaves in onunload, because Obsidian restores them itself.
 	 */
 	private closeVaultGraph(keepLeaf = false): void {
-		// Guarded on the leaf, not on `away`: in a window of its own the deck
-		// never steps aside, but the graph it opened still has to be tidied up.
+		// Guarded on the leaf as well as the flag: the graph has to be tidied up
+		// either way.
 		if (!this.away && !this.awayLeaf) return;
 		this.away = false;
 		this.returnBar?.remove();
 		this.returnBar = null;
-		try {
-			if (!keepLeaf) this.awayLeaf?.detach();
-		} catch {
-			// The tab may already be closed by hand; nothing to undo.
-		}
+
+		const leaf = this.awayLeaf;
 		this.awayLeaf = null;
+		try {
+			// Only if it is still the graph. Clicking a node in the graph opens
+			// the note in that same leaf, and closing it would throw away the
+			// note you went there to find — which is the whole point of going.
+			if (!keepLeaf && leaf?.view?.getViewType() === "graph") leaf.detach();
+		} catch {
+			// Closed by hand already; nothing to undo.
+		}
+
 		this.overlay?.removeClass("is-away");
+		// Back to the deck's own tab. As a full-screen overlay there was nothing
+		// to come back to — it had never gone anywhere. A tab has.
+		try {
+			if (!keepLeaf && this.deckLeaf) this.app.workspace.revealLeaf(this.deckLeaf);
+		} catch {
+			// The deck's tab has gone; stop() is already on its way.
+		}
 	}
 
 	/** A minimap pick is a detour: remember where we were. */
