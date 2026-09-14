@@ -429,7 +429,7 @@ With a deck open, `Ctrl+Shift+I` shows you the exact classes on anything.
 | **Background** | Backdrop colour or image with dimming, theme stylesheet, accent, off-camera card opacity |
 | **Logo** | Any vault image, corner, height, opacity |
 | **Pictures and media** | Slide show transition, how pictures fit, video autoplay |
-| **On screen** | Bottom bar and counter, header line and where it shows, section titles, card alignment, speaker notes, next-card title, progress rail, timer |
+| **On screen** | Bottom bar and counter, header line and where it shows, section titles, card alignment, next-card title, progress rail, timer |
 | **Notes and minutes** | Where minutes are filed, write-up on leaving, what goes in an action |
 | **Browsing the vault** | What G opens — Obsidian's own graph view, or the one inside the deck |
 | **HTML cards** | Whether a card's <script> may run. Off by default |
@@ -536,8 +536,20 @@ turning that off leaves the presenter window fully fed.
 
 Two different things share the word "note".
 
-**Prepared notes** are `%%…%%` in a card. They never reach the screen. They show
-under the card if you enable it, and always in the presenter window.
+**Prepared notes** are `%%…%%` anywhere in a card. They are stripped before the
+card is drawn, so they never reach the screen — they appear in the presenter
+panel, which opens in the sidebar with every deck, and nowhere else.
+
+On a card that is a note rather than text, write them in the note itself. On a
+`#deck` card they are how you leave yourself a reminder about the deck.
+
+```markdown
+## The decision
+
+We are going with option B.
+
+%%Slow down here. Someone always asks about the survey — it is in the appendix.%%
+```
 
 **Notes you take during the talk** are new. Press **`N`** and a box opens over the
 deck, already focused. Type, press Enter, it closes. What you typed is attached

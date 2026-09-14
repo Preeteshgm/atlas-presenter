@@ -520,19 +520,6 @@ export class AtlasSettingTab extends PluginSettingTab {
 			);
 
 		new Setting(containerEl)
-			.setName("Speaker notes on screen")
-			.setDesc(
-				"Show a card's %%notes%% under it while presenting. For a single screen — " +
-					"with a second screen you would rather leave this off."
-			)
-			.addToggle((c) =>
-				c.setValue(s.showNotes).onChange(async (v) => {
-					s.showNotes = v;
-					await this.save();
-				})
-			);
-
-		new Setting(containerEl)
 			.setName("Show what is next")
 			.setDesc("The title of the card the next press will take you to.")
 			.addToggle((c) =>

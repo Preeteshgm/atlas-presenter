@@ -53,7 +53,6 @@ export class Presentation extends Component {
 	private hud!: HTMLElement;
 	private header: HTMLElement | null = null;
 	private headerRendered = "";
-	private notesEl: HTMLElement | null = null;
 	private nextEl: HTMLElement | null = null;
 	private railFill: HTMLElement | null = null;
 	private timerEl: HTMLElement | null = null;
@@ -338,14 +337,13 @@ export class Presentation extends Component {
 				tick.style.left = `${(i / Math.max(1, this.scene.stops.length - 1)) * 100}%`;
 			});
 		}
-		if (this.settings.showNotes || this.settings.showNext) {
+		// No notes band. Speaker notes live in the presenter panel and nowhere
+		// else: the panel opens itself with every deck, so the setting that used
+		// to put them on the slide could never fire again — a switch that cannot
+		// do anything is worse than no switch, because it reads like a promise.
+		if (this.settings.showNext) {
 			const band = this.overlay.createDiv({ cls: "atl-band" });
-			if (this.settings.showNotes) {
-				this.notesEl = band.createDiv({ cls: "atl-notes" });
-			}
-			if (this.settings.showNext) {
-				this.nextEl = band.createDiv({ cls: "atl-next" });
-			}
+			this.nextEl = band.createDiv({ cls: "atl-next" });
 		}
 
 		this.hud = this.overlay.createDiv({ cls: "atl-hud" });
@@ -1746,21 +1744,6 @@ ${this.themeCss}`,
 		if (this.railFill) {
 			const through = this.index / Math.max(1, this.scene.stops.length - 1);
 			this.railFill.style.width = `${through * 100}%`;
-		}
-
-		if (this.notesEl) {
-			const text = this.notes.get(stop.node.id) ?? "";
-			this.notesEl.setText(text);
-			// Never on the audience's screen. Notes come off the deck the moment
-			// there is anywhere else to read them — and always when the deck has
-			// a window of its own, because then the deck *is* the projector and
-			// the main window is where you are looking. No setting overrides
-			// this: the cost of getting it wrong is your notes on a wall.
-			// Asked live, so closing the presenter puts the notes back on the
-			// deck on the next card rather than hiding them for the rest of the
-			// talk. It only ever fails closed: a presenter that is open wins.
-			const elsewhere = this.presenterOpen;
-			this.notesEl.toggleClass("is-shown", !!text && !elsewhere);
 		}
 
 		const remark = this.hud.querySelector<HTMLElement>(".atl-map-btn[data-key='N']");

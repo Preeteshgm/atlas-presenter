@@ -186,8 +186,10 @@ The evidence.
 The conclusion.`);
 
 	entry(card, "Speaker notes",
-		"Anything between double percent signs is stripped before the card is drawn. " +
-			"Use it for the thing you meant to say.",
+		"Anything between double percent signs is stripped before the card is drawn, " +
+			"so it never reaches the screen. It appears in the presenter panel — which " +
+			"opens in the sidebar with every deck — and nowhere else. On a card that is " +
+			"a note rather than text, write them in the note itself.",
 		"%%Slow down here. Ask whether anyone has seen the report.%%");
 
 	entry(card, "Read a linked note",

@@ -128,7 +128,6 @@ export interface AtlasSettings {
 	sectionTitles: boolean;
 	verticalAlign: VerticalAlign;
 	/** Show %%speaker notes%% on screen, under the card. */
-	showNotes: boolean;
 	/** Show the title of the card coming next. */
 	showNext: boolean;
 	/** A rail across the top showing progress, ticked at each section. */
@@ -180,7 +179,6 @@ export const DEFAULT_SETTINGS: AtlasSettings = {
 	headerScope: "sections",
 	sectionTitles: true,
 	verticalAlign: "centre",
-	showNotes: false,
 	showNext: false,
 	showProgress: true,
 	timer: "off",

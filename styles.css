@@ -939,25 +939,6 @@ settings:
 	pointer-events: none;
 }
 
-.atl-notes {
-	max-width: 90ch;
-	max-height: 18vh;
-	overflow-y: auto;
-	padding: 12px 20px;
-	border-radius: 12px;
-	border: 1px solid var(--background-modifier-border);
-	background: color-mix(in srgb, var(--background-secondary) 92%, transparent);
-	color: var(--text-muted);
-	font-size: 15px;
-	line-height: 1.5;
-	white-space: pre-wrap;
-	text-align: left;
-	opacity: 0;
-	transition: opacity 260ms ease;
-}
-
-.atl-notes.is-shown { opacity: 1; }
-
 .atl-next {
 	font-size: 13px;
 	letter-spacing: 0.03em;
