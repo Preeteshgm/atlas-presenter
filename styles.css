@@ -1909,3 +1909,64 @@ settings:
 	font-size: 0.8em;
 	color: var(--text-faint);
 }
+
+/* ---- the session review, and a page from the web ------------------------- */
+
+/* Both live in the overlay for the same reason the note box does: a modal is in
+   the app's DOM, and the browser paints nothing over a fullscreen element. */
+.atl-review-panel,
+.atl-site {
+	position: absolute;
+	inset: 6vh 6vw;
+	z-index: 8;
+	display: flex;
+	flex-direction: column;
+	border-radius: 14px;
+	overflow: hidden;
+	background: var(--background-primary);
+	border: 1px solid var(--background-modifier-border);
+	box-shadow: 0 24px 80px rgb(0 0 0 / 0.45);
+}
+
+.atl-review-panel { padding: 20px 22px 16px; }
+
+.atl-review-head { flex: 0 0 auto; margin-bottom: 10px; }
+
+.atl-review-title {
+	font-size: 1.2em;
+	font-weight: 600;
+	color: var(--text-normal);
+}
+
+.atl-review-panel .atl-review-list {
+	flex: 1 1 auto;
+	min-height: 0;
+	overflow-y: auto;
+}
+
+/* --- a page from the web --- */
+
+.atl-site-bar {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	flex: 0 0 auto;
+	padding: 9px 12px;
+	border-bottom: 1px solid var(--background-modifier-border);
+}
+
+.atl-site-url {
+	flex: 1 1 auto;
+	overflow: hidden;
+	white-space: nowrap;
+	text-overflow: ellipsis;
+	font-size: 0.85em;
+	color: var(--text-muted);
+}
+
+.atl-site-frame {
+	flex: 1 1 auto;
+	width: 100%;
+	border: 0;
+	background: #fff;
+}

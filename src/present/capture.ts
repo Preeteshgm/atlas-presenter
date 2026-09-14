@@ -1,4 +1,4 @@
-import { App, Modal, Notice, TFile, TFolder, normalizePath } from "obsidian";
+import { App, Notice, TFile, TFolder, normalizePath } from "obsidian";
 import { hhmm, safeFileName } from "../format";
 
 export interface Visit {
@@ -67,13 +67,16 @@ interface ReviewOptions {
  * shows every card that carries anything, in the order it was visited, and lets
  * each one be fixed — into the same store the cards use, so pressing N on a card
  * afterwards shows the edit.
+ *
+ * Built into the deck's own overlay rather than as a modal, for the same reason
+ * the note box is: a modal belongs to the app's DOM, and the browser paints
+ * nothing over a fullscreen element except that element.
  */
-export class ReviewModal extends Modal {
+export class ReviewPanel {
 	private actionsEl!: HTMLElement;
+	private root: HTMLElement | null = null;
 
-	constructor(app: App, private options: ReviewOptions) {
-		super(app);
-	}
+	constructor(private host: HTMLElement, private options: ReviewOptions) {}
 
 	private countActions(): number {
 		return this.options.entries
@@ -85,19 +88,30 @@ export class ReviewModal extends Modal {
 		const n = this.countActions();
 		this.actionsEl.setText(
 			n === 0
-				? "No actions yet \u2014 a line beginning - [ ] becomes one"
+				? "No actions yet — a line beginning - [ ] becomes one"
 				: `${n} action${n === 1 ? "" : "s"}`
 		);
 	}
 
-	onOpen(): void {
-		const { contentEl, titleEl, modalEl } = this;
-		modalEl.addClass("atl-review-modal");
-		titleEl.setText(this.options.title);
-		contentEl.addClass("atl-review");
-		contentEl.createDiv({ cls: "atl-review-sub", text: this.options.subtitle });
+	get isOpen(): boolean {
+		return !!this.root;
+	}
 
-		const list = contentEl.createDiv({ cls: "atl-review-list" });
+	close(): void {
+		this.root?.remove();
+		this.root = null;
+	}
+
+	open(): void {
+		if (this.root) return;
+		const root = this.host.createDiv({ cls: "atl-review-panel" });
+		this.root = root;
+
+		const head = root.createDiv({ cls: "atl-review-head" });
+		head.createDiv({ cls: "atl-review-title", text: this.options.title });
+		head.createDiv({ cls: "atl-review-sub", text: this.options.subtitle });
+
+		const list = root.createDiv({ cls: "atl-review-list" });
 		if (this.options.entries.length === 0) {
 			list.createDiv({
 				cls: "atl-review-empty",
@@ -119,7 +133,7 @@ export class ReviewModal extends Modal {
 			const box = block.createEl("textarea", { cls: "atl-review-box" });
 			box.value = entry.text;
 			box.rows = Math.max(2, entry.text.split("\n").length + 1);
-			box.placeholder = "Nothing typed on this card \u2014 you can add it here.";
+			box.placeholder = "Nothing typed on this card — you can add it here.";
 			box.addEventListener("keydown", (e) => e.stopPropagation());
 			box.addEventListener("input", () => {
 				entry.text = box.value;
@@ -128,7 +142,7 @@ export class ReviewModal extends Modal {
 			});
 		}
 
-		const foot = contentEl.createDiv({ cls: "atl-review-foot" });
+		const foot = root.createDiv({ cls: "atl-review-foot" });
 		this.actionsEl = foot.createDiv({ cls: "atl-review-actions" });
 		this.paintActions();
 
@@ -140,10 +154,6 @@ export class ReviewModal extends Modal {
 			this.close();
 			this.options.onWrite();
 		});
-	}
-
-	onClose(): void {
-		this.contentEl.empty();
 	}
 }
 

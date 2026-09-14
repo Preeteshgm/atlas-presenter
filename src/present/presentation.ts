@@ -25,7 +25,7 @@ import { DECK_VIEW, DeckView } from "./deck-window";
 import {
 	Capture,
 	MinutesOptions,
-	ReviewModal,
+	ReviewPanel,
 	Session,
 	Visit,
 	writeMinutes,
@@ -401,6 +401,18 @@ export class Presentation extends Component {
 		// Wikilinks open the note in place rather than navigating Obsidian
 		// underneath the deck, which would leave you somewhere else on exit.
 		this.stage.addEventListener("click", (e) => {
+			// A link to the web used to send you out of the talk: Obsidian hands
+			// it to the system browser, the deck is left behind, and getting back
+			// means finding the window again. It opens over the deck instead.
+			const site = this.matchInPath(e, "a.external-link, a[href^='http']");
+			if (site) {
+				e.preventDefault();
+				e.stopPropagation();
+				const href = site.getAttr("href");
+				if (href) this.openSite(href);
+				return;
+			}
+
 			const link = this.matchInPath(e, "a.internal-link");
 			if (!link) return;
 			e.preventDefault();
@@ -534,6 +546,16 @@ export class Presentation extends Component {
 			// talk on — you are looking for a card, and the deck stays where it
 			// was until you choose one or give up.
 			const ZOOM = new Set(["+", "=", "-", "_", "0"]);
+			// Whatever is open over the deck closes first, innermost last opened.
+			if (key === "Escape" && (this.siteEl || this.review?.isOpen || this.noteBox)) {
+				handled();
+				if (this.siteEl) this.closeSite();
+				else if (this.review?.isOpen) this.review.close();
+				else this.noteBox?.closest(".atl-note")?.remove();
+				this.noteBox = null;
+				return;
+			}
+
 			if (this.overviewing && (NAVIGATION.has(key) || ZOOM.has(key))) {
 				handled();
 				const w = this.overlay.clientWidth * 0.6;
@@ -906,6 +928,44 @@ export class Presentation extends Component {
 
 	/** Set while the graph has the screen, so we can put fullscreen back after. */
 	private wasFullscreen = false;
+
+	/**
+	 * A page from the web, over the deck.
+	 *
+	 * In the overlay, like everything else you can open mid-talk, so it works in
+	 * fullscreen. Some sites refuse to be framed — they send a header saying so,
+	 * and there is no way to know from here whether one has — so the way out to a
+	 * real browser is always on it rather than offered after it fails.
+	 */
+	private siteEl: HTMLElement | null = null;
+
+	private openSite(url: string): void {
+		this.closeSite();
+		const panel = this.overlay.createDiv({ cls: "atl-site" });
+		const bar = panel.createDiv({ cls: "atl-site-bar" });
+		bar.createDiv({ cls: "atl-site-url", text: url });
+
+		const out = bar.createEl("button", { text: "Open in browser" });
+		out.addEventListener("click", (e) => {
+			e.stopPropagation();
+			window.open(url, "_blank");
+		});
+		const shut = bar.createEl("button", { cls: "mod-cta", text: "Close" });
+		shut.addEventListener("click", (e) => {
+			e.stopPropagation();
+			this.closeSite();
+		});
+
+		const frame = panel.createEl("iframe", { cls: "atl-site-frame" });
+		frame.src = url;
+		frame.setAttribute("sandbox", "allow-scripts allow-same-origin allow-forms allow-popups");
+		this.siteEl = panel;
+	}
+
+	private closeSite(): void {
+		this.siteEl?.remove();
+		this.siteEl = null;
+	}
 
 	private async openVaultGraph(): Promise<void> {
 		if (this.steppedAside) return;
@@ -1350,6 +1410,8 @@ ${this.themeCss}`,
 	 * lets anything aimed at a text box through untouched.
 	 */
 	private noteBox: HTMLTextAreaElement | null = null;
+	/** The session review, built into the deck so fullscreen can show it. */
+	private review: ReviewPanel | null = null;
 
 	private captureNote(): void {
 		if (this.noteBox) {
@@ -1445,15 +1507,7 @@ ${this.themeCss}`,
 		})} \u2014 now`;
 
 		// A modal belongs to the main window. With the deck dragged to a screen
-		// of its own, W would set `capturing` — which makes the key handler
-		// return early, so the deck goes deaf — while the box it is waiting on
-		// sits invisible on the other monitor. Bring that window forward first.
-		if (this.doc !== document) {
-			if (this.presenterLeaf) this.app.workspace.revealLeaf(this.presenterLeaf);
-			new Notice("Atlas: the write-up opened in the Obsidian window.", 6000);
-		}
-		this.capturing = true;
-		const modal = new ReviewModal(this.app, {
+		this.review = new ReviewPanel(this.overlay, {
 			title: `${this.file.basename} \u2014 the session so far`,
 			subtitle: `${span}  \u00b7  ${this.visits.length} cards visited  \u00b7  ${entries.length} with notes`,
 			entries,
@@ -1468,12 +1522,7 @@ ${this.themeCss}`,
 			},
 			onWrite: () => void this.writeUp(),
 		});
-		const close = modal.onClose.bind(modal);
-		modal.onClose = () => {
-			close();
-			this.capturing = false;
-		};
-		modal.open();
+		this.review.open();
 	}
 
 	private minutesOptions(): MinutesOptions {
@@ -1893,6 +1942,7 @@ ${this.themeCss}`,
 		this.browser?.hide();
 		this.minimap?.hide();
 		this.peek?.close();
+		this.closeSite();
 		if (this.doc.fullscreenElement) void this.doc.exitFullscreen();
 		if (this.onKey) this.doc.removeEventListener("keydown", this.onKey, true);
 		if (this.onResize) this.win.removeEventListener("resize", this.onResize);

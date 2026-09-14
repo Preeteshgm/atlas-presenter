@@ -194,6 +194,13 @@ The conclusion.`);
 			"a note rather than text, write them in the note itself.",
 		"%%Slow down here. Ask whether anyone has seen the report.%%");
 
+	entry(card, "A link to the web",
+		"Click one while presenting and the page opens over the deck rather than " +
+			"sending you out to a browser and leaving the talk behind. Esc closes it; " +
+			"the bar has a way out to a real browser for the sites that refuse to be " +
+			"shown inside another page.",
+		"[The standard](https://example.org/spec)");
+
 	entry(card, "Read a linked note",
 		"Click a wikilink while presenting and the whole note opens over the slide. " +
 			"Wheel or ↓ to scroll it, Esc to land back on the same slide.",
@@ -308,7 +315,7 @@ The conclusion.`);
 		["Enter", "dive into the sub-deck on this card"],
 		["B", "blank the screen — attention on the room, not the slide"],
 		["N", "note against the card on screen — the cursor goes to the presenter panel's box"],
-		["W", "write the session up now"],
+		["W", "read the session and write it up — opens over the deck, so it works fullscreen"],
 		["P", "the presenter panel — notes, the clock, what is next, and a box to write a remark in"],
 		["E", "export the deck to one standalone HTML file"],
 		["F", "fullscreen"],
