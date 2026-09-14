@@ -92,7 +92,9 @@ export function renderReference(containerEl: HTMLElement): void {
 		text:
 			"These split the card at a --- rule, so you choose what goes where rather " +
 			"than letting the text flow. Two blocks make two columns. A first block of " +
-			"nothing but headings becomes a band across the top instead.",
+			"nothing but headings becomes a band across the top instead. The rule needs " +
+			"no blank line around it — on these cards a line of three dashes is always " +
+			"a rule, never an underline for the line above.",
 	});
 
 	entry(

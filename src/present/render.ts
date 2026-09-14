@@ -633,6 +633,49 @@ export function slideshowsIn(body: HTMLElement): HTMLElement[] {
  */
 const PANED = ["atl-tag-two", "atl-tag-compare", "atl-tag-left", "atl-tag-right"];
 
+/**
+ * Make a lone `---` mean a rule, whatever precedes it.
+ *
+ * Markdown's setext rule turns `---` directly under a line of text into an
+ * underline for that line, which makes the line a heading and produces no
+ * horizontal rule at all. So a card written the way the reference shows it —
+ *
+ *     ## Everything is on the plan
+ *
+ *     Loop numbers, panel references, the dates.
+ *     ---
+ *     ![[plan.svg]]
+ *
+ * — silently came out as one column with an enormous second heading, because
+ * there was no <hr> to split it at. An author cannot be expected to know that
+ * a blank line changes what the same three characters mean; giving it one is
+ * the fix. Fences are left alone: `---` inside a code sample is a code sample.
+ */
+function spaceRules(md: string): string {
+	const out: string[] = [];
+	let fence = "";
+	for (const line of md.split("\n")) {
+		const open = line.match(/^[ \t]*(`{3,}|~{3,})/);
+		if (fence) {
+			if (open && open[1].startsWith(fence[0]) && open[1].length >= fence.length) fence = "";
+			out.push(line);
+			continue;
+		}
+		if (open) {
+			fence = open[1];
+			out.push(line);
+			continue;
+		}
+		if (/^\s*-{3,}\s*$/.test(line)) {
+			if (out.length > 0 && out[out.length - 1].trim() !== "") out.push("");
+			out.push(line.trim(), "");
+			continue;
+		}
+		out.push(line);
+	}
+	return out.join("\n");
+}
+
 function isHeading(el: Element): boolean {
 	return /^H[1-3]$/.test(el.tagName);
 }
@@ -829,7 +872,11 @@ export async function renderNode(
 		if (node.type === "text") {
 			const hooks = extractHooks(node.text ?? "");
 			for (const cls of hooks.classes) el.addClass(cls);
-			await renderMarkdown(app, owner, body, hooks.text, sourcePath, themeCss, allowScripts);
+			// Only for the layouts that split on a rule: everywhere else `---`
+			// under a line is a heading on purpose, and people write it that way.
+			const paned = hooks.classes.some((c) => PANED.includes(c));
+			const text = paned ? spaceRules(hooks.text) : hooks.text;
+			await renderMarkdown(app, owner, body, text, sourcePath, themeCss, allowScripts);
 		} else if (node.type === "file") {
 			await renderFileNode(app, owner, body, node, themeCss, allowScripts);
 		} else if (node.type === "link") {

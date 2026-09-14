@@ -345,7 +345,9 @@ The right column.
 ```
 
 Two blocks make two columns. A first block of **nothing but headings** becomes a
-band across the top instead of a column. For `#left` and `#right` the order on
+band across the top instead of a column. The rule needs no blank line around it:
+on these cards a line of three dashes is always a rule, never a markdown
+underline for the line above it. For `#left` and `#right` the order on
 the card is the order on the screen: write the picture first for `#left`, second
 for `#right`. `+++` reveals work inside a column.
 
