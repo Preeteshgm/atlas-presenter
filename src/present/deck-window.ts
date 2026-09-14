@@ -38,6 +38,23 @@ export class DeckView extends ItemView {
 	async onOpen(): Promise<void> {
 		this.contentEl.empty();
 		this.contentEl.addClass("atl-deck-host");
+
+		// As far as Chromium is concerned this is a plain window, and Ctrl+P in
+		// a plain window raises a print dialog — on the projector, over a live
+		// talk. The deck swallows it too, but only while it is running: this
+		// covers the window itself, including the moment after a deck has
+		// stopped and the window is still up.
+		this.registerDomEvent(
+			this.containerEl.ownerDocument,
+			"keydown",
+			(e: KeyboardEvent) => {
+				if ((e.ctrlKey || e.metaKey) && (e.key === "p" || e.key === "P")) {
+					e.preventDefault();
+					e.stopPropagation();
+				}
+			},
+			true
+		);
 	}
 
 	async onClose(): Promise<void> {

@@ -453,6 +453,19 @@ export class Presentation extends Component {
 			// The note box is a Modal with its own key scope. Touching the event
 			// here would either steal the keystroke or let it through to the deck.
 			if (this.capturing || this.child) return;
+
+			// A modified key belongs to Obsidian or to the OS, never to the
+			// deck. Without this, Ctrl+P — reaching for the command palette —
+			// opened the presenter window instead, and Ctrl+E exported.
+			if (e.ctrlKey || e.metaKey || e.altKey) {
+				// The exception is the browser's own print shortcut. A deck in
+				// its own window is a plain Chromium window as far as that key
+				// is concerned, so Ctrl+P there raises a print dialog — on the
+				// projector, over a live talk. Swallow it and do nothing.
+				if ((e.ctrlKey || e.metaKey) && (key === "p" || key === "P")) handled();
+				return;
+			}
+
 			this.stopAutoAdvance();
 
 			if (this.away) {
@@ -882,22 +895,42 @@ ${this.themeCss}`,
 		try {
 			const leaf = this.app.workspace.openPopoutLeaf();
 			await leaf.setViewState({ type: DECK_VIEW, active: true });
-			const view = leaf.view;
-			const win = view.containerEl.ownerDocument.defaultView;
-			if (!(view instanceof DeckView) || !win) {
+
+			// Deliberately not an `instanceof DeckView` test. Obsidian may hand
+			// back a deferred stand-in for a view it has not rendered yet, and
+			// failing on that would mean the second attempt at presenting
+			// silently fell back to the main window. What actually matters is
+			// that this is a *different* document from the one we are in.
+			const doc = leaf.view.containerEl.ownerDocument;
+			const win = doc.defaultView;
+			if (!win || doc === document) {
 				leaf.detach();
 				return false;
 			}
+
 			this.deckLeaf = leaf;
-			this.doc = view.containerEl.ownerDocument;
+			this.doc = doc;
 			this.win = win;
 			this.windowed = true;
+
 			// Closing the window by hand is a way of ending the talk, and must
-			// end it properly — the write-up included.
-			view.onWindowClose = () => {
-				this.deckLeaf = null;
-				this.stop();
-			};
+			// end it properly — the write-up included. The view hook is the
+			// clean way; `pagehide` catches the window going with the view
+			// deferred, so the deck can never be left running with no screen.
+			if (leaf.view instanceof DeckView) {
+				leaf.view.onWindowClose = () => {
+					this.deckLeaf = null;
+					this.stop();
+				};
+			}
+			this.win.addEventListener(
+				"pagehide",
+				() => {
+					this.deckLeaf = null;
+					this.stop();
+				},
+				{ once: true }
+			);
 			return true;
 		} catch {
 			return false;
@@ -1276,7 +1309,17 @@ ${this.themeCss}`,
 		}
 	}
 
+	/** Told when the deck ends, however it ends, so the plugin can forget it. */
+	onStopped: (() => void) | null = null;
+
+	private stopped = false;
+
 	stop(unloading = false): void {
+		// A deck can be stopped from several directions at once — the window
+		// closing, Escape, and the next deck starting. Writing the minutes twice
+		// or unloading twice is not something to leave to chance.
+		if (this.stopped) return;
+		this.stopped = true;
 		this.stopAutoAdvance();
 		// Leaving is the one click: a talk that was noted gets written up.
 		if (!unloading && !this.written && this.captures.length > 0 && this.settings.minutesOnExit) {
@@ -1314,6 +1357,9 @@ ${this.themeCss}`,
 		if (this.onResize) this.win.removeEventListener("resize", this.onResize);
 		if (this.overlay) this.overlay.remove();
 		this.closeDeckWindow(unloading);
+		const done = this.onStopped;
+		this.onStopped = null;
+		done?.();
 		this.unload();
 	}
 }

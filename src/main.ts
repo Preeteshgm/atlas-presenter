@@ -82,6 +82,23 @@ export default class AtlasPlugin extends Plugin {
 			},
 		});
 
+		// Worth a command of its own: Escape is on the deck's own window, and if
+		// that window is behind something, or on a screen you cannot see, there
+		// was no way to end the talk from here. Give this one a hotkey and it
+		// pairs with whichever present command you bind.
+		this.addCommand({
+			id: "stop-presenting",
+			name: "Stop presenting",
+			checkCallback: (checking: boolean) => {
+				if (!this.active) return false;
+				if (!checking) {
+					this.active.stop();
+					this.active = null;
+				}
+				return true;
+			},
+		});
+
 		this.addCommand({
 			id: "export-deck",
 			name: "Export the running deck to a single HTML file",
@@ -205,6 +222,11 @@ export default class AtlasPlugin extends Plugin {
 		if (this.active) this.active.stop();
 		const show = new Presentation(this.app, file, this.settings, startNodeId, variant);
 		this.active = show;
+		// A deck that ends on its own — Escape, or its window closed — has to be
+		// forgotten here too, or the next talk starts by stopping a dead one.
+		show.onStopped = () => {
+			if (this.active === show) this.active = null;
+		};
 		this.addChild(show);
 		try {
 			// Before start(), because the deck is built into whichever window it

@@ -78,6 +78,25 @@ Speaker notes are never in both places at once. The moment a presenter window is
 open, `%%notes%%` come off the deck itself, whatever the on-screen notes setting
 says — the deck is what the room sees.
 
+### Starting and stopping with a key
+
+Atlas binds no hotkeys of its own — defaults collide between plugins and differ
+across platforms. Assign your own under **Settings → Hotkeys**, searching for
+*Atlas*. A pair worth binding:
+
+| Command | |
+|---|---|
+| **Present this canvas in a separate window** | Starts the talk |
+| **Stop presenting** | Ends it from the main window |
+
+`Esc` ends the talk too, but it works on the deck's own window — which may be
+behind something, or on a screen you cannot see. **Stop presenting** works from
+wherever you are.
+
+`Ctrl+P` is safe inside a deck window: it does nothing. A deck window is a plain
+Chromium window as far as that key is concerned, and left alone it would raise a
+print dialog on the projector in the middle of a talk.
+
 ---
 
 ## How a canvas becomes a deck

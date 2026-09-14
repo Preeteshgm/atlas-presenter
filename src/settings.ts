@@ -987,6 +987,22 @@ The conclusion.`);
 				"without the projector ever leaving the card."
 		);
 
+		entry(
+			screens,
+			"Stop presenting",
+			"Ends the talk from the main window. Escape works too, but it is on the " +
+				"deck's own window — which may be behind something, or on a screen you " +
+				"cannot see. Give this one a hotkey alongside whichever present command " +
+				"you bind, and you have a pair that starts and stops the deck."
+		);
+
+		screens.createDiv({
+			cls: "atl-ref-lead",
+			text:
+				"Atlas sets no hotkeys of its own, because defaults collide between " +
+				"plugins. Assign your own under Settings → Hotkeys, searching for Atlas.",
+		});
+
 		screens.createDiv({
 			cls: "atl-ref-lead",
 			text:
