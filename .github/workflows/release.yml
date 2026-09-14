@@ -10,7 +10,7 @@ on:
 
 permissions:
   contents: write
-  # Required by attest-build-provenance.
+  # Both required by attest-build-provenance.
   id-token: write
   attestations: write
 
@@ -38,8 +38,17 @@ jobs:
             exit 1
           fi
 
-      - run: npm run package
+      # Provenance, so anyone can verify these files were built from this
+      # repository by this workflow rather than uploaded by hand.
+      - name: Attest the build
+        uses: actions/attest-build-provenance@v2
+        with:
+          subject-path: |
+            main.js
+            styles.css
 
+      # Only the three files Obsidian fetches. A zip beside them is never
+      # downloaded, and the store's review flags it as an unsupported extra.
       - name: Publish release
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -47,5 +56,4 @@ jobs:
           gh release create "${GITHUB_REF_NAME}" \
             --title "${GITHUB_REF_NAME}" \
             --generate-notes \
-            main.js manifest.json styles.css \
-            "dist/atlas-presenter-${GITHUB_REF_NAME}.zip"
+            main.js manifest.json styles.css
