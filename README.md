@@ -48,10 +48,10 @@ starts at the beginning.
 |---|---|
 | `→` `Space` `PageDown` | Reveal, then the album, then scroll, then the next card |
 | `←` `PageUp` | Back, the same way |
-| **`M`** | The map of this canvas — click any card to fly to it |
+| **`M`** | The schematic map — titles and order, for a deck too big to read at once |
 | **`G`** | Obsidian's graph view of the whole vault |
 | `Backspace` | Return from a jump, or one level out of a peeked note |
-| `O` | Zoom out to the whole map |
+| **`O`** | The overview — the whole map at once, cards readable; click one to go to it |
 | `Home` `End` | First and last card |
 | `B` | Blank the screen — attention on the room, not the slide |
 | `N` | Note something against the card on screen |
@@ -487,7 +487,7 @@ logo, and a camera with the same keys. It opens in any browser — no Obsidian, 
 network, no plugin.
 
 The exported file behaves like the deck. `→` steps through reveals and picture
-stacks in the same order, `M` opens a map you can click, `B` blanks, `F` goes
+stacks in the same order, `O` opens the overview and `M` the schematic map, `B` blanks, `F` goes
 fullscreen. Card scripts travel too, wrapped so `root` and `host` mean the same
 there, and the card is told `atlas:enter` and `atlas:leave` as it comes on and
 off camera — but **only when *Run scripts in HTML cards* is on**. A card not

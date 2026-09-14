@@ -386,13 +386,46 @@ const RUNTIME = `
 
   /* ---- the map ---------------------------------------------------------- */
 
-  function buildMap() {
+  function bounds() {
     var minx = Infinity, miny = Infinity, maxx = -Infinity, maxy = -Infinity;
     for (var n = 0; n < stops.length; n++) {
       var s = stops[n];
       minx = Math.min(minx, s.x); miny = Math.min(miny, s.y);
       maxx = Math.max(maxx, s.x + s.width); maxy = Math.max(maxy, s.y + s.height);
     }
+    return { x: minx, y: miny, width: maxx - minx, height: maxy - miny };
+  }
+
+  /* O — the whole map, readable, every card clickable. Its counterpart is M,
+     the schematic index; this one is the cards themselves. */
+  var overview = false;
+  function frame(r, animate) {
+    var scale = Math.min(
+      view.clientWidth / (r.width * (1 + pad * 2)),
+      view.clientHeight / (r.height * (1 + pad * 2))
+    );
+    stage.style.transition = animate ? '' : 'none';
+    stage.style.transform =
+      'translate(' + view.clientWidth / 2 + 'px,' + view.clientHeight / 2 + 'px) ' +
+      'scale(' + scale + ') ' +
+      'translate(' + -(r.x + r.width / 2) + 'px,' + -(r.y + r.height / 2) + 'px)';
+  }
+  function openOverview() {
+    if (overview) return;
+    overview = true;
+    view.classList.add('is-overview');
+    frame(bounds(), true);
+  }
+  function closeOverview() {
+    if (!overview) return;
+    overview = false;
+    view.classList.remove('is-overview');
+    paint(true);
+  }
+
+  function buildMap() {
+    var b = bounds();
+    var minx = b.x, miny = b.y, maxx = b.x + b.width, maxy = b.y + b.height;
     var pad2 = 120;
     var svg = '<svg viewBox="' + (minx - pad2) + ' ' + (miny - pad2) + ' ' +
       (maxx - minx + pad2 * 2) + ' ' + (maxy - miny + pad2 * 2) + '" preserveAspectRatio="xMidYMid meet">';
@@ -431,11 +464,23 @@ const RUNTIME = `
       if (k === 'Escape' || k === 'm' || k === 'M') { e.preventDefault(); toggleMap(false); }
       return;
     }
+    /* The overview is a look, not a place. */
+    if (overview) {
+      e.preventDefault();
+      if (k === 'o' || k === 'O' || k === 'Escape') { closeOverview(); return; }
+      if (['ArrowRight', ' ', 'PageDown', 'ArrowDown'].indexOf(k) > -1) { closeOverview(); advance(); }
+      else if (['ArrowLeft', 'PageUp', 'ArrowUp'].indexOf(k) > -1) { closeOverview(); retreat(); }
+      else if (k === 'Home') { closeOverview(); go(0); }
+      else if (k === 'End') { closeOverview(); go(stops.length - 1); }
+      else if (k === 'm' || k === 'M') { closeOverview(); toggleMap(true); }
+      return;
+    }
     if (['ArrowRight', ' ', 'PageDown', 'ArrowDown'].indexOf(k) > -1) { e.preventDefault(); advance(); }
     else if (['ArrowLeft', 'PageUp', 'ArrowUp'].indexOf(k) > -1) { e.preventDefault(); retreat(); }
     else if (k === 'Home') { e.preventDefault(); go(0); }
     else if (k === 'End') { e.preventDefault(); go(stops.length - 1); }
     else if (k === 'm' || k === 'M') { e.preventDefault(); toggleMap(); }
+    else if (k === 'o' || k === 'O') { e.preventDefault(); openOverview(); }
     else if (k === 'b' || k === 'B') { e.preventDefault(); blank.classList.toggle('on'); }
     else if (k === 'f' || k === 'F') {
       e.preventDefault();
@@ -463,10 +508,24 @@ const RUNTIME = `
   }
 
   view.addEventListener('click', function (e) {
+    if (overview) {
+      var path = e.composedPath ? e.composedPath() : [e.target];
+      var id = null;
+      for (var n = 0; n < path.length && !id; n++) {
+        if (path[n] && path[n].getAttribute) id = path[n].getAttribute('data-node-id');
+      }
+      closeOverview();
+      if (id) {
+        for (var k = 0; k < stops.length; k++) if (stops[k].nodeId === id) { go(k); break; }
+      }
+      return;
+    }
     if (interactiveHit(e)) return;
     if (e.clientX > window.innerWidth / 3) advance(); else retreat();
   });
-  addEventListener('resize', function () { paint(false); });
+  addEventListener('resize', function () {
+    if (overview) frame(bounds(), false); else paint(false);
+  });
 
   /* Every card starts folded, or a reveal would be showing before its turn. */
   var all = stage.querySelectorAll('.atl-node');
@@ -603,6 +662,19 @@ export async function buildDeckHtml(
     pointer-events: none; }
   #map .mh { position: absolute; left: 4vw; top: 1.6vh; color: rgb(255 255 255 / 0.6);
     font: 13px system-ui, sans-serif; }
+  /* The overview: the same map, readable, every card clickable. Off-camera
+     cards are dimmed by the plugin stylesheet so the audience keeps its
+     bearings; here that is exactly wrong. */
+  #view.is-overview .atl-node { opacity: 1 !important; cursor: pointer; }
+  #view.is-overview .atl-node:not(.atl-node-group) { outline: 2px solid transparent;
+    outline-offset: 3px; transition: outline-color 140ms ease; }
+  #view.is-overview .atl-node:not(.atl-node-group):hover { outline-color: #1d5a78; }
+  #view.is-overview .atl-node.is-active { outline-color: #1d5a78; outline-width: 3px; }
+  #hint { position: fixed; left: 50%; bottom: 22px; transform: translateX(-50%);
+    z-index: 31; display: none; padding: 7px 15px; border-radius: 999px;
+    font-size: 13px; color: #6b7a80; background: #fff; border: 1px solid #dfe4dd;
+    box-shadow: 0 4px 18px rgb(0 0 0 / 0.18); pointer-events: none; }
+  #view.is-overview ~ #hint { display: block; }
   #print { display: none; }
   @media print {
     html, body { height: auto; overflow: visible; background: #fff; }
@@ -631,6 +703,7 @@ ${input.css}
 </head>
 <body>
 <div id="view" class="atl-overlay"><div id="stage" class="atl-stage"></div>${logoTag(input)}</div>
+<div id="hint">Click a card to go to it &middot; O or Esc to come back</div>
 <div id="rail"><div id="railfill"></div></div>
 <div id="blank"></div>
 <div id="map"><div class="mh">Click a card to fly to it &middot; M or Esc to close</div></div>

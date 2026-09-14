@@ -396,6 +396,18 @@ export class Presentation extends Component {
 
 		viewport.addEventListener("click", (e) => {
 			if (this.minimap?.isOpen || this.peek?.isOpen || this.browser?.isOpen) return;
+			// In the overview the whole map is on screen and readable, so a click
+			// means "that one" rather than "next".
+			if (this.overviewing) {
+				e.preventDefault();
+				e.stopPropagation();
+				const card = this.matchInPath(e, "[data-node-id]");
+				const id = card?.dataset.nodeId;
+				const at = id ? this.scene.stops.findIndex((s) => s.node.id === id) : -1;
+				this.closeOverview();
+				if (at >= 0) this.jumpTo(at);
+				return;
+			}
 			if (this.matchInPath(e, INTERACTIVE)) return;
 			// Acting on an event means owning it: anything left to travel reaches
 			// the app behind the deck.
@@ -480,6 +492,24 @@ export class Presentation extends Component {
 			// The note box is a Modal with its own key scope. Touching the event
 			// here would either steal the keystroke or let it through to the deck.
 			if (this.capturing || this.child) return;
+
+			// The overview is a look, not a place. Escape and O close it; so does
+			// anything that moves, which then does what it was going to do.
+			if (this.overviewing && NAVIGATION.has(key)) {
+				handled();
+				this.closeOverview();
+				if (key === "Escape" || key === "Backspace") return;
+				if (key === "ArrowRight" || key === " " || key === "PageDown" || key === "ArrowDown") {
+					this.advance();
+				} else if (key === "ArrowLeft" || key === "PageUp" || key === "ArrowUp") {
+					this.retreat();
+				} else if (key === "Home") {
+					this.goTo(0);
+				} else if (key === "End") {
+					this.goTo(this.scene.stops.length - 1);
+				}
+				return;
+			}
 
 			// A modified key belongs to Obsidian or to the OS, never to the
 			// deck. Without this, Ctrl+P — reaching for the command palette —
@@ -593,7 +623,7 @@ export class Presentation extends Component {
 				this.goTo(this.scene.stops.length - 1);
 			} else if (key === "o" || key === "O") {
 				handled();
-				this.overview();
+				this.toggleOverview();
 			} else if (key === "Enter") {
 				handled();
 				void this.enterSubdeck();
@@ -1267,8 +1297,37 @@ ${this.themeCss}`,
 		}
 	}
 
-	private overview(): void {
+	/**
+	 * The whole map, readable, with every card clickable.
+	 *
+	 * This used only to fly the camera out, which looked broken: off-camera
+	 * cards sit at `--atl-inactive` — 0.18 in Paper — so the "overview" was one
+	 * bright card in a field of ghosts, and the next arrow press flew straight
+	 * back. Undimming is what makes it an overview rather than a wide shot.
+	 *
+	 * It is the counterpart to M, not a duplicate of it: M is the schematic
+	 * index, fast and labelled, for a deck too big to read at once; this is the
+	 * cards themselves, for picking the one you can see.
+	 */
+	private overviewing = false;
+
+	private toggleOverview(): void {
+		if (this.overviewing) this.closeOverview();
+		else this.openOverview();
+	}
+
+	private openOverview(): void {
+		if (this.overviewing) return;
+		this.overviewing = true;
+		this.overlay.addClass("is-overview");
 		void this.camera.flyTo(this.scene.bounds, this.settings.duration);
+	}
+
+	private closeOverview(): void {
+		if (!this.overviewing) return;
+		this.overviewing = false;
+		this.overlay.removeClass("is-overview");
+		this.goTo(this.index, { animate: true });
 	}
 
 	private tickClock(): void {

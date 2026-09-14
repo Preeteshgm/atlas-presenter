@@ -269,7 +269,7 @@
 
 <div class="cards">
 	<div><h4>Nothing to convert</h4><p>The canvas file is the deck. Edit it and present again.</p></div>
-	<div><h4>The map is a feature</h4><p>Press <kbd>M</kbd> mid-talk and jump anywhere, then come back.</p></div>
+	<div><h4>The map is a feature</h4><p>Press <kbd>O</kbd> mid-talk, read the whole map, click where you need to be.</p></div>
 	<div><h4>Your notes are there</h4><p>Click a wikilink to read the note over the deck, then carry on.</p></div>
 	<div><h4>It leaves the vault</h4><p>Export one self-contained HTML file. Print it for a PDF.</p></div>
 </div>
@@ -356,10 +356,10 @@
 	<tbody>
 		<tr><td><kbd>→</kbd> <kbd>Space</kbd> <kbd>PageDown</kbd></td><td>Reveal, then the pictures, then the next card</td></tr>
 		<tr><td><kbd>←</kbd> <kbd>PageUp</kbd></td><td>Back, the same way</td></tr>
-		<tr><td><kbd>M</kbd></td><td>The map of this canvas — click any card to fly to it</td></tr>
+		<tr><td><kbd>M</kbd></td><td>The schematic map — titles and order, for a deck too big to read at once</td></tr>
 		<tr><td><kbd>G</kbd></td><td>Obsidian's graph view of the whole vault</td></tr>
 		<tr><td><kbd>Backspace</kbd></td><td>Return from a jump, or one level out of a peeked note</td></tr>
-		<tr><td><kbd>O</kbd></td><td>Zoom out to the whole map</td></tr>
+		<tr><td><kbd>O</kbd></td><td>The overview — the whole map at once, cards readable; click one to go to it</td></tr>
 		<tr><td><kbd>Home</kbd> <kbd>End</kbd></td><td>First and last card</td></tr>
 		<tr><td><kbd>Enter</kbd></td><td>Dive into the <a href="#subdecks">sub-deck</a> on this card</td></tr>
 		<tr><td><kbd>B</kbd></td><td>Blank the screen — attention on the room, not the slide</td></tr>
@@ -702,7 +702,11 @@ Controls plan, rev A · **Sam Avery**</code></pre>
 	network. It opens in any browser, on any machine.
 </p>
 
-<p>The exported file behaves like the deck — reveals step, slide shows move, <kbd>M</kbd> opens the map, <kbd>B</kbd> blanks.</p>
+<p>
+	The exported file behaves like the deck — reveals step, slide shows move,
+	<kbd>O</kbd> opens the overview and <kbd>M</kbd> the schematic map, <kbd>B</kbd>
+	blanks, and a card's own script runs if this vault allows it.
+</p>
 
 <h3>PDF</h3>
 <p>

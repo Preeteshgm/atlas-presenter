@@ -1748,3 +1748,49 @@ settings:
 
 /* A notice that carries something to do, rather than a path to go and find. */
 .atl-notice { display: block; }
+
+/* ---- the overview (O) ---------------------------------------------------- */
+
+/* Off-camera cards sit at --atl-inactive so the audience keeps its bearings
+   while the camera flies. In the overview that is exactly wrong: the whole
+   point is to read the map and pick from it, so everything comes up to full. */
+.atl-overlay.is-overview .atl-node {
+	opacity: 1;
+	cursor: pointer;
+}
+
+.atl-overlay.is-overview .atl-node:not(.atl-node-group) {
+	outline: 2px solid transparent;
+	outline-offset: 3px;
+	transition: outline-color 140ms ease;
+}
+
+.atl-overlay.is-overview .atl-node:not(.atl-node-group):hover {
+	outline-color: var(--atl-accent, var(--interactive-accent));
+}
+
+/* The card you would come back to, marked so leaving is never disorienting. */
+.atl-overlay.is-overview .atl-node.is-active {
+	outline-color: var(--atl-accent, var(--interactive-accent));
+	outline-width: 3px;
+}
+
+.atl-overlay.is-overview .atl-group-label { opacity: 1; }
+
+/* A mode with no way out shown is a trap; this is the way out, named. */
+.atl-overlay.is-overview .atl-viewport::after {
+	content: "Click a card to go to it  ·  O or Esc to come back";
+	position: absolute;
+	left: 50%;
+	bottom: 22px;
+	transform: translateX(-50%);
+	padding: 7px 15px;
+	border-radius: 999px;
+	font-size: 13px;
+	color: var(--text-muted);
+	background: var(--background-primary);
+	border: 1px solid var(--background-modifier-border);
+	box-shadow: 0 4px 18px rgb(0 0 0 / 0.18);
+	pointer-events: none;
+	z-index: 6;
+}
