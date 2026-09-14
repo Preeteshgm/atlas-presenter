@@ -433,6 +433,95 @@
 			"y": 7550,
 			"width": 12180,
 			"height": 1120
+		},
+		{
+			"id": "L1",
+			"type": "text",
+			"text": "#two\n# Two columns you place yourself\n---\n`#split` *flows*: text spills out of the bottom of the left column into the\ntop of the right, and you cannot say which goes where.\n\n`#two` **places**. A `---` rule splits the card.\n---\nThis card is a `#two` card, so what you are reading is the right column\nbecause it was written after the rule.\n\nA first block of nothing but headings, like the one above, becomes a band\nacross the top instead of a column.",
+			"x": 0,
+			"y": 8960,
+			"width": 1280,
+			"height": 860,
+			"color": "4"
+		},
+		{
+			"id": "L2",
+			"type": "text",
+			"text": "#compare\n## Before\n- One flow, top to bottom\n- A table in Obsidian's own colours\n- Notes wherever the setting left them\n---\n## After\n- Columns you place with `---`\n- Tables and lists styled for the room\n- Notes never on the deck and the presenter at once",
+			"x": 1520,
+			"y": 8960,
+			"width": 1280,
+			"height": 860,
+			"color": "4"
+		},
+		{
+			"id": "L3",
+			"type": "text",
+			"text": "#left\n![[surfaces.svg]]\n---\n## Picture left, text right\n\nThe picture fills its half edge to edge. Write it **before** the `---` for\n`#left` and after it for `#right` — the order on the card is the order on\nthe screen.",
+			"x": 3040,
+			"y": 8960,
+			"width": 1280,
+			"height": 860,
+			"color": "5"
+		},
+		{
+			"id": "L4",
+			"type": "text",
+			"text": "#right\n## And the mirror\n\nSame card, `#right` instead, with the picture written second.\n\nUseful alternating down a run of slides so a sequence does not read as one\nlong column.\n---\n![[site-2.svg]]",
+			"x": 4560,
+			"y": 8960,
+			"width": 1280,
+			"height": 860,
+			"color": "5"
+		},
+		{
+			"id": "L5",
+			"type": "text",
+			"text": "#agenda\n# What we will cover\n\n1. Where the site stands today\n2. The three options on the table\n3. What each one costs\n4. What we need decided in this room",
+			"x": 6080,
+			"y": 8960,
+			"width": 1280,
+			"height": 860,
+			"color": "3"
+		},
+		{
+			"id": "L6",
+			"type": "text",
+			"text": "## Tables need no tag\n\nStyled for a slide on every card, in whatever theme is loaded — and in your\nvault's own colours when none is.\n\n| Option | Weeks | Cost | Risk |\n| --- | ---: | ---: | :---: |\n| Do nothing | 0 | £0 | High |\n| Patch it | 4 | £18k | Medium |\n| Replace | 11 | £52k | Low |\n\nRight-align a column with `---:` and centre it with `:---:`. Bullet lists\nand checklists are styled the same way.",
+			"x": 7600,
+			"y": 8960,
+			"width": 1280,
+			"height": 860,
+			"color": "6"
+		},
+		{
+			"id": "L7",
+			"type": "text",
+			"text": "## Two screens, two ways round\n\n**Present this canvas** — the deck fills this window. Press `P` for a\npresenter window and put that on your own screen.\n\n**Present this canvas in a separate window** — the deck opens in a window of\nits own. Drag it to the projector, press `F`, and the main window stays on\nthe canvas: the map, your notes and the minutes all still in front of you.\n\n%%Whichever way round, the moment a presenter window is open a card’s speaker notes\ncome off the deck itself. The deck is what the room sees.%%",
+			"x": 9120,
+			"y": 8960,
+			"width": 1280,
+			"height": 860,
+			"color": "1"
+		},
+		{
+			"id": "L8",
+			"type": "text",
+			"text": "#end\n# That is the whole of it\n\nEvery tag on this sheet is in **Settings → Atlas Presenter → Reference**,\nwith an example you can copy.\n\n`#end` closes a deck.",
+			"x": 10640,
+			"y": 8960,
+			"width": 1280,
+			"height": 860,
+			"color": "2"
+		},
+		{
+			"id": "cg8",
+			"type": "group",
+			"label": "Placed layouts, tables and two screens",
+			"x": -130,
+			"y": 8830,
+			"width": 12180,
+			"height": 1120
 		}
 	],
 	"edges": [
@@ -633,6 +722,54 @@
 			"fromNode": "t7",
 			"toNode": "t8",
 			"label": "33."
+		},
+		{
+			"id": "c34",
+			"fromNode": "t8",
+			"toNode": "L1",
+			"label": "34."
+		},
+		{
+			"id": "c35",
+			"fromNode": "L1",
+			"toNode": "L2",
+			"label": "35."
+		},
+		{
+			"id": "c36",
+			"fromNode": "L2",
+			"toNode": "L3",
+			"label": "36."
+		},
+		{
+			"id": "c37",
+			"fromNode": "L3",
+			"toNode": "L4",
+			"label": "37."
+		},
+		{
+			"id": "c38",
+			"fromNode": "L4",
+			"toNode": "L5",
+			"label": "38."
+		},
+		{
+			"id": "c39",
+			"fromNode": "L5",
+			"toNode": "L6",
+			"label": "39."
+		},
+		{
+			"id": "c40",
+			"fromNode": "L6",
+			"toNode": "L7",
+			"label": "40."
+		},
+		{
+			"id": "c41",
+			"fromNode": "L7",
+			"toNode": "L8",
+			"label": "41."
 		}
 	]
 }

@@ -26,6 +26,7 @@ import {
 import { Slideshow } from "./slideshow";
 import { exportDeck } from "./export";
 import { DeckSnapshot, PRESENTER_VIEW, setDeck } from "./presenter";
+import { DECK_VIEW, DeckView } from "./deck-window";
 import {
 	Capture,
 	CaptureModal,
@@ -58,6 +59,18 @@ export class Presentation extends Component {
 	private ticker = 0;
 	/** Anything following along — the presenter window, today. */
 	private listeners = new Set<() => void>();
+	/**
+	 * The window the deck is drawn in.
+	 *
+	 * The main Obsidian window by default. When the deck is presented into its
+	 * own window these point at that one instead, and the main window is left
+	 * entirely alone — still on the canvas, still yours to work in.
+	 */
+	private doc: Document = document;
+	private win: Window = window;
+	private deckLeaf: WorkspaceLeaf | null = null;
+	/** True while the deck has a window to itself. */
+	private windowed = false;
 	private presenterLeaf: WorkspaceLeaf | null = null;
 	/** The talk as it actually happened, detours included. */
 	private visits: Visit[] = [];
@@ -246,7 +259,7 @@ export class Presentation extends Component {
 	}
 
 	private buildChrome(): void {
-		this.overlay = document.body.createDiv({ cls: "atl-overlay" });
+		this.overlay = this.doc.body.createDiv({ cls: "atl-overlay" });
 		if (this.themeCss) {
 			this.overlay.createEl("style", { text: this.themeCss });
 		}
@@ -362,7 +375,7 @@ export class Presentation extends Component {
 			e.preventDefault();
 			e.stopPropagation();
 			// Click the right two-thirds to advance, the left third to go back.
-			if (e.clientX > window.innerWidth / 3) this.advance();
+			if (e.clientX > this.win.innerWidth / 3) this.advance();
 			else this.retreat();
 		});
 	}
@@ -562,15 +575,15 @@ export class Presentation extends Component {
 				void this.exportToHtml();
 			} else if (key === "f" || key === "F") {
 				handled();
-				if (document.fullscreenElement) void document.exitFullscreen();
+				if (this.doc.fullscreenElement) void this.doc.exitFullscreen();
 				else void this.overlay.requestFullscreen().catch(() => undefined);
 			}
 		};
 		// Capture phase, so Obsidian's own hotkeys do not steal the arrow keys.
-		document.addEventListener("keydown", this.onKey, true);
+		this.doc.addEventListener("keydown", this.onKey, true);
 
 		this.onResize = () => this.goTo(this.index, { animate: false });
-		window.addEventListener("resize", this.onResize);
+		this.win.addEventListener("resize", this.onResize);
 	}
 
 	/**
@@ -706,8 +719,14 @@ export class Presentation extends Component {
 		}
 
 		this.away = true;
+		// With the deck in a window of its own, the graph opens in the main
+		// window — on your screen, beside the canvas — and the projector goes on
+		// showing the card. There is nothing to step aside from, and no way back
+		// to offer: the deck never left.
+		if (this.windowed) return;
+
 		this.overlay.addClass("is-away");
-		const bar = document.body.createDiv({ cls: "atl-return" });
+		const bar = this.doc.body.createDiv({ cls: "atl-return" });
 		bar.createSpan({ text: "Presenting · " });
 		const btn = bar.createEl("button", { text: "Back to the deck" });
 		btn.addEventListener("click", () => this.closeVaultGraph());
@@ -730,7 +749,7 @@ export class Presentation extends Component {
 			// The tab may already be closed by hand; nothing to undo.
 		}
 		this.awayLeaf = null;
-		this.overlay.removeClass("is-away");
+		this.overlay?.removeClass("is-away");
 	}
 
 	/** A minimap pick is a detour: remember where we were. */
@@ -849,6 +868,58 @@ ${this.themeCss}`,
 	}
 
 	/**
+	 * Give the deck a window of its own, before it is built.
+	 *
+	 * Everything the deck draws then lands in that window, leaving the main one
+	 * on the canvas — so the map, the note you were writing and the minutes stay
+	 * in front of you while the talk runs on the projector. Drag the new window
+	 * to the second screen and press F.
+	 *
+	 * Returns false if the window could not be opened, so the caller can fall
+	 * back to presenting in place rather than not presenting at all.
+	 */
+	async useOwnWindow(): Promise<boolean> {
+		try {
+			const leaf = this.app.workspace.openPopoutLeaf();
+			await leaf.setViewState({ type: DECK_VIEW, active: true });
+			const view = leaf.view;
+			const win = view.containerEl.ownerDocument.defaultView;
+			if (!(view instanceof DeckView) || !win) {
+				leaf.detach();
+				return false;
+			}
+			this.deckLeaf = leaf;
+			this.doc = view.containerEl.ownerDocument;
+			this.win = win;
+			this.windowed = true;
+			// Closing the window by hand is a way of ending the talk, and must
+			// end it properly — the write-up included.
+			view.onWindowClose = () => {
+				this.deckLeaf = null;
+				this.stop();
+			};
+			return true;
+		} catch {
+			return false;
+		}
+	}
+
+	/** Obsidian restores its own windows, so leave the leaf alone on unload. */
+	private closeDeckWindow(unloading: boolean): void {
+		const leaf = this.deckLeaf;
+		this.deckLeaf = null;
+		if (!leaf || unloading) return;
+		const view = leaf.view;
+		// Detaching calls onClose, which would call stop() again.
+		if (view instanceof DeckView) view.onWindowClose = null;
+		try {
+			leaf.detach();
+		} catch {
+			// Closed by hand already.
+		}
+	}
+
+	/**
 	 * A second screen: notes, the clock, and what is coming — while the
 	 * projector shows only the deck.
 	 */
@@ -861,6 +932,8 @@ ${this.themeCss}`,
 			const leaf = this.app.workspace.openPopoutLeaf();
 			await leaf.setViewState({ type: PRESENTER_VIEW, active: true });
 			this.presenterLeaf = leaf;
+			// Takes the notes off the deck, now rather than on the next card.
+			this.updateHud(this.stopAt(this.index), 0);
 		} catch {
 			new Notice("Atlas: could not open a presenter window.");
 		}
@@ -1171,7 +1244,11 @@ ${this.themeCss}`,
 		if (this.notesEl) {
 			const text = this.notes.get(stop.node.id) ?? "";
 			this.notesEl.setText(text);
-			this.notesEl.toggleClass("is-shown", !!text);
+			// Never both. The deck is what the room sees, so the moment there is
+			// a presenter window to read them in, notes come off the deck — no
+			// setting overrides this, because the cost of getting it wrong is
+			// your private notes on a wall.
+			this.notesEl.toggleClass("is-shown", !!text && !this.presenterLeaf);
 		}
 
 		const remark = this.hud.querySelector<HTMLElement>(".atl-map-btn[data-key='N']");
@@ -1232,10 +1309,11 @@ ${this.themeCss}`,
 		this.browser?.hide();
 		this.minimap?.hide();
 		this.peek?.close();
-		if (document.fullscreenElement) void document.exitFullscreen();
-		if (this.onKey) document.removeEventListener("keydown", this.onKey, true);
-		if (this.onResize) window.removeEventListener("resize", this.onResize);
+		if (this.doc.fullscreenElement) void this.doc.exitFullscreen();
+		if (this.onKey) this.doc.removeEventListener("keydown", this.onKey, true);
+		if (this.onResize) this.win.removeEventListener("resize", this.onResize);
 		if (this.overlay) this.overlay.remove();
+		this.closeDeckWindow(unloading);
 		this.unload();
 	}
 }

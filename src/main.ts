@@ -5,6 +5,7 @@ import { parseCanvas } from "./canvas/parse";
 import { variantsIn } from "./canvas/path";
 import { VariantPicker } from "./variant-picker";
 import { PRESENTER_VIEW, PresenterView } from "./present/presenter";
+import { DECK_VIEW, DeckView } from "./present/deck-window";
 import { AtlasSettingTab } from "./settings";
 
 /**
@@ -30,6 +31,7 @@ export default class AtlasPlugin extends Plugin {
 		this.settings = Object.assign({}, DEFAULT_SETTINGS, await this.loadData());
 		addIcon(ICON_ID, ICON_SVG);
 		this.registerView(PRESENTER_VIEW, (leaf) => new PresenterView(leaf));
+		this.registerView(DECK_VIEW, (leaf) => new DeckView(leaf));
 
 		this.addCommand({
 			id: "present-canvas",
@@ -41,6 +43,19 @@ export default class AtlasPlugin extends Plugin {
 				const file = this.app.workspace.getActiveFile();
 				if (!file || file.extension !== "canvas") return false;
 				if (!checking) void this.present(file, this.selectedCardId());
+				return true;
+			},
+		});
+
+		this.addCommand({
+			id: "present-canvas-windowed",
+			name: "Present this canvas in a separate window",
+			checkCallback: (checking: boolean) => {
+				const file = this.app.workspace.getActiveFile();
+				if (!file || file.extension !== "canvas") return false;
+				if (!checking) {
+					void this.present(file, this.selectedCardId(), "", { windowed: true });
+				}
 				return true;
 			},
 		});
@@ -91,6 +106,12 @@ export default class AtlasPlugin extends Plugin {
 						.setTitle("Present with Atlas")
 						.setIcon(ICON_ID)
 						.onClick(() => void this.present(file))
+				);
+				menu.addItem((item) =>
+					item
+						.setTitle("Present with Atlas in a separate window")
+						.setIcon(ICON_ID)
+						.onClick(() => void this.present(file, undefined, "", { windowed: true }))
 				);
 			})
 		);
@@ -175,12 +196,23 @@ export default class AtlasPlugin extends Plugin {
 		).open();
 	}
 
-	private async present(file: TFile, startNodeId?: string, variant = ""): Promise<void> {
+	private async present(
+		file: TFile,
+		startNodeId?: string,
+		variant = "",
+		options: { windowed?: boolean } = {}
+	): Promise<void> {
 		if (this.active) this.active.stop();
 		const show = new Presentation(this.app, file, this.settings, startNodeId, variant);
 		this.active = show;
 		this.addChild(show);
 		try {
+			// Before start(), because the deck is built into whichever window it
+			// is given. A window that will not open is not a reason to abandon
+			// the talk: say so and present in place.
+			if (options.windowed && !(await show.useOwnWindow())) {
+				new Notice("Atlas: could not open a second window; presenting here.");
+			}
 			await show.start();
 		} catch (e) {
 			new Notice(`Atlas: ${String(e)}`);

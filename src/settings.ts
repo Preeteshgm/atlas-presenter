@@ -706,7 +706,7 @@ export class AtlasSettingTab extends PluginSettingTab {
 			entry(hashes, tag, what, tag);
 		}
 
-		const roles = section("The eight card roles");
+		const roles = section("The card roles");
 
 		roles.createDiv({
 			cls: "atl-ref-lead",
@@ -722,11 +722,57 @@ export class AtlasSettingTab extends PluginSettingTab {
 			["#quote", "A pull quote, set large with an opening mark."],
 			["#stat", "One large number, centred, with a line about it."],
 			["#dark", "The same card, inverted. Useful for a point you want to land."],
-			["#split", "Two columns. Headings span both."],
+			["#agenda", "A running order: the list is set large and numbered, one line to a row."],
+			["#end", "The closing card — thanks, a contact, a next step, centred."],
 			["#full", "A picture with no margin, filling the card."],
+			["#split", "Two flowed columns — text spills out of the first into the second. For a deliberate split, use #two."],
 		] as [string, string][]) {
 			entry(roles, tag, what, tag === "(no tag)" ? undefined : tag);
 		}
+
+		// ------------------------------------------------- placed layouts
+		const placed = section("Layouts you place yourself");
+
+		placed.createDiv({
+			cls: "atl-ref-lead",
+			text:
+				"These split the card at a --- rule, so you choose what goes where rather " +
+				"than letting the text flow. Two blocks make two columns. A first block of " +
+				"nothing but headings becomes a band across the top instead.",
+		});
+
+		entry(
+			placed,
+			"#two",
+			"Two columns, side by side, equal width.",
+			["#two", "# Spans both", "---", "The left column", "---", "The right column"].join("\n")
+		);
+		entry(
+			placed,
+			"#compare",
+			"The same two columns, drawn as panels — for two things being weighed " +
+				"against each other.",
+			["#compare", "## Today", "- slow", "---", "## Proposed", "- quick"].join("\n")
+		);
+		entry(
+			placed,
+			"#left",
+			"A picture filling the left half, text centred on the right.",
+			["#left", "![[plan.png]]", "---", "## The layout", "What to look at."].join("\n")
+		);
+		entry(
+			placed,
+			"#right",
+			"The mirror — text on the left, picture filling the right.",
+			["#right", "## The layout", "What to look at.", "---", "![[plan.png]]"].join("\n")
+		);
+
+		placed.createDiv({
+			cls: "atl-ref-lead",
+			text:
+				"Tables and bullet lists need no tag: they are styled for a slide on every " +
+				"card, in your theme's colours, whether or not a theme is loaded.",
+		});
 
 		// ------------------------------------------------- on the canvas
 		const canvas = section("On the canvas");
@@ -901,6 +947,12 @@ The conclusion.`);
 			["Backspace", "return from a jump, or one level out of a peeked note"],
 			["O", "zoom out to the whole map"],
 			["Home  End", "first and last card"],
+			["Enter", "dive into the sub-deck on this card"],
+			["B", "blank the screen — attention on the room, not the slide"],
+			["N", "note something against the card on screen"],
+			["W", "write the session up now"],
+			["P", "open the presenter window"],
+			["E", "export the deck to one standalone HTML file"],
 			["F", "fullscreen"],
 			["Esc", "close the map or the note, then leave the deck"],
 		] as [string, string][]) {
@@ -908,5 +960,39 @@ The conclusion.`);
 			row.createDiv({ cls: "atl-ref-name", text: k });
 			row.createDiv({ cls: "atl-ref-desc", text: what });
 		}
+
+		// ------------------------------------------------- two screens
+		const screens = section("Presenting on two screens");
+
+		screens.createDiv({
+			cls: "atl-ref-lead",
+			text:
+				"There are two ways round, and they differ in which window the deck takes " +
+				"over. Both leave your notes off the projector.",
+		});
+
+		entry(
+			screens,
+			"Present this canvas",
+			"The deck fills the main Obsidian window. Press P for a presenter window — " +
+				"notes, the clock and what is coming — and put that on your own screen. " +
+				"Best when the projector is your main display."
+		);
+		entry(
+			screens,
+			"Present this canvas in a separate window",
+			"The deck opens in a window of its own; drag it to the projector and press F. " +
+				"The main window is never touched, so the canvas, your notes and the " +
+				"minutes stay in front of you, and G opens the vault graph on your screen " +
+				"without the projector ever leaving the card."
+		);
+
+		screens.createDiv({
+			cls: "atl-ref-lead",
+			text:
+				"Speaker notes are never shown in both places. The moment a presenter " +
+				"window is open, %%notes%% come off the deck itself — whatever the " +
+				"on-screen notes setting says — because the deck is what the room sees.",
+		});
 	}
 }

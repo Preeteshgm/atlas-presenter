@@ -30,8 +30,8 @@
 }
 
 /* ---------------------------------------------------------------------------
-   The eight card roles. Every Atlas theme implements these same names, so a
-   deck written against one theme works against any of them.
+   The card roles. Every Atlas theme implements these same names, so a deck
+   written against one theme works against any of them.
 
      (no tag)   an ordinary card: heading and text
      #title     the opening card
@@ -39,8 +39,21 @@
      #quote     a pull quote
      #stat      one large number and a line about it
      #dark      the same card, inverted
-     #split     two columns
+     #agenda    a numbered running order, set large
+     #end       the closing card
      #full      a picture with no margin
+     #split     two flowed columns, text spilling from one into the next
+
+   And the placed layouts, which split the card at a `---` rule so you choose
+   what goes where. These are defined in the plugin's own styles.css, using each
+   theme's tokens, so they work with any theme and with none:
+
+     #two       two columns, side by side
+     #compare   the same, as two panels being weighed against each other
+     #left      a picture filling the left half, text on the right
+     #right     the mirror: text left, picture right
+
+   Tables and lists are styled there too, for the same reason.
 
    Put a bare tag line at the top of a card. It never reaches the slide.
    --------------------------------------------------------------------------- */

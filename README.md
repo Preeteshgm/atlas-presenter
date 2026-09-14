@@ -65,6 +65,19 @@ starts at the beginning.
 Clicking the right two-thirds advances, the left third goes back. Clicking a
 control inside a card never advances the slide.
 
+### Two screens
+
+There are two ways round, and they differ in which window the deck takes over.
+
+| | |
+|---|---|
+| **Present this canvas** | The deck fills the main Obsidian window. Press `P` for a presenter window — notes, the clock, what is coming — and put that on your own screen. Best when the projector *is* your main display. |
+| **Present this canvas in a separate window** | The deck opens in a window of its own. Drag it to the projector and press `F`. The main window is never touched, so the canvas, your notes and the minutes stay in front of you — and `G` opens the vault graph on your screen without the projector ever leaving the card. |
+
+Speaker notes are never in both places at once. The moment a presenter window is
+open, `%%notes%%` come off the deck itself, whatever the on-screen notes setting
+says — the deck is what the room sees.
+
 ---
 
 ## How a canvas becomes a deck
@@ -271,7 +284,7 @@ is drawn, so it never reaches the slide.
 
 **Roles — how a card looks:**
 
-### The eight card roles
+### The card roles
 
 Every Atlas theme implements the same names, so a deck written against one theme
 works against all of them. Put a bare tag line at the top of a card — it never
@@ -285,8 +298,48 @@ reaches the slide.
 | `#quote` | A pull quote |
 | `#stat` | One large number and a line about it |
 | `#dark` | The same card, inverted |
-| `#split` | Two columns |
+| `#agenda` | A running order — numbered, set large, one line to a row |
+| `#end` | The closing card — thanks, a contact, a next step |
 | `#full` | A picture with no margin |
+| `#split` | Two *flowed* columns — text spills from one into the next |
+
+### Layouts you place yourself
+
+`#split` flows: text runs out of the bottom of the left column into the top of
+the right, and you cannot say what goes where. These four let you say. They
+split the card at a `---` rule.
+
+| Tag | The card becomes |
+|---|---|
+| `#two` | Two columns, side by side, equal width |
+| `#compare` | The same, drawn as two panels being weighed against each other |
+| `#left` | A picture filling the left half, text centred on the right |
+| `#right` | The mirror — text left, picture filling the right |
+
+```markdown
+#two
+# This heading spans both
+---
+The left column.
+---
+The right column.
+```
+
+Two blocks make two columns. A first block of **nothing but headings** becomes a
+band across the top instead of a column. For `#left` and `#right` the order on
+the card is the order on the screen: write the picture first for `#left`, second
+for `#right`. `+++` reveals work inside a column.
+
+Unlike the roles above, these are defined in the plugin's own stylesheet using
+each theme's tokens — so they work with any Atlas theme, and with none.
+
+### Tables and lists
+
+Neither needs a tag. Obsidian's own table CSS is sized for a note at 14px inside
+a card the camera then scales up, which on a projector is a postage stamp in the
+wrong colours. Atlas restyles both for a slide: a ruled header row, banded rows,
+tabular numerals, markdown's `---:` and `:---:` alignment, accent-coloured
+bullets and real checkboxes for a task list.
 
 ### Three themes, ready to use
 

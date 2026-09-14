@@ -591,6 +591,60 @@ export function slideshowsIn(body: HTMLElement): HTMLElement[] {
 	return Array.from(scope.querySelectorAll<HTMLElement>(".atl-slideshow"));
 }
 
+/**
+ * Roles that lay a card out in columns rather than one flow.
+ *
+ * These are the only ones that need real wrapper elements: CSS can put a card's
+ * children in two columns, but it cannot say which children go in which. So the
+ * card says, with a rule.
+ */
+const PANED = ["atl-tag-two", "atl-tag-compare", "atl-tag-left", "atl-tag-right"];
+
+function isHeading(el: Element): boolean {
+	return /^H[1-3]$/.test(el.tagName);
+}
+
+/**
+ * Split a card at its `---` rules into columns.
+ *
+ *     # Spans both        <- taken as the heading band, because it is only
+ *     ---                    headings, and there is something after it
+ *     The left column
+ *     ---
+ *     The right column
+ *
+ * Two blocks make two columns; a leading block of nothing but headings becomes a
+ * band across the top instead. Anything else is left exactly as it was — a card
+ * that happens to contain a rule and is not tagged for columns must not move.
+ */
+function layOutPanes(card: HTMLElement, body: HTMLElement): void {
+	if (!PANED.some((c) => card.hasClass(c))) return;
+
+	const parts: HTMLElement[][] = [[]];
+	for (const child of Array.from(body.children)) {
+		if (!(child instanceof HTMLElement)) continue;
+		if (child.tagName === "HR") parts.push([]);
+		else parts[parts.length - 1].push(child);
+	}
+	const blocks = parts.filter((p) => p.length > 0);
+	if (blocks.length < 2) return;
+
+	// A first block of nothing but headings is a title for the whole card.
+	const head = blocks.length > 2 && blocks[0].every(isHeading) ? blocks.shift() : null;
+	if (blocks.length < 2) return;
+
+	body.empty();
+	if (head) {
+		const band = body.createDiv({ cls: "atl-pane-head" });
+		for (const el of head) band.appendChild(el);
+	}
+	for (const block of blocks) {
+		const pane = body.createDiv({ cls: "atl-pane" });
+		for (const el of block) pane.appendChild(el);
+	}
+	body.dataset.panes = String(blocks.length);
+}
+
 export function buildSteps(body: HTMLElement): HTMLElement[] {
 	const scope: ParentNode = body.shadowRoot ?? body;
 
@@ -613,21 +667,31 @@ export function buildSteps(body: HTMLElement): HTMLElement[] {
 	// `+++` markers: everything after one becomes the next step. Only for
 	// markdown cards — a shadow root has no Obsidian DOM helpers.
 	if (body.shadowRoot) return [];
-	const kids = Array.from(body.children) as HTMLElement[];
-	if (!kids.some((k) => (k.textContent ?? "").trim() === "+++")) return [];
+
+	// A card laid out in columns reveals within each column, so the steps are
+	// gathered per pane. Without this the wrapper would be appended to the body
+	// and the revealed text would jump out of its column.
+	const flows: HTMLElement[] = body.dataset.panes
+		? Array.from(body.querySelectorAll<HTMLElement>(".atl-pane"))
+		: [body];
 
 	const steps: HTMLElement[] = [];
-	let wrapper: HTMLElement | null = null;
-	for (const kid of kids) {
-		if ((kid.textContent ?? "").trim() === "+++") {
-			kid.remove();
-			wrapper = body.createDiv({ cls: "atl-step" });
-			steps.push(wrapper);
-			continue;
+	for (const flow of flows) {
+		const kids = Array.from(flow.children) as HTMLElement[];
+		if (!kids.some((k) => (k.textContent ?? "").trim() === "+++")) continue;
+
+		let wrapper: HTMLElement | null = null;
+		for (const kid of kids) {
+			if ((kid.textContent ?? "").trim() === "+++") {
+				kid.remove();
+				wrapper = flow.createDiv({ cls: "atl-step" });
+				steps.push(wrapper);
+				continue;
+			}
+			// Appending to a wrapper that sits at the end of the flow preserves
+			// document order, because we walk the children in order.
+			if (wrapper) wrapper.appendChild(kid);
 		}
-		// Appending to a wrapper that sits at the end of the body preserves
-		// document order, because we walk the children in order.
-		if (wrapper) wrapper.appendChild(kid);
 	}
 	return steps;
 }
@@ -742,5 +806,6 @@ export async function renderNode(
 	} catch (e) {
 		body.createDiv({ cls: "atl-missing", text: `Could not render this card: ${String(e)}` });
 	}
+	layOutPanes(el, body);
 	return el;
 }
