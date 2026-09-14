@@ -87,10 +87,15 @@ for path in walk(os.path.join(ROOT, "src"), {".ts"}):
     used |= set(re.findall(r"[\"'`](atl-[\w-]+)", body))
     used |= set(re.findall(r"cls: \"(atl-[\w-]+)", body))
 
-# `atl-tag-${name}` and `atl-clip-${id}` are prefixes built at runtime, not
-# class names, so there is nothing for them to match.
+# `atl-tag-*` and `atl-clip-*` are written by the card author or built at
+# runtime. Some are markers the code looks for rather than anything styled --
+# atl-tag-slideshow says "gather this card's pictures", and wants no rule of its
+# own -- so the whole family is exempt. This was comparing whole names against
+# what were meant to be prefixes, and only held while no such literal appeared
+# in the source.
 DYNAMIC = ("atl-tag-", "atl-clip-")
-undefined = sorted(u for u in used if u not in defined and u not in DYNAMIC)
+undefined = sorted(
+    u for u in used if u not in defined and not u.startswith(DYNAMIC))
 unused = sorted(d for d in defined if d not in used and not d.startswith("atl-tag"))
 (ok if not undefined else bad).append(
     "css: every class used in code has a rule" if not undefined
