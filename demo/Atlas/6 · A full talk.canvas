@@ -101,7 +101,7 @@
 			"width": 1280,
 			"height": 860,
 			"type": "text",
-			"text": "#left\n![[surfaces.svg]]\n---\n## Surveyed in January\n\nEvery panel opened, every loop traced, every termination photographed.\n\nThe full record is in [[Northwind Depot Plan]] — click it while presenting\nand it opens over the slide.\n\n%%Click the link. It is the quickest way to answer “is that in writing”.%%",
+			"text": "#left\n![[surfaces.svg]]\n---\n## Surveyed in January\n\nEvery panel opened, every loop traced, every termination photographed.\n\nThe full record is in [[Northwind Depot Plan]], and the standard it is\nchecked against is [BS 7671](https://example.org) — click either while presenting\nand it opens over the slide.\n\n%%Click the link. It is the quickest way to answer “is that in writing”.%%",
 			"color": "5"
 		},
 		{

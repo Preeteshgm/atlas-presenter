@@ -414,6 +414,25 @@
 			"width": 1280,
 			"height": 860,
 			"text": "## Video, and how to try it\n\n**No video ships with this pack** — a sample film would be most of its\ndownload size, so there is a sound file and this card instead.\n\nTo see one work: drop any `.mp4` into `Atlas/Assets/`, then either put it\non the canvas as its own card, or embed it in a card like this:\n\n```text\n## The walk-round, 3 March\n\n![[walk-round.mp4]]\n```\n\n| Plays | Usually does not |\n| --- | --- |\n| `.mp4` (H.264), `.webm` | `.mov`, `.mkv` |\n\nThose two carry codecs Chromium will not decode, so the card is a black\nrectangle with working controls — the file is fine, the browser cannot\nread it. Re-wrap it as mp4.\n\n%%A voice memo saved as .webm has no picture at all. Atlas notices once\nthe metadata lands and shows it as a bar rather than a black box.%%"
+		},
+		{
+			"id": "w-links",
+			"type": "text",
+			"color": "5",
+			"x": 7730,
+			"y": 3530,
+			"width": 1280,
+			"height": 860,
+			"text": "## A link to the web\n\nClick either of these while presenting. The page opens **over the deck**\nrather than throwing you out to a browser and leaving the talk behind.\n\n- [The Atlas handbook](https://preeteshgm.github.io/atlas-presenter/)\n- [example.org](https://example.org)\n\n`Esc` closes it. The bar carries the address and a way out to a real\nbrowser — always there, because a site that refuses to be shown inside\nanother page says so in a header we cannot see the effect of from here.\n\n%%Try the handbook one: it is the same page as Settings → Open the\nhandbook, and a fair test because GitHub Pages allows framing.%%"
+		},
+		{
+			"id": "w-url",
+			"type": "link",
+			"url": "https://example.org",
+			"x": 9250,
+			"y": 3530,
+			"width": 1280,
+			"height": 860
 		}
 	],
 	"edges": [
@@ -590,6 +609,16 @@
 			"fromNode": "d3",
 			"toNode": "d-video",
 			"label": ""
+		},
+		{
+			"id": "x-links",
+			"fromNode": "d-video",
+			"toNode": "w-links"
+		},
+		{
+			"id": "x-url",
+			"fromNode": "w-links",
+			"toNode": "w-url"
 		}
 	]
 }
