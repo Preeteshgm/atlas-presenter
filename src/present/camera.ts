@@ -1,7 +1,7 @@
 import { Rect } from "../types";
 import { rectOf } from "../canvas/parse";
 
-export interface CameraPose {
+interface CameraPose {
 	cx: number;
 	cy: number;
 	scale: number;
@@ -27,10 +27,6 @@ export class Camera {
 			align: "centre" | "top";
 		}
 	) {}
-
-	get current(): CameraPose {
-		return { ...this.pose };
-	}
 
 	/**
 	 * The pose that frames `target`.
@@ -111,10 +107,5 @@ export class Camera {
 			() => undefined,
 			() => undefined // cancelled by a faster click; not an error
 		);
-	}
-
-	/** Re-apply the current pose, e.g. after the window is resized. */
-	refresh(target: Rect): void {
-		this.snapTo(target);
 	}
 }

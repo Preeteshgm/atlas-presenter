@@ -1,15 +1,9 @@
-import {
-	App,
-	Component,
-	Notice,
-	TFile,
-	WorkspaceLeaf,
-	normalizePath,
-} from "obsidian";
+import { App, Component, Notice, TFile, WorkspaceLeaf } from "obsidian";
 import { AtlasSettings, Scene, Stop } from "../types";
+import { hhmm, mmss } from "../format";
+import { fileAt, readFileAt } from "../vault";
 import { parseCanvas, rectOf } from "../canvas/parse";
-import { readDeckVariant } from "../canvas/path";
-import { buildScene } from "../canvas/path";
+import { buildScene, readDeckVariant } from "../canvas/path";
 import { Camera } from "./camera";
 import { Minimap } from "./minimap";
 import { Peek } from "./peek";
@@ -228,8 +222,8 @@ export class Presentation extends Component {
 	private async loadThemeCss(): Promise<string> {
 		const path = this.settings.themeCss;
 		if (!path) return "";
-		const file = this.app.vault.getAbstractFileByPath(normalizePath(path));
-		if (!(file instanceof TFile)) {
+		const file = fileAt(this.app, path);
+		if (!file) {
 			new Notice(`Atlas: theme file not found — ${path}`);
 			return "";
 		}
@@ -866,6 +860,7 @@ export class Presentation extends Component {
 ${this.themeCss}`,
 			padding: this.settings.padding,
 			maxScale: this.settings.maxScale,
+			duration: this.settings.duration,
 			stops: this.scene.stops.map((stop) => {
 				const r = rectOf(stop.node);
 				return {
@@ -875,6 +870,9 @@ ${this.themeCss}`,
 					width: r.width,
 					height: r.height,
 					label: stop.kind === "group" ? stop.node.label ?? "" : "",
+					// The export had no card names at all, so its counter and its
+					// map could only ever label the sections.
+					title: stop.kind === "node" ? titleOf(stop.node) : "",
 				};
 			}),
 		};
@@ -1202,8 +1200,8 @@ ${this.themeCss}`,
 	private async enterSubdeck(): Promise<void> {
 		const node = this.stopAt(this.index).node;
 		if (node.type !== "file" || !node.file?.endsWith(".canvas")) return;
-		const file = this.app.vault.getAbstractFileByPath(normalizePath(node.file));
-		if (!(file instanceof TFile)) {
+		const file = fileAt(this.app, node.file);
+		if (!file) {
 			new Notice(`Atlas: ${node.file} is missing.`);
 			return;
 		}
@@ -1235,15 +1233,8 @@ ${this.themeCss}`,
 		if (!this.timerEl) return;
 		const mode = this.settings.timer;
 		const parts: string[] = [];
-		if (mode === "elapsed" || mode === "both") {
-			const secs = Math.floor((Date.now() - this.began) / 1000);
-			const mm = String(Math.floor(secs / 60)).padStart(2, "0");
-			const ss = String(secs % 60).padStart(2, "0");
-			parts.push(`${mm}:${ss}`);
-		}
-		if (mode === "clock" || mode === "both") {
-			parts.push(new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }));
-		}
+		if (mode === "elapsed" || mode === "both") parts.push(mmss(Date.now() - this.began));
+		if (mode === "clock" || mode === "both") parts.push(hhmm());
 		this.timerEl.setText(parts.join("  ·  "));
 	}
 
@@ -1254,11 +1245,9 @@ ${this.themeCss}`,
 				const text = speakerNotes(node.text ?? "");
 				if (text) this.notes.set(node.id, text);
 			} else if (node.type === "file" && node.file?.endsWith(".md")) {
-				const file = this.app.vault.getAbstractFileByPath(normalizePath(node.file));
-				if (file instanceof TFile) {
-					const text = speakerNotes(await this.app.vault.cachedRead(file));
-					if (text) this.notes.set(node.id, text);
-				}
+				const raw = await readFileAt(this.app, node.file);
+				const text = raw ? speakerNotes(raw) : "";
+				if (text) this.notes.set(node.id, text);
 			}
 		}
 	}

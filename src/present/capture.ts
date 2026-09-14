@@ -1,4 +1,5 @@
 import { App, Modal, Notice, TFile, TFolder, normalizePath } from "obsidian";
+import { hhmm, safeFileName } from "../format";
 
 export interface Visit {
 	nodeId: string;
@@ -115,7 +116,7 @@ export class CaptureModal extends Modal {
 	}
 }
 
-export interface ReviewEntry {
+interface ReviewEntry {
 	nodeId: string;
 	title: string;
 	section: string;
@@ -125,7 +126,7 @@ export interface ReviewEntry {
 	text: string;
 }
 
-export interface ReviewOptions {
+interface ReviewOptions {
 	title: string;
 	subtitle: string;
 	entries: ReviewEntry[];
@@ -220,10 +221,7 @@ export class ReviewModal extends Modal {
 	}
 }
 
-function hhmm(ms: number): string {
-	return new Date(ms).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
-}
-
+/** Sortable, for a filename: a folder of minutes should read in order. */
 function stamp(ms: number): string {
 	const d = new Date(ms);
 	const pad = (n: number) => String(n).padStart(2, "0");
@@ -236,7 +234,7 @@ function stamp(ms: number): string {
  * Cards appear in the order they were actually visited — detours through the
  * map included, which is often where the interesting part happened.
  */
-export function minutesFor(session: Session, options: MinutesOptions): string {
+function minutesFor(session: Session, options: MinutesOptions): string {
 	const lines: string[] = [];
 	const date = new Date(session.startedAt).toLocaleDateString(undefined, {
 		day: "numeric",
@@ -316,7 +314,7 @@ export async function writeMinutes(
 		// Already there, or the name is taken by a file; the write below will say.
 	}
 
-	const safe = session.deck.replace(/[\\/:*?"<>|]/g, "-");
+	const safe = safeFileName(session.deck);
 	let path = normalizePath(`${dir}/${safe} ${stamp(session.startedAt)}.md`);
 	let n = 2;
 	while (app.vault.getAbstractFileByPath(path)) {

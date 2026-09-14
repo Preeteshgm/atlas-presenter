@@ -143,19 +143,19 @@ export function buildScene(
 	const visited = new Set<string>();
 	const openedGroups = new Set<string>();
 
-	const push = (node: CanvasNode, depth: number) => {
+	const push = (node: CanvasNode) => {
 		const group = groupOf.get(node.id);
 		// Entering a new section: zoom out to frame the whole group first.
 		if (sectionOverviews && group && !openedGroups.has(group.id)) {
 			openedGroups.add(group.id);
-			stops.push({ kind: "group", node: group, group, depth: Math.max(0, depth - 1) });
+			stops.push({ kind: "group", node: group, group });
 		}
-		stops.push({ kind: "node", node, group, depth });
+		stops.push({ kind: "node", node, group });
 	};
 
 	// Depth-first: a branch of the mind map is told to its end before we
 	// back out and take the next one. That is how people actually talk.
-	const walk = (node: CanvasNode, depth: number) => {
+	const walk = (node: CanvasNode) => {
 		if (visited.has(node.id)) return;
 		visited.add(node.id);
 		// Left out of this talk, but still a junction: its children are reached
@@ -163,25 +163,25 @@ export function buildScene(
 		if (variant && !inVariant(node, variant)) {
 			for (const edge of out.get(node.id) ?? []) {
 				const next = byId.get(edge.toNode);
-				if (next && next.type !== "group") walk(next, depth);
+				if (next && next.type !== "group") walk(next);
 			}
 			return;
 		}
-		push(node, depth);
+		push(node);
 		for (const edge of out.get(node.id) ?? []) {
 			const next = byId.get(edge.toNode);
-			if (next && next.type !== "group") walk(next, depth + 1);
+			if (next && next.type !== "group") walk(next);
 		}
 	};
 
 	const start = pickStart(slides, data.edges);
-	if (start) walk(start, 0);
+	if (start) walk(start);
 
 	// Anything the edges never reached still belongs in the deck, in reading order.
 	const orphans = slides
 		.filter((n) => !visited.has(n.id) && (!variant || inVariant(n, variant)))
 		.sort((a, b) => rectOf(a).y - rectOf(b).y || rectOf(a).x - rectOf(b).x);
-	for (const n of orphans) walk(n, 0);
+	for (const n of orphans) walk(n);
 
 	return {
 		meta,

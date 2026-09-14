@@ -1,4 +1,5 @@
 import { ItemView, WorkspaceLeaf } from "obsidian";
+import { hhmm, mmss } from "../format";
 
 export const PRESENTER_VIEW = "atlas-presenter-view";
 
@@ -38,11 +39,6 @@ export function setDeck(deck: DeckHandle | null): void {
 function watchDeck(listener: () => void): () => void {
 	watchers.add(listener);
 	return () => watchers.delete(listener);
-}
-
-function clock(ms: number): string {
-	const secs = Math.floor(ms / 1000);
-	return `${String(Math.floor(secs / 60)).padStart(2, "0")}:${String(secs % 60).padStart(2, "0")}`;
 }
 
 /**
@@ -166,10 +162,7 @@ export class PresenterView extends ItemView {
 	private paintTime(): void {
 		if (!current) return;
 		this.timeEl.setText(
-			`${clock(current.snapshot().elapsedMs)}   ·   ${new Date().toLocaleTimeString([], {
-				hour: "2-digit",
-				minute: "2-digit",
-			})}`
+			`${mmss(current.snapshot().elapsedMs)}   ·   ${hhmm()}`
 		);
 	}
 

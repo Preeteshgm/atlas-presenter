@@ -1733,3 +1733,18 @@ settings:
 	pointer-events: none;
 	opacity: 0;
 }
+
+/* A voice memo saved as .webm arrives as a video element and paints a large
+   black rectangle. render.ts marks it once its metadata says there is no video
+   track; this is the bar it was always meant to become. */
+.atl-body video.is-audio-only {
+	height: 56px;
+	min-height: 0;
+	max-height: 56px;
+	object-fit: none;
+	border-radius: 9px;
+	background: var(--wash, var(--background-modifier-hover));
+}
+
+/* A notice that carries something to do, rather than a path to go and find. */
+.atl-notice { display: block; }

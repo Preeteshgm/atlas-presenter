@@ -1,6 +1,6 @@
 /** Subset of the Obsidian `.canvas` (JSON Canvas) file format that we care about. */
 
-export type CanvasNodeType = "text" | "file" | "link" | "group";
+type CanvasNodeType = "text" | "file" | "link" | "group";
 
 export interface CanvasNode {
 	id: string;
@@ -50,8 +50,6 @@ export interface Stop {
 	node: CanvasNode;
 	/** The group this stop lives inside, if any. Used for breadcrumbs. */
 	group?: CanvasNode;
-	/** Depth in the traversal tree, for the minimap and breadcrumbs. */
-	depth: number;
 }
 
 export interface Scene {

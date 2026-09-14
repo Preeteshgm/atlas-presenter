@@ -37,7 +37,7 @@ export function rectOf(n: Rect): Rect {
 	return { x, y, width: Math.abs(n.width), height: Math.abs(n.height) };
 }
 
-export function contains(outer: Rect, inner: Rect): boolean {
+function contains(outer: Rect, inner: Rect): boolean {
 	const o = rectOf(outer);
 	const i = rectOf(inner);
 	return (
@@ -48,7 +48,7 @@ export function contains(outer: Rect, inner: Rect): boolean {
 	);
 }
 
-export function area(r: Rect): number {
+function area(r: Rect): number {
 	const n = rectOf(r);
 	return n.width * n.height;
 }

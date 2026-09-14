@@ -41,10 +41,6 @@ export class Slideshow {
 		this.layout(false);
 	}
 
-	get count(): number {
-		return this.frames.length;
-	}
-
 	/**
 	 * One control row rather than arrows pinned to the stage edges.
 	 *

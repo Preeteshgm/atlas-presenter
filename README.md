@@ -424,14 +424,18 @@ With a deck open, `Ctrl+Shift+I` shows you the exact classes on anything.
 
 | Section | |
 |---|---|
-| **Starting a presentation** | The shortcut, and a button to Obsidian's hotkey pane |
-| **Camera** | Flight duration, section overviews, padding, contain/cover, maximum zoom |
-| **Background** | Theme / colour / vault image with dimming, theme stylesheet, accent, off-camera card opacity |
+| **Starting a presentation** | The handbook, your shortcut, and a button to Obsidian's hotkey pane |
+| **Camera** | Flight duration, section overviews, framing padding, contain/cover, maximum zoom |
+| **Background** | Backdrop colour or image with dimming, theme stylesheet, accent, off-camera card opacity |
 | **Logo** | Any vault image, corner, height, opacity |
-| **Slide shows** | Transition, contain/cover |
-| **On screen** | Header line and where it shows, section titles, card alignment, speaker notes, next-card title, progress rail, timer |
-| **Chrome** | Bottom bar, counter, video autoplay |
-| **Writing cards** | The full authoring reference, with copyable snippets |
+| **Pictures and media** | Slide show transition, how pictures fit, video autoplay |
+| **On screen** | Bottom bar and counter, header line and where it shows, section titles, card alignment, speaker notes, next-card title, progress rail, timer |
+| **Notes and minutes** | Where minutes are filed, write-up on leaving, what goes in an action |
+| **Browsing the vault** | What G opens — Obsidian's own graph view, or the one inside the deck |
+| **HTML cards** | Whether a card's <script> may run. Off by default |
+| **Reference** | The full authoring reference, with copyable snippets |
+
+The same material, with room to breathe, is at the [handbook](https://preeteshgm.github.io/atlas-presenter/).
 
 Settings are read when a deck **starts** — change them, then present.
 

@@ -1,10 +1,8 @@
 import { App, Component, MarkdownRenderer, TFile, normalizePath } from "obsidian";
 import { CanvasNode } from "../types";
 import { boundsOf, outsideCode, parseCanvas, rectOf } from "../canvas/parse";
+import { AUDIO_EXT, IMAGE_EXT, VIDEO_EXT } from "../media";
 
-const IMAGE_EXT = /\.(png|jpe?g|gif|svg|webp|avif|bmp)$/i;
-const VIDEO_EXT = /\.(mp4|webm|ogv|mov|m4v)$/i;
-const AUDIO_EXT = /\.(mp3|wav|m4a|ogg|flac)$/i;
 /** Anything already addressable stays untouched. */
 const ABSOLUTE = /^(https?:|data:|app:|blob:|file:|capacitor:)/i;
 

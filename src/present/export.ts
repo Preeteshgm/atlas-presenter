@@ -1,4 +1,7 @@
 import { App, Notice, TFile, normalizePath } from "obsidian";
+import { safeFileName } from "../format";
+import { mimeFor } from "../media";
+import { fail, offer } from "../notice";
 
 /**
  * Write the running deck out as one HTML file.
@@ -18,30 +21,19 @@ export interface ExportInput {
 		y: number;
 		width: number;
 		height: number;
+		/** A section overview's group label, if this stop is one. */
 		label: string;
+		/** The card's own name — the same one the deck and the minutes use. */
+		title: string;
 	}[];
 	/** The plugin stylesheet plus the deck's own theme. */
 	css: string;
 	padding: number;
 	maxScale: number;
+	/** Camera flight, in milliseconds. The export used to hardcode its own. */
+	duration: number;
 }
 
-const MIME: Record<string, string> = {
-	png: "image/png",
-	jpg: "image/jpeg",
-	jpeg: "image/jpeg",
-	gif: "image/gif",
-	svg: "image/svg+xml",
-	webp: "image/webp",
-	avif: "image/avif",
-	mp4: "video/mp4",
-	webm: "video/webm",
-	mov: "video/quicktime",
-	mp3: "audio/mpeg",
-	wav: "audio/wav",
-	m4a: "audio/mp4",
-	ogg: "audio/ogg",
-};
 
 function base64(buffer: ArrayBuffer): string {
 	const bytes = new Uint8Array(buffer);
@@ -78,7 +70,7 @@ async function inlineMedia(app: App, root: HTMLElement): Promise<number> {
 		}
 		try {
 			const data = await app.vault.readBinary(file);
-			const mime = MIME[file.extension.toLowerCase()] ?? "application/octet-stream";
+			const mime = mimeFor(file.extension);
 			el.setAttribute("src", `data:${mime};base64,${base64(data)}`);
 			inlined++;
 		} catch {
@@ -184,7 +176,8 @@ const RUNTIME = `
     var active = cardAt(i);
     if (active) active.classList.add('is-active');
     var total = stops.length;
-    counter.textContent = (i + 1) + ' / ' + total + (s.label ? '  \\u00b7  ' + s.label : '');
+    var name = s.label || s.title;
+    counter.textContent = (i + 1) + ' / ' + total + (name ? '  \\u00b7  ' + name : '');
     railfill.style.width = (total < 2 ? 100 : (i / (total - 1)) * 100) + '%';
     if (map.classList.contains('on')) markMap();
   }
@@ -239,9 +232,10 @@ const RUNTIME = `
       var t = stops[k];
       svg += '<rect class="' + (t.label ? 'mg' : 'mn') + '" data-i="' + k + '" x="' + t.x +
         '" y="' + t.y + '" width="' + t.width + '" height="' + t.height + '" rx="14"></rect>';
-      if (t.label) {
+      var label = t.label || t.title;
+      if (label) {
         svg += '<text class="ml" x="' + (t.x + 16) + '" y="' + (t.y - 14) + '">' +
-          String(t.label).replace(/[<&]/g, ' ') + '</text>';
+          String(label).replace(/[<&]/g, ' ') + '</text>';
       }
     }
     map.insertAdjacentHTML('beforeend', svg + '</svg>');
@@ -340,28 +334,29 @@ function printPages(clone: HTMLElement, stops: ExportInput["stops"]): string {
  * there is to give, so that is what is given.
  */
 function reveal(app: App, path: string, inlined: number): void {
-	const notice = new Notice("", 12000);
-	const el = notice.noticeEl;
-	el.empty();
-	el.createDiv({ text: `Exported to ${path}` });
-	el.createDiv({
-		cls: "atl-notice-sub",
-		text: `${inlined} file${inlined === 1 ? "" : "s"} inlined. Print it from the browser for a PDF.`,
-	});
+	offer((el, close) => {
+		el.createDiv({ text: `Atlas: exported to ${path}` });
+		el.createDiv({
+			cls: "atl-notice-sub",
+			text:
+				`${inlined} file${inlined === 1 ? "" : "s"} inlined. ` +
+				"Print it from the browser for a PDF.",
+		});
 
-	const open = (app as unknown as { openWithDefaultApp?: (p: string) => void })
-		.openWithDefaultApp;
-	if (typeof open !== "function") return;
+		const open = (app as unknown as { openWithDefaultApp?: (p: string) => void })
+			.openWithDefaultApp;
+		if (typeof open !== "function") return;
 
-	const btn = el.createEl("button", { cls: "atl-notice-btn", text: "Open in browser" });
-	btn.addEventListener("click", (e) => {
-		e.stopPropagation();
-		try {
-			open.call(app, path);
-		} catch {
-			new Notice(`Atlas: open ${path} yourself — this vault could not launch it.`);
-		}
-		notice.hide();
+		const btn = el.createEl("button", { cls: "atl-notice-btn", text: "Open in browser" });
+		btn.addEventListener("click", (e) => {
+			e.stopPropagation();
+			try {
+				open.call(app, path);
+			} catch {
+				fail(`could not launch ${path} — open it yourself`);
+			}
+			close();
+		});
 	});
 }
 
@@ -391,7 +386,7 @@ export async function buildDeckHtml(
     font-family: -apple-system, "Segoe UI", system-ui, sans-serif; }
   #view { position: fixed; inset: 0; overflow: hidden; }
   #stage { position: absolute; top: 0; left: 0; transform-origin: 0 0;
-    transition: transform 900ms cubic-bezier(0.6, 0, 0.2, 1); }
+    transition: transform ${input.duration}ms cubic-bezier(0.6, 0, 0.2, 1); }
   #bar { position: fixed; left: 0; right: 0; bottom: 0; display: flex;
     justify-content: space-between; padding: 10px 18px; font-size: 13px;
     color: #6b7a80; pointer-events: none; }
@@ -459,7 +454,7 @@ ${input.css}
 
 export async function exportDeck(app: App, input: ExportInput): Promise<string | null> {
 	const { html: out, inlined } = await buildDeckHtml(app, input);
-	const folder = input.title.replace(/[\\/:*?"<>|]/g, "-");
+	const folder = safeFileName(input.title);
 	const path = normalizePath(`${folder} — deck.html`);
 	try {
 		const existing = app.vault.getAbstractFileByPath(path);
