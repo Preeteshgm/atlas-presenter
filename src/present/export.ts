@@ -241,7 +241,7 @@ function wrapShadows(clone: HTMLElement): string {
 	if (hosts.length === 0) return "";
 
 	for (const host of hosts) {
-		const tpl = host.ownerDocument.createElement("template");
+		const tpl = host.ownerDocument.createEl("template");
 		tpl.className = "card-shadow";
 		while (host.firstChild) tpl.content.appendChild(host.firstChild);
 		host.appendChild(tpl);

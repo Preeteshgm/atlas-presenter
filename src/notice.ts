@@ -34,7 +34,11 @@ export function fail(what: string, e?: unknown): Notice {
  */
 export function offer(build: (el: HTMLElement, close: () => void) => void, ms = 12000): void {
 	const notice = new Notice("", ms);
-	const el = notice.messageEl;
+	// noticeEl, not messageEl. messageEl is the newer name and swapping to it
+	// traded a deprecation note for an "API newer than minAppVersion" error —
+	// a worse trade, since the alternative is demanding a newer Obsidian of
+	// everyone for a property name.
+	const el = notice.noticeEl;
 	el.empty();
 	el.addClass("atl-notice");
 	build(el, () => notice.hide());

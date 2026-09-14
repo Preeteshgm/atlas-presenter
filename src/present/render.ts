@@ -340,7 +340,7 @@ function markAudioOnly(media: HTMLVideoElement): void {
  * vault — but the reader of this code can now see which decision was made.
  */
 function parseCardHtml(doc: Document, html: string): HTMLElement {
-	const wrap = doc.createElement("div");
+	const wrap = doc.createEl("div");
 	const parsed = new DOMParser().parseFromString(html, "text/html");
 	for (const node of Array.from(parsed.body.childNodes)) {
 		wrap.appendChild(doc.importNode(node, true));

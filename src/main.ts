@@ -166,8 +166,7 @@ export default class AtlasPlugin extends Plugin {
 							selection?: Set<{ id?: string }>;
 							getSelectionData?: () => { nodes?: { id?: string }[] };
 						};
-				  })
-				| null;
+				  });
 
 			const canvas = view?.canvas;
 			if (!canvas) return undefined;
