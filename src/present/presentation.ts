@@ -704,12 +704,18 @@ export class Presentation extends Component {
 	 * Tell a card it is on or off camera.
 	 *
 	 * A slide running its own animation loop would otherwise burn a core on
-	 * every card in the deck at once, forever. HTML cards listen for these on
-	 * their shadow host: `document.currentScript.getRootNode().host`.
+	 * every card in the deck at once, forever. A card script listens on `host`,
+	 * which is handed to it already in scope.
+	 *
+	 * The name is `atlas:enter`, which is what the reference, the cheat sheet
+	 * and the documentation have always told people to listen for. It used to
+	 * dispatch `atlas-presenter:enter`, so every script written from the
+	 * documentation bound a listener that could never fire — and a card that
+	 * quietly does nothing gives you no way to find out why.
 	 */
 	private signal(nodeId: string, kind: "enter" | "leave"): void {
 		const body = this.nodeEls.get(nodeId)?.querySelector<HTMLElement>(".atl-body");
-		body?.dispatchEvent(new CustomEvent(`atlas-presenter:${kind}`));
+		body?.dispatchEvent(new CustomEvent(`atlas:${kind}`));
 	}
 
 	/** Autoplay on arrival, pause on departure — a video should not run offscreen. */

@@ -1,0 +1,867 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Atlas Presenter — documentation</title>
+<meta name="description" content="Atlas Presenter turns an Obsidian canvas into a presentation: a camera flying over a map, not a queue of slides.">
+<style>
+	:root {
+		color-scheme: light;
+		--paper: #f6f7f3;
+		--card: #fff;
+		--ink: #16242b;
+		--soft: #51626a;
+		--faint: #8896a0;
+		--rule: #dfe4dd;
+		--accent: #1d5a78;
+		--accent-soft: #e7f0f5;
+		--code-bg: #f0f2ed;
+		--mono: "SF Mono", "Cascadia Mono", "IBM Plex Mono", ui-monospace, Menlo, Consolas, monospace;
+		--sans: -apple-system, "Segoe UI", system-ui, Roboto, sans-serif;
+		--display: "Archivo Narrow", "Arial Narrow", var(--sans);
+	}
+
+	@media (prefers-color-scheme: dark) {
+		:root {
+			color-scheme: dark;
+			--paper: #12181d;
+			--card: #18212a;
+			--ink: #e6ecf2;
+			--soft: #a3b1bd;
+			--faint: #71818e;
+			--rule: #263039;
+			--accent: #7cc6ff;
+			--accent-soft: #16303f;
+			--code-bg: #101820;
+		}
+	}
+
+	* { box-sizing: border-box; }
+
+	body {
+		margin: 0;
+		background: var(--paper);
+		color: var(--ink);
+		font: 16px/1.62 var(--sans);
+		-webkit-font-smoothing: antialiased;
+	}
+
+	a { color: var(--accent); }
+
+	.wrap { display: grid; grid-template-columns: 262px minmax(0, 1fr); gap: 0; }
+
+	/* ---- navigation ---- */
+
+	nav {
+		position: sticky;
+		top: 0;
+		align-self: start;
+		height: 100vh;
+		overflow-y: auto;
+		padding: 30px 20px 60px 30px;
+		border-right: 1px solid var(--rule);
+		background: var(--paper);
+	}
+
+	.brand { display: flex; align-items: center; gap: 10px; margin-bottom: 4px; }
+	.brand svg { width: 28px; height: 28px; flex: 0 0 auto; }
+	.brand b { font: 700 18px/1.1 var(--display); letter-spacing: -0.01em; }
+	nav .ver { color: var(--faint); font-size: 12px; margin: 0 0 20px 38px; }
+
+	nav input {
+		width: 100%;
+		padding: 7px 10px;
+		margin-bottom: 16px;
+		font: 13px var(--sans);
+		color: var(--ink);
+		background: var(--card);
+		border: 1px solid var(--rule);
+		border-radius: 7px;
+	}
+
+	nav a {
+		display: block;
+		padding: 4px 10px;
+		margin-left: -10px;
+		font-size: 13.5px;
+		color: var(--soft);
+		text-decoration: none;
+		border-radius: 6px;
+	}
+	nav a:hover { background: var(--accent-soft); color: var(--ink); }
+	nav a.on { background: var(--accent-soft); color: var(--accent); font-weight: 600; }
+	nav .grp {
+		margin: 18px 0 5px;
+		font: 600 11px var(--sans);
+		letter-spacing: 0.09em;
+		text-transform: uppercase;
+		color: var(--faint);
+	}
+	nav a.hide, nav .grp.hide { display: none; }
+
+	/* ---- content ---- */
+
+	main { padding: 46px 46px 120px; max-width: 900px; }
+
+	h1 {
+		margin: 0 0 6px;
+		font: 700 40px/1.06 var(--display);
+		letter-spacing: -0.022em;
+	}
+	.lede { margin: 0 0 34px; font-size: 18px; color: var(--soft); max-width: 60ch; }
+
+	h2 {
+		margin: 52px 0 14px;
+		padding-top: 18px;
+		font: 700 26px/1.15 var(--display);
+		letter-spacing: -0.016em;
+		border-top: 1px solid var(--rule);
+		scroll-margin-top: 18px;
+	}
+	h3 {
+		margin: 30px 0 10px;
+		font: 700 17.5px/1.25 var(--sans);
+		scroll-margin-top: 18px;
+	}
+	p, li { max-width: 68ch; }
+	p { margin: 0 0 13px; }
+
+	code {
+		font: 0.885em var(--mono);
+		padding: 1.5px 5px;
+		background: var(--code-bg);
+		border-radius: 4px;
+	}
+
+	pre {
+		margin: 14px 0;
+		padding: 14px 16px;
+		overflow-x: auto;
+		background: var(--code-bg);
+		border: 1px solid var(--rule);
+		border-radius: 9px;
+	}
+	pre code { padding: 0; background: none; font-size: 13px; line-height: 1.58; }
+
+	table { width: 100%; border-collapse: collapse; margin: 16px 0; font-size: 14.5px; }
+	th, td { padding: 8px 12px; text-align: left; vertical-align: top; border-bottom: 1px solid var(--rule); }
+	thead th { font: 600 13px var(--sans); color: var(--soft); border-bottom: 2px solid var(--accent); white-space: nowrap; }
+	tbody tr:last-child td { border-bottom: 0; }
+	td code, th code { white-space: nowrap; }
+
+	kbd {
+		display: inline-block;
+		padding: 1px 7px;
+		font: 12.5px var(--mono);
+		color: var(--ink);
+		background: var(--card);
+		border: 1px solid var(--rule);
+		border-bottom-width: 2px;
+		border-radius: 5px;
+	}
+
+	.note {
+		margin: 18px 0;
+		padding: 13px 17px;
+		background: var(--card);
+		border-left: 3px solid var(--accent);
+		border-radius: 0 8px 8px 0;
+	}
+	.note p:last-child { margin: 0; }
+	.note b { color: var(--accent); }
+
+	figure { margin: 20px 0; }
+	figure img { width: 100%; border: 1px solid var(--rule); border-radius: 10px; background: var(--card); }
+	figcaption { margin-top: 7px; font-size: 13px; color: var(--faint); }
+
+	.cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 13px; margin: 18px 0; }
+	.cards div { padding: 14px 16px; background: var(--card); border: 1px solid var(--rule); border-radius: 10px; }
+	.cards h4 { margin: 0 0 5px; font-size: 14.5px; }
+	.cards p { margin: 0; font-size: 13.5px; color: var(--soft); }
+
+	footer { margin-top: 60px; padding-top: 20px; border-top: 1px solid var(--rule); font-size: 13px; color: var(--faint); }
+
+	@media (max-width: 860px) {
+		.wrap { grid-template-columns: 1fr; }
+		nav { position: static; height: auto; border-right: 0; border-bottom: 1px solid var(--rule); padding: 22px; }
+		main { padding: 30px 22px 80px; }
+		h1 { font-size: 32px; }
+	}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<nav>
+	<div class="brand">
+		<svg viewBox="0 0 100 100" fill="none" stroke="currentColor" stroke-width="7" stroke-linecap="round" stroke-linejoin="round" style="color:var(--accent)">
+			<path d="M24 76 C 42 76 34 50 52 48 C 68 46 66 28 78 24" stroke-dasharray="3 12"/>
+			<circle cx="24" cy="76" r="10" fill="currentColor" stroke="none"/>
+			<circle cx="52" cy="48" r="8"/>
+			<circle cx="78" cy="24" r="10"/>
+		</svg>
+		<b>Atlas Presenter</b>
+	</div>
+	<p class="ver" id="ver">for Obsidian</p>
+
+	<input id="find" type="search" placeholder="Filter these sections…" aria-label="Filter sections">
+
+	<div id="toc">
+		<div class="grp">Getting started</div>
+		<a href="#what">What it is</a>
+		<a href="#install">Install</a>
+		<a href="#quick">Your first deck</a>
+
+		<div class="grp">Presenting</div>
+		<a href="#commands">The commands</a>
+		<a href="#keys">Keys</a>
+		<a href="#screens">Two screens</a>
+		<a href="#order">Order and sections</a>
+
+		<div class="grp">Writing cards</div>
+		<a href="#markdown">Markdown and reveals</a>
+		<a href="#pictures">Pictures</a>
+		<a href="#roles">Card roles</a>
+		<a href="#layouts">Placed layouts</a>
+		<a href="#tables">Tables and lists</a>
+		<a href="#html">HTML cards</a>
+		<a href="#naming">How a card is named</a>
+
+		<div class="grp">Shaping a deck</div>
+		<a href="#deckcard">The #deck card</a>
+		<a href="#themes">Themes</a>
+		<a href="#variants">One map, several talks</a>
+		<a href="#subdecks">Sub-decks</a>
+
+		<div class="grp">Getting it out</div>
+		<a href="#export">Export, preview, PDF</a>
+		<a href="#minutes">Notes and minutes</a>
+
+		<div class="grp">Reference</div>
+		<a href="#hashes">Every # line</a>
+		<a href="#settings">Settings</a>
+		<a href="#trouble">If something is wrong</a>
+	</div>
+</nav>
+
+<main>
+
+<h1>Atlas Presenter</h1>
+<p class="lede">
+	A presentation is a camera flying over a map, not a queue of slides. Atlas turns
+	an Obsidian canvas into a deck: the arrows are the running order, the groups are
+	the sections, and the whole thing stays a canvas you can edit.
+</p>
+
+<h2 id="what">What it is</h2>
+
+<p>
+	Most presentation tools ask you to flatten your thinking into a list. A canvas is
+	already the shape of an argument — things side by side, branches, a detour you
+	might take if someone asks. Atlas presents that shape directly.
+</p>
+
+<figure>
+	<img src="canvas-to-deck.svg" alt="A canvas of cards joined by arrows, becoming a sequence of framed slides">
+	<figcaption>The canvas is the deck. Arrows set the order; groups become sections.</figcaption>
+</figure>
+
+<div class="cards">
+	<div><h4>Nothing to convert</h4><p>The canvas file is the deck. Edit it and present again.</p></div>
+	<div><h4>The map is a feature</h4><p>Press <kbd>M</kbd> mid-talk and jump anywhere, then come back.</p></div>
+	<div><h4>Your notes are there</h4><p>Click a wikilink to read the note over the deck, then carry on.</p></div>
+	<div><h4>It leaves the vault</h4><p>Export one self-contained HTML file. Print it for a PDF.</p></div>
+</div>
+
+<h2 id="install">Install</h2>
+
+<h3>With BRAT (easiest, gets updates)</h3>
+<p>
+	Install the <b>BRAT</b> community plugin, choose <i>Add a beta plugin for
+	testing</i>, and paste the repository URL. BRAT keeps it up to date.
+</p>
+
+<h3>From a release</h3>
+<p>
+	Download <code>main.js</code>, <code>manifest.json</code> and
+	<code>styles.css</code> from the latest release into
+	<code>&lt;vault&gt;/.obsidian/plugins/atlas-presenter/</code>, then enable
+	<i>Atlas Presenter</i> under Settings → Community plugins.
+</p>
+
+<div class="note">
+	<p>
+		After updating, reload Obsidian with <kbd>Ctrl</kbd>+<kbd>R</kbd>. A plugin
+		already loaded in memory does not pick up new files on its own.
+	</p>
+</div>
+
+<h2 id="quick">Your first deck</h2>
+
+<ol>
+	<li>Make a canvas and put three text cards on it.</li>
+	<li>Drag an arrow from the first to the second, and the second to the third.</li>
+	<li>Open the command palette and run <b>Atlas Presenter: Present</b>.</li>
+</ol>
+
+<p>
+	That is the whole idea. <kbd>→</kbd> advances, <kbd>Esc</kbd> leaves. With a card
+	selected on the canvas, the deck opens on <i>that</i> card — useful when you are
+	working on slide nineteen.
+</p>
+
+<p>
+	The plugin ships a folder of demo canvases. <b>5 · Cheat sheet</b> is the one to
+	read: every card on it demonstrates the thing it describes.
+</p>
+
+<h2 id="commands">The commands</h2>
+
+<p>Six, of which two are the ones you will actually use.</p>
+
+<table>
+	<thead><tr><th>Command</th><th>What it does</th></tr></thead>
+	<tbody>
+		<tr><td><b>Present</b></td><td>One screen. Fills this window, starting on the selected card. The everyday one.</td></tr>
+		<tr><td><b>Present on a second screen</b></td><td>The deck opens in a window of its own — drag it to the projector. See <a href="#screens">Two screens</a>.</td></tr>
+		<tr><td>Present from the beginning</td><td>Ignores what is selected and starts at the first card.</td></tr>
+		<tr><td>Present a variant…</td><td>Asks which talk to give, if the canvas has <a href="#variants">variants</a>.</td></tr>
+		<tr><td>Stop presenting</td><td>Ends the talk from this window, wherever the deck is.</td></tr>
+		<tr><td>Preview the export</td><td>Opens the exported deck, running, in a tab beside the canvas.</td></tr>
+		<tr><td>Export to HTML</td><td>Writes one standalone file. Works with or without a deck running.</td></tr>
+	</tbody>
+</table>
+
+<p>
+	All of them need a canvas to be the open tab. They are also on the right-click
+	menu of any canvas in the file explorer, and the ribbon icon presents the
+	current one.
+</p>
+
+<div class="note">
+	<p>
+		<b>Atlas sets no keyboard shortcuts.</b> Defaults collide between plugins and
+		differ across platforms, so the choice is yours: <b>Settings → Hotkeys</b>,
+		search <i>Atlas</i>. A pair worth binding is <b>Present on a second screen</b>
+		and <b>Stop presenting</b>. Avoid combinations built on <kbd>Enter</kbd> —
+		Obsidian's capture box treats it as <i>confirm</i>, so they never save.
+	</p>
+</div>
+
+<h2 id="keys">Keys while presenting</h2>
+
+<table>
+	<thead><tr><th>Key</th><th></th></tr></thead>
+	<tbody>
+		<tr><td><kbd>→</kbd> <kbd>Space</kbd> <kbd>PageDown</kbd></td><td>Reveal, then the pictures, then the next card</td></tr>
+		<tr><td><kbd>←</kbd> <kbd>PageUp</kbd></td><td>Back, the same way</td></tr>
+		<tr><td><kbd>M</kbd></td><td>The map of this canvas — click any card to fly to it</td></tr>
+		<tr><td><kbd>G</kbd></td><td>Obsidian's graph view of the whole vault</td></tr>
+		<tr><td><kbd>Backspace</kbd></td><td>Return from a jump, or one level out of a peeked note</td></tr>
+		<tr><td><kbd>O</kbd></td><td>Zoom out to the whole map</td></tr>
+		<tr><td><kbd>Home</kbd> <kbd>End</kbd></td><td>First and last card</td></tr>
+		<tr><td><kbd>Enter</kbd></td><td>Dive into the <a href="#subdecks">sub-deck</a> on this card</td></tr>
+		<tr><td><kbd>B</kbd></td><td>Blank the screen — attention on the room, not the slide</td></tr>
+		<tr><td><kbd>N</kbd></td><td>Note something against the card on screen</td></tr>
+		<tr><td><kbd>W</kbd></td><td>Write the session up now</td></tr>
+		<tr><td><kbd>P</kbd></td><td>Open the presenter window</td></tr>
+		<tr><td><kbd>E</kbd></td><td>Export the deck to one standalone HTML file</td></tr>
+		<tr><td><kbd>F</kbd></td><td>Fullscreen</td></tr>
+		<tr><td><kbd>Esc</kbd></td><td>Close the map or the note, then leave the deck</td></tr>
+	</tbody>
+</table>
+
+<p>
+	Clicking the right two-thirds advances; the left third goes back. Clicking a
+	control inside a card never advances the slide. Keys held with
+	<kbd>Ctrl</kbd>, <kbd>Cmd</kbd> or <kbd>Alt</kbd> belong to Obsidian, not the
+	deck — so your own shortcuts still work mid-talk.
+</p>
+
+<h2 id="screens">Two screens</h2>
+
+<p>Two ways round, differing in which window the deck takes over.</p>
+
+<table>
+	<thead><tr><th>Command</th><th>Use it when</th></tr></thead>
+	<tbody>
+		<tr>
+			<td><b>Present</b>, then <kbd>P</kbd></td>
+			<td>
+				The projector <i>is</i> your main display. The deck fills this window;
+				<kbd>P</kbd> opens a presenter window — notes, the clock, what is coming —
+				to put on your own screen.
+			</td>
+		</tr>
+		<tr>
+			<td><b>Present on a second screen</b></td>
+			<td>
+				You want to keep working. The deck opens in a window of its own: drag it
+				to the projector and press <kbd>F</kbd>. This window is never touched, so
+				the canvas stays in front of you, and the presenter panel opens in the
+				sidebar beside it. <kbd>G</kbd> opens the vault graph on <i>your</i>
+				screen while the projector goes on showing the card.
+			</td>
+		</tr>
+	</tbody>
+</table>
+
+<div class="note">
+	<p>
+		<b>Speaker notes are never in both places at once.</b> The moment there is a
+		presenter panel to read them in — and always when the deck has a window of its
+		own — <code>%%notes%%</code> come off the deck itself, whatever the on-screen
+		notes setting says. The deck is what the room sees.
+	</p>
+</div>
+
+<h2 id="order">Order and sections</h2>
+
+<p>
+	<b>Arrows set the order.</b> The deck follows them depth first: a branch is told
+	to its end before the next one begins. A card with no arrow into it is a
+	starting point; if there are several, they run in the order the canvas stores
+	them.
+</p>
+
+<p>
+	<b>Groups become sections.</b> Any card geometrically inside a group belongs to
+	it, and the group's label names the section — shown on the map above the group,
+	and in the header while you are inside it. Turn on <i>Section overviews</i> and
+	the camera pulls back to frame the whole group before diving into its first card.
+</p>
+
+<p>
+	<b><code>#start</code></b> on a card begins the deck there, whatever the arrows say.
+</p>
+
+<h2 id="markdown">Markdown and reveals</h2>
+
+<p>Cards are ordinary Obsidian markdown. Headings, bold, links, callouts, embeds.</p>
+
+<pre><code>## The decision
+
+We are going with option B.
+
++++
+
+Because option A needs a survey we do not have.
+
+%%Pause here. Someone always asks about the survey.%%</code></pre>
+
+<table>
+	<thead><tr><th>Written</th><th>Does</th></tr></thead>
+	<tbody>
+		<tr><td><code>+++</code> on its own line</td><td>Everything after it waits for the next press</td></tr>
+		<tr><td><code>%%…%%</code></td><td>A speaker note — never on the card, shown in the presenter panel</td></tr>
+		<tr><td><code>[[A note]]</code></td><td>Click it while presenting to read that note over the deck</td></tr>
+	</tbody>
+</table>
+
+<p>
+	A card longer than the screen scrolls: pressing <kbd>→</kbd> scrolls it before
+	moving on, so a long note can be read in place without leaving the deck.
+</p>
+
+<h2 id="pictures">Pictures</h2>
+
+<p>Three ways to put more than one picture on a card.</p>
+
+<figure>
+	<img src="layouts.svg" alt="Three picture layouts: a gallery side by side, a slide show one at a time, and a scrolling column">
+	<figcaption>Gallery, slide show, scroll — the same four pictures, three ways.</figcaption>
+</figure>
+
+<table>
+	<thead><tr><th>Tag on the card</th><th>Pictures are</th></tr></thead>
+	<tbody>
+		<tr><td><code>#gallery</code></td><td>All at once, side by side</td></tr>
+		<tr><td><code>#slideshow</code></td><td>One at a time — <kbd>→</kbd> moves to the next before leaving the card</td></tr>
+		<tr><td><code>#scroll</code></td><td>A column you scroll through</td></tr>
+	</tbody>
+</table>
+
+<div class="note">
+	<p>
+		<b>Put pictures inside a card, not on their own.</b> A media card is named by
+		its filename, which is fine when you chose it and poor when a camera did. A
+		picture in a card with a heading gets a name you chose and a caption for free.
+	</p>
+</div>
+
+<h2 id="roles">Card roles</h2>
+
+<p>
+	A line holding nothing but tags is an instruction. It is removed before the card
+	is drawn, so it never reaches the slide — which means the note stays readable and
+	shareable on its own, with no CSS in it.
+</p>
+
+<p>Every Atlas theme implements the same names, so a deck written against one theme works against all of them.</p>
+
+<table>
+	<thead><tr><th>Tag</th><th>The card becomes</th></tr></thead>
+	<tbody>
+		<tr><td><i>(none)</i></td><td>An ordinary card: heading and text</td></tr>
+		<tr><td><code>#title</code></td><td>The opening card — large heading, a line beneath</td></tr>
+		<tr><td><code>#section</code></td><td>A divider carrying only the section's name, inverted</td></tr>
+		<tr><td><code>#quote</code></td><td>A pull quote, set large with an opening mark</td></tr>
+		<tr><td><code>#stat</code></td><td>One large number, centred, with a line about it</td></tr>
+		<tr><td><code>#dark</code></td><td>The same card, inverted — for a point you want to land</td></tr>
+		<tr><td><code>#agenda</code></td><td>A running order: numbered, set large, one line to a row</td></tr>
+		<tr><td><code>#end</code></td><td>The closing card — thanks, a contact, a next step</td></tr>
+		<tr><td><code>#full</code></td><td>A picture with no margin, filling the card</td></tr>
+		<tr><td><code>#split</code></td><td>Two <i>flowed</i> columns — text spills from one into the next</td></tr>
+	</tbody>
+</table>
+
+<h2 id="layouts">Placed layouts</h2>
+
+<p>
+	<code>#split</code> flows: text runs out of the bottom of the left column into
+	the top of the right, and you cannot say what goes where. These four let you say.
+	They split the card at a <code>---</code> rule.
+</p>
+
+<pre><code>#two
+# This heading spans both
+---
+The left column.
+---
+The right column.</code></pre>
+
+<table>
+	<thead><tr><th>Tag</th><th>The card becomes</th></tr></thead>
+	<tbody>
+		<tr><td><code>#two</code></td><td>Two columns, side by side, equal width</td></tr>
+		<tr><td><code>#compare</code></td><td>The same, drawn as two panels being weighed against each other</td></tr>
+		<tr><td><code>#left</code></td><td>A picture filling the left half, text centred on the right</td></tr>
+		<tr><td><code>#right</code></td><td>The mirror — text left, picture filling the right</td></tr>
+	</tbody>
+</table>
+
+<p>
+	Two blocks make two columns. A first block of <b>nothing but headings</b> becomes
+	a band across the top instead of a column. For <code>#left</code> and
+	<code>#right</code>, the order on the card is the order on the screen — write the
+	picture first for <code>#left</code>, second for <code>#right</code>.
+	<code>+++</code> reveals work inside a column.
+</p>
+
+<h2 id="tables">Tables and lists</h2>
+
+<p>
+	Neither needs a tag. Obsidian's own table styling is sized for a note at 14px
+	inside a card the camera then scales onto a projector — a postage stamp in the
+	wrong colours. Atlas restyles both for a slide: a ruled header row, banded rows,
+	tabular numerals, markdown's <code>---:</code> and <code>:---:</code> alignment,
+	accent-coloured bullets and real checkboxes for a task list.
+</p>
+
+<pre><code>| Option | Weeks | Cost | Risk |
+| --- | ---: | ---: | :---: |
+| Do nothing | 0 | £0 | High |
+| Patch it | 4 | £18k | Medium |</code></pre>
+
+<h2 id="html">HTML cards</h2>
+
+<p>
+	For a card that needs full control, write HTML in a fenced block. It renders into
+	a shadow root, so its CSS cannot leak into the rest of the deck and the deck's
+	CSS cannot reach in.
+</p>
+
+<pre><code>```html
+&lt;style&gt; .box { padding: 8cqh; font-size: 4cqh; } &lt;/style&gt;
+&lt;div class="box"&gt;Anything you like&lt;/div&gt;
+```</code></pre>
+
+<p>
+	Use container-query units — <code>cqh</code>, <code>cqw</code> — rather than
+	pixels, so the card scales with the screen instead of fighting it.
+</p>
+
+<h3>Scripts</h3>
+
+<p>
+	A card can carry a <code>&lt;script&gt;</code>. <b>Script execution is off by
+	default</b> — turn it on in settings, for vaults where you trust the cards.
+	Two things are already in scope:
+</p>
+
+<pre><code>var box = root.querySelector('#chart');   // root = this card's shadow root
+host.addEventListener('atlas:enter', start);
+host.addEventListener('atlas:leave', stop);</code></pre>
+
+<p>
+	Look things up through <code>root</code>: <code>document</code> sees a different
+	tree and finds nothing. Anything thrown is printed on the card rather than lost.
+	Scripts are stripped from exports — an exported file should render, not execute.
+</p>
+
+<h2 id="naming">How a card is named</h2>
+
+<p>
+	The same name is used on the map, in the next-card line, in the presenter panel
+	and in the minutes.
+</p>
+
+<table>
+	<thead><tr><th>The card</th><th>Is called</th></tr></thead>
+	<tbody>
+		<tr><td>Opens with <code>## The decision</code></td><td>“The decision”</td></tr>
+		<tr><td>A tag line, then text</td><td>The first line of real content — tags and notes are skipped</td></tr>
+		<tr><td><code>site-plan.png</code></td><td>“site-plan”</td></tr>
+		<tr><td><code>Pasted image 20251029102222.png</code></td><td>“Image · 29 Oct 2025” — clearly automatic names are replaced</td></tr>
+	</tbody>
+</table>
+
+<h2 id="deckcard">The <code>#deck</code> card</h2>
+
+<p>
+	A card tagged <code>#deck</code> is never presented and never appears on the map.
+	It dresses this canvas alone, so a client deck and an internal one can look
+	different without anyone going into plugin settings.
+</p>
+
+<pre><code>#deck
+theme: Atlas/Themes/Paper.css
+header: {deck} · {section} · {n}/{total}
+logo: Assets/logo.png
+transition: fade
+
+# Northwind Depot
+Controls plan, rev A · **Sam Avery**</code></pre>
+
+<p>
+	<code>key: value</code> lines set options. Anything else is the deck's title
+	block, rendered into the band above a section overview. In the header,
+	<code>{deck}</code>, <code>{section}</code>, <code>{n}</code>,
+	<code>{total}</code> and <code>{date}</code> are filled in as you go.
+</p>
+
+<h2 id="themes">Themes</h2>
+
+<p>
+	A theme is one CSS file in your vault. Point at it in settings, or per canvas
+	with a <code>theme:</code> line on the <code>#deck</code> card.
+</p>
+
+<div class="cards">
+	<div><h4>Paper</h4><p>Editorial light — warm paper, near-black ink, deep blue accent.</p></div>
+	<div><h4>Slate</h4><p>For a dim room — deep slate cards, pale text, a cool accent.</p></div>
+	<div><h4>Plain</h4><p>Follows your Obsidian theme. Nothing imposed but the roles.</p></div>
+</div>
+
+<p>
+	To make your own, copy one and change the tokens at the top —
+	<code>--paper</code>, <code>--ink</code>, <code>--accent</code>,
+	<code>--rule</code> and the fonts. Everything below them is the same in every
+	Atlas theme, so a deck re-skins without a card changing.
+</p>
+
+<h2 id="variants">One map, several talks</h2>
+
+<p>
+	The same canvas often serves a ten-minute version and an hour. Tag cards rather
+	than duplicating the canvas.
+</p>
+
+<table>
+	<thead><tr><th>Tag</th><th>Means</th></tr></thead>
+	<tbody>
+		<tr><td><code>#skip-short</code></td><td>Leave this card out of the talk called “short”. It stays in every other one.</td></tr>
+		<tr><td><code>#only-short</code></td><td>Show this card in “short” and nowhere else.</td></tr>
+	</tbody>
+</table>
+
+<p>
+	Run <b>Present a variant…</b> and Atlas offers the talks it finds. A
+	<code>variant:</code> line on the <code>#deck</code> card names the default.
+</p>
+
+<h2 id="subdecks">Sub-decks</h2>
+
+<p>
+	Put a <code>.canvas</code> file on a canvas as a card and it is drawn to scale —
+	you can see how big the detour is before taking it. Press <kbd>Enter</kbd> to
+	present it, and <kbd>Esc</kbd> to come back to the card you left, with the same
+	history and the same notes still gathering.
+</p>
+
+<h2 id="export">Export, preview, PDF</h2>
+
+<p>
+	<b>Export to HTML</b> writes one self-contained file to your vault root: every
+	picture, video and sound inlined, the stylesheet embedded, no Obsidian and no
+	network. It opens in any browser, on any machine.
+</p>
+
+<p>The exported file behaves like the deck — reveals step, slide shows move, <kbd>M</kbd> opens the map, <kbd>B</kbd> blanks.</p>
+
+<h3>PDF</h3>
+<p>
+	Open the exported file in a browser and print it. The same file carries a second,
+	print-only layout: one card per page, landscape, every reveal shown and picture
+	stacks un-stacked, so nothing is lost on paper. PDF is deliberately the browser's
+	job — its engine is better than anything a plugin would ship.
+</p>
+
+<h3>Preview, and the edit loop</h3>
+<p>
+	<b>Preview the export</b> opens that same document, running, in a tab beside the
+	canvas. Press <b>Refresh</b> after editing and it rebuilds. Nothing is written to
+	the vault — it exists to answer “what will the person I send this to actually
+	see”, which only the exported document can answer.
+</p>
+
+<div class="note">
+	<p>
+		<b>The export is a file, not a live view.</b> There is no auto-refresh, because
+		a page opened from <code>file://</code> cannot watch your vault. Re-exporting
+		overwrites the same path, so the loop is: edit → export → <kbd>F5</kbd> in the
+		browser tab.
+	</p>
+</div>
+
+<h2 id="minutes">Notes and minutes</h2>
+
+<p>
+	<kbd>N</kbd> writes a note against whichever card is on screen. One card holds
+	one note, kept at the time it was first made, so pressing <kbd>N</kbd> twice adds
+	to it rather than starting a blank one you cannot see.
+</p>
+
+<p>
+	<kbd>W</kbd> opens the whole session — every card that carries anything, in the
+	order you visited it, each editable in place. A line written as
+	<code>- [ ] something</code> is counted as an action. Create the note when it
+	reads right, and Atlas writes a dated minute with the cards, the notes and the
+	actions, then opens it.
+</p>
+
+<h2 id="hashes">Every <code>#</code> line</h2>
+
+<p>Two families. <b>Markers</b> change what a card <i>is</i>; <b>roles</b> change how it looks. Both are stripped before the card is drawn.</p>
+
+<table>
+	<thead><tr><th>Line</th><th>Means</th></tr></thead>
+	<tbody>
+		<tr><td><code>#deck</code></td><td>This card is the deck's title block and settings. Never presented.</td></tr>
+		<tr><td><code>#start</code></td><td>Begin the deck here, whatever the arrows say.</td></tr>
+		<tr><td><code>#skip-<i>x</i></code></td><td>Leave this card out of the talk called <i>x</i>.</td></tr>
+		<tr><td><code>#only-<i>x</i></code></td><td>Show this card in <i>x</i> and nowhere else.</td></tr>
+		<tr><td><code>#gallery</code> <code>#slideshow</code> <code>#scroll</code></td><td>How this card's pictures are laid out.</td></tr>
+		<tr><td>Roles</td><td><code>#title</code> <code>#section</code> <code>#quote</code> <code>#stat</code> <code>#dark</code> <code>#agenda</code> <code>#end</code> <code>#full</code> <code>#split</code></td></tr>
+		<tr><td>Placed layouts</td><td><code>#two</code> <code>#compare</code> <code>#left</code> <code>#right</code></td></tr>
+	</tbody>
+</table>
+
+<p>
+	Any other bare tag line becomes a CSS hook on the card —
+	<code>#costing</code> gives you <code>.atl-tag-costing</code> to style in your
+	own theme. A tag shown inside a code block is documentation, not a hook.
+</p>
+
+<h2 id="settings">Settings</h2>
+
+<p>
+	<b>Settings → Community plugins → Atlas Presenter.</b> The panel is grouped, and
+	the bottom of it is a full reference with copyable examples — the same material
+	as this page, inside Obsidian.
+</p>
+
+<table>
+	<thead><tr><th>Group</th><th>Covers</th></tr></thead>
+	<tbody>
+		<tr><td>Starting a presentation</td><td>Your shortcut, and a button through to Obsidian's hotkey pane</td></tr>
+		<tr><td>Camera</td><td>Flight duration, section overviews, framing padding, fit, maximum zoom</td></tr>
+		<tr><td>Background</td><td>Backdrop, theme stylesheet, accent colour</td></tr>
+		<tr><td>Logo</td><td>Image, corner, height, opacity</td></tr>
+		<tr><td>Slide shows</td><td>Transition, how pictures fit, timings</td></tr>
+		<tr><td>On screen</td><td>Header, progress rail, timer, what is next, speaker notes</td></tr>
+		<tr><td>Notes and minutes</td><td>Where minutes are written, and what goes in them</td></tr>
+		<tr><td>Writing cards</td><td>HTML cards, and whether their scripts may run</td></tr>
+	</tbody>
+</table>
+
+<h2 id="trouble">If something is wrong</h2>
+
+<table>
+	<thead><tr><th>What you see</th><th>Why</th></tr></thead>
+	<tbody>
+		<tr>
+			<td>A command is missing from the palette</td>
+			<td>A canvas must be the open, active tab. The commands hide themselves otherwise.</td>
+		</tr>
+		<tr>
+			<td>A hotkey does nothing</td>
+			<td>Check it saved: Settings → Hotkeys, search <i>Atlas</i>. Combinations using <kbd>Enter</kbd> cannot be recorded.</td>
+		</tr>
+		<tr>
+			<td>New features are not there</td>
+			<td>Reload Obsidian with <kbd>Ctrl</kbd>+<kbd>R</kbd> after updating.</td>
+		</tr>
+		<tr>
+			<td>A card script does nothing</td>
+			<td>Script execution is off by default. Turn it on under <i>Writing cards</i>.</td>
+		</tr>
+		<tr>
+			<td>The theme picker is full of noise</td>
+			<td>Stylesheets under a <code>Themes/</code> folder are listed first. Put yours there.</td>
+		</tr>
+		<tr>
+			<td>Arrow keys move a card on the canvas</td>
+			<td>Should never happen — the deck swallows every navigation key. Please report it.</td>
+		</tr>
+	</tbody>
+</table>
+
+<footer>
+	<p>
+		Atlas Presenter is open source, MIT licensed. Documentation for the plugin —
+		the same reference lives inside Obsidian under Settings → Atlas Presenter.
+	</p>
+</footer>
+
+</main>
+</div>
+
+<script>
+(function () {
+	var links = [].slice.call(document.querySelectorAll('#toc a'));
+	var heads = links
+		.map(function (a) { return document.getElementById(a.hash.slice(1)); })
+		.filter(Boolean);
+
+	/* Mark the section you are actually reading, not merely the last one passed. */
+	function mark() {
+		var best = 0;
+		for (var i = 0; i < heads.length; i++) {
+			if (heads[i].getBoundingClientRect().top < 120) best = i;
+		}
+		links.forEach(function (a, i) { a.classList.toggle('on', i === best); });
+	}
+	addEventListener('scroll', mark, { passive: true });
+	mark();
+
+	/* Filtering the contents beats scrolling a list of twenty-odd sections. */
+	var find = document.getElementById('find');
+	find.addEventListener('input', function () {
+		var q = find.value.trim().toLowerCase();
+		links.forEach(function (a) {
+			a.classList.toggle('hide', !!q && a.textContent.toLowerCase().indexOf(q) === -1);
+		});
+		[].forEach.call(document.querySelectorAll('#toc .grp'), function (g) {
+			var any = false;
+			for (var n = g.nextElementSibling; n && n.tagName === 'A'; n = n.nextElementSibling) {
+				if (!n.classList.contains('hide')) any = true;
+			}
+			g.classList.toggle('hide', !any);
+		});
+	});
+})();
+</script>
+</body>
+</html>
