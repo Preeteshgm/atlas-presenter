@@ -66,12 +66,97 @@
 			"height": 280,
 			"color": "3",
 			"text": "## The detour card\n\nNothing points here.\n\nIt is still on the map — press `M` and jump to it, then `Backspace` to land exactly where you left off."
+		},
+		{
+			"id": "s-screens",
+			"type": "text",
+			"text": "#two\n# Two screens\n---\n## Projector is your main screen\n\nRun **Present**. Then press `P` for the presenter panel — notes, the\nclock, what is next — and put that on your own screen.\n---\n## You want to keep working\n\nRun **Present on a second screen**. The deck opens in a window of its\nown: drag it to the projector, press `F`.\n\nThis window never moves, so the canvas stays in front of you.",
+			"x": 0,
+			"y": 1700,
+			"width": 1280,
+			"height": 860,
+			"color": "4"
+		},
+		{
+			"id": "s-out",
+			"type": "text",
+			"text": "## Sending it to someone\n\n**Export to HTML** writes one standalone file to your vault root — every\npicture inlined, no Obsidian needed at the other end. Open it in a\nbrowser and print for a PDF.\n\n**Preview the export** shows that same file running in a tab beside the\ncanvas, with a Refresh button. Nothing is written.\n\n%%Both are in the command palette, and on the right-click menu of any\ncanvas in the file explorer.%%",
+			"x": 1520,
+			"y": 1700,
+			"width": 1280,
+			"height": 860,
+			"color": "5"
+		},
+		{
+			"id": "s-more",
+			"type": "text",
+			"text": "#end\n# Where to read more\n\n**preeteshgm.github.io/atlas-presenter**\n\nOr open `5 · Cheat sheet` — every card on it demonstrates the thing it\ndescribes.",
+			"x": 3040,
+			"y": 1700,
+			"width": 1280,
+			"height": 860,
+			"color": "2"
+		},
+		{
+			"id": "grp-s-screens",
+			"type": "group",
+			"label": "Two screens, and getting it out",
+			"x": -130,
+			"y": 1570,
+			"width": 4580,
+			"height": 1120
 		}
 	],
 	"edges": [
-		{ "id": "e1", "fromNode": "title", "fromSide": "right", "toNode": "why-a", "toSide": "left", "label": "1." },
-		{ "id": "e2", "fromNode": "why-a", "fromSide": "right", "toNode": "why-b", "toSide": "left", "label": "2." },
-		{ "id": "e3", "fromNode": "why-b", "fromSide": "bottom", "toNode": "why-c", "toSide": "top", "label": "3." },
-		{ "id": "e4", "fromNode": "why-c", "fromSide": "bottom", "toNode": "html", "toSide": "top", "label": "4." }
+		{
+			"id": "e1",
+			"fromNode": "title",
+			"fromSide": "right",
+			"toNode": "why-a",
+			"toSide": "left",
+			"label": "1."
+		},
+		{
+			"id": "e2",
+			"fromNode": "why-a",
+			"fromSide": "right",
+			"toNode": "why-b",
+			"toSide": "left",
+			"label": "2."
+		},
+		{
+			"id": "e3",
+			"fromNode": "why-b",
+			"fromSide": "bottom",
+			"toNode": "why-c",
+			"toSide": "top",
+			"label": "3."
+		},
+		{
+			"id": "e4",
+			"fromNode": "why-c",
+			"fromSide": "bottom",
+			"toNode": "html",
+			"toSide": "top",
+			"label": "4."
+		},
+		{
+			"id": "x5",
+			"fromNode": "html",
+			"toNode": "s-screens",
+			"label": "5."
+		},
+		{
+			"id": "x6",
+			"fromNode": "s-screens",
+			"toNode": "s-out",
+			"label": "6."
+		},
+		{
+			"id": "x7",
+			"fromNode": "s-out",
+			"toNode": "s-more",
+			"label": "7."
+		}
 	]
 }

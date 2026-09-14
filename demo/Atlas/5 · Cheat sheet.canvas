@@ -522,6 +522,95 @@
 			"y": 8830,
 			"width": 12180,
 			"height": 1120
+		},
+		{
+			"id": "O1",
+			"type": "text",
+			"text": "#title\n# Getting a deck out\n\nThree things, and which to reach for.\n\n%%The next four cards are the whole of it. Everything here is a command in\nthe palette; none of them has a shortcut until you give it one.%%",
+			"x": 0,
+			"y": 10240,
+			"width": 1280,
+			"height": 860,
+			"color": "4"
+		},
+		{
+			"id": "O2",
+			"type": "text",
+			"text": "#two\n# Present, or export?\n---\n## Presenting\n\nThe deck runs **inside Obsidian**. Everything works: the map, peeking a\nnote, remarks, minutes, card scripts.\n\n`Present` — one screen.\n\n`Present on a second screen` — deck to the projector, canvas stays here.\n---\n## Exporting\n\nOne **standalone HTML file**. No Obsidian, no network. Send it to someone,\nor open it on a machine that has never heard of your vault.\n\n`Export to HTML`, or press `E` mid-talk.",
+			"x": 1520,
+			"y": 10240,
+			"width": 1280,
+			"height": 860,
+			"color": "4"
+		},
+		{
+			"id": "O3",
+			"type": "text",
+			"text": "## Preview the export\n\nOpens the exported deck **running, in a tab beside this canvas** — the same\ndocument the export writes, not an approximation.\n\nThree ways in:\n\n| | |\n| --- | --- |\n| Command palette | *Atlas Presenter: Preview the export* |\n| File explorer | right-click a canvas → *Preview the Atlas export* |\n| Hotkey | whatever you bind under Settings → Hotkeys |\n\nEdit the canvas, press **Refresh** in the preview bar, and it rebuilds.\n**Nothing is written to your vault.**\n\n%%This is the answer to “what will the person I send this to actually\nsee”. It is not another way to present — presenting natively is better.%%",
+			"x": 3040,
+			"y": 10240,
+			"width": 1280,
+			"height": 860,
+			"color": "5"
+		},
+		{
+			"id": "O4",
+			"type": "text",
+			"text": "## Export to HTML\n\nWrites `<deck name> — deck.html` to your **vault root**, with every picture,\nvideo and sound inlined and the stylesheet embedded.\n\n- Press `E` while presenting, **or** run the command with no deck running\n- The notice has an **Open in browser** button — Obsidian will not render\n  an HTML file, so the button is the way in\n- Exporting again **overwrites the same file**: edit → export → `F5`\n\n### For a PDF\n\nOpen it in a browser and print. The same file carries a print-only layout:\none card per page, landscape, every reveal shown.",
+			"x": 4560,
+			"y": 10240,
+			"width": 1280,
+			"height": 860,
+			"color": "5"
+		},
+		{
+			"id": "O5",
+			"type": "text",
+			"text": "#compare\n## The exported file does\n\n- `→` `←` through reveals and pictures\n- `M` the map — click to fly\n- `B` blank, `F` fullscreen\n- Slide shows, galleries, scrolling cards\n- Video, audio, tables, every layout\n- Your theme, your camera speed\n---\n## It does not\n\n- **Run card scripts.** Stripped on purpose — an exported file should\n  render, not execute. An animation exports as a still.\n- **Peek a note.** There is no vault on the other end.\n- **`G`, `N`, `W`.** No graph, no remarks, no minutes.\n- **Speaker notes.** They never leave Obsidian, by design.",
+			"x": 6080,
+			"y": 10240,
+			"width": 1280,
+			"height": 860,
+			"color": "6"
+		},
+		{
+			"id": "O6",
+			"type": "text",
+			"text": "## The commands, and what each is for\n\n| Command | Reach for it when |\n| --- | --- |\n| **Present** | The everyday one. Starts on the selected card. |\n| **Present on a second screen** | A projector, and you want the canvas too. |\n| Present from the beginning | Ignore what is selected. |\n| Present a variant… | The canvas holds more than one talk. |\n| Stop presenting | End it from *this* window, wherever the deck is. |\n| Preview the export | Check the file before sending it. |\n| Export to HTML | Write the file. |\n\nAll of them need a canvas to be the open tab. **Atlas sets no shortcuts** —\nbind your own under **Settings → Hotkeys**, searching *Atlas*.\n\n%%Worth binding as a pair: Present on a second screen, and Stop presenting.\nAvoid anything built on Enter — Obsidian cannot record those.%%",
+			"x": 7600,
+			"y": 10240,
+			"width": 1280,
+			"height": 860,
+			"color": "3"
+		},
+		{
+			"id": "O7",
+			"type": "text",
+			"text": "## While you are presenting\n\n| | |\n| --- | --- |\n| `P` | The presenter panel — notes, the clock, what is next. Close it and press `P` again; it comes back. |\n| `N` | A remark against the card on screen. |\n| `W` | Read the whole session, then write it up. |\n| `B` | Blank the screen. |\n| `E` | Export, from here. |\n| `Esc` | Leave. |\n\n**Speaker notes are never in two places.** With a presenter panel open — or\nthe deck in a window of its own — `%%notes%%` come off the deck itself,\nwhatever the setting says. The deck is what the room sees.\n\nKeys held with `Ctrl`, `Cmd` or `Alt` belong to Obsidian, so your own\nshortcuts still work mid-talk.",
+			"x": 9120,
+			"y": 10240,
+			"width": 1280,
+			"height": 860,
+			"color": "1"
+		},
+		{
+			"id": "O8",
+			"type": "text",
+			"text": "#end\n# The handbook\n\nEvery feature, with examples, on one page:\n\n**preeteshgm.github.io/atlas-presenter**\n\nAlso reachable from **Settings → Atlas Presenter → Open the handbook**,\nand the same reference is at the foot of that panel.",
+			"x": 10640,
+			"y": 10240,
+			"width": 1280,
+			"height": 860,
+			"color": "2"
+		},
+		{
+			"id": "cg9",
+			"type": "group",
+			"label": "Getting a deck out: preview, export, PDF",
+			"x": -130,
+			"y": 10110,
+			"width": 12180,
+			"height": 1120
 		}
 	],
 	"edges": [
@@ -770,6 +859,54 @@
 			"fromNode": "L7",
 			"toNode": "L8",
 			"label": "41."
+		},
+		{
+			"id": "c42",
+			"fromNode": "L8",
+			"toNode": "O1",
+			"label": "42."
+		},
+		{
+			"id": "c43",
+			"fromNode": "O1",
+			"toNode": "O2",
+			"label": "43."
+		},
+		{
+			"id": "c44",
+			"fromNode": "O2",
+			"toNode": "O3",
+			"label": "44."
+		},
+		{
+			"id": "c45",
+			"fromNode": "O3",
+			"toNode": "O4",
+			"label": "45."
+		},
+		{
+			"id": "c46",
+			"fromNode": "O4",
+			"toNode": "O5",
+			"label": "46."
+		},
+		{
+			"id": "c47",
+			"fromNode": "O5",
+			"toNode": "O6",
+			"label": "47."
+		},
+		{
+			"id": "c48",
+			"fromNode": "O6",
+			"toNode": "O7",
+			"label": "48."
+		},
+		{
+			"id": "c49",
+			"fromNode": "O7",
+			"toNode": "O8",
+			"label": "49."
 		}
 	]
 }

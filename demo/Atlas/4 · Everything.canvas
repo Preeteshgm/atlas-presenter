@@ -345,6 +345,65 @@
 			"width": 1280,
 			"height": 720,
 			"color": "4"
+		},
+		{
+			"id": "e-two",
+			"type": "text",
+			"text": "#two\n# Placed layouts\n---\n`#two` splits the card at a `---` rule, so you choose what goes in which\ncolumn rather than letting the text flow.\n\nThis is the left column.\n---\nAnd this is the right, because it was written after the rule.\n\nThe heading above spans both — a first block of nothing but headings\nbecomes a band across the top.",
+			"x": 0,
+			"y": 8350,
+			"width": 1280,
+			"height": 860,
+			"color": "4"
+		},
+		{
+			"id": "e-compare",
+			"type": "text",
+			"text": "#compare\n## Option A\n\n- Four weeks\n- £18k\n- Medium risk\n---\n## Option B\n\n- Eleven weeks\n- £52k\n- Low risk",
+			"x": 1520,
+			"y": 8350,
+			"width": 1280,
+			"height": 860,
+			"color": "4"
+		},
+		{
+			"id": "e-left",
+			"type": "text",
+			"text": "#left\n![[surfaces.svg]]\n---\n## Picture left, text right\n\nThe picture fills its half edge to edge. `#right` is the mirror — write\nthe picture second.",
+			"x": 3040,
+			"y": 8350,
+			"width": 1280,
+			"height": 860,
+			"color": "5"
+		},
+		{
+			"id": "e-agenda",
+			"type": "text",
+			"text": "#agenda\n# Running order\n\n1. Where the site stands today\n2. The three options on the table\n3. What each one costs\n4. What we need decided in this room",
+			"x": 4560,
+			"y": 8350,
+			"width": 1280,
+			"height": 860,
+			"color": "3"
+		},
+		{
+			"id": "e-table",
+			"type": "text",
+			"text": "## Tables need no tag\n\n| Option | Weeks | Cost | Risk |\n| --- | ---: | ---: | :---: |\n| Do nothing | 0 | £0 | High |\n| Patch it | 4 | £18k | Medium |\n| Replace | 11 | £52k | Low |\n\nRight-align with `---:`, centre with `:---:`. Bullet lists and\nchecklists are styled for a slide the same way.\n\n- [ ] an unticked line like this becomes an Action in the minutes",
+			"x": 6080,
+			"y": 8350,
+			"width": 1280,
+			"height": 860,
+			"color": "6"
+		},
+		{
+			"id": "grp-e-two",
+			"type": "group",
+			"label": "Placed layouts, tables and lists",
+			"x": -130,
+			"y": 8220,
+			"width": 7620,
+			"height": 1120
 		}
 	],
 	"edges": [
@@ -485,6 +544,36 @@
 			"fromNode": "g1",
 			"toNode": "g2",
 			"label": "23."
+		},
+		{
+			"id": "x24",
+			"fromNode": "g2",
+			"toNode": "e-two",
+			"label": "24."
+		},
+		{
+			"id": "x25",
+			"fromNode": "e-two",
+			"toNode": "e-compare",
+			"label": "25."
+		},
+		{
+			"id": "x26",
+			"fromNode": "e-compare",
+			"toNode": "e-left",
+			"label": "26."
+		},
+		{
+			"id": "x27",
+			"fromNode": "e-left",
+			"toNode": "e-agenda",
+			"label": "27."
+		},
+		{
+			"id": "x28",
+			"fromNode": "e-agenda",
+			"toNode": "e-table",
+			"label": "28."
 		}
 	]
 }
