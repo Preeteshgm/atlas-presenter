@@ -1013,10 +1013,35 @@ ${this.themeCss}`,
 		}
 	}
 
+	/**
+	 * Is there still a presenter to speak of?
+	 *
+	 * Holding the leaf is not the same as the leaf existing. Closing the
+	 * presenter window by hand detaches it without telling us, and the stale
+	 * reference then meant pressing P again focused a window that was gone —
+	 * silently, because `setActiveLeaf` on a detached leaf does nothing at all.
+	 * Asking the workspace is the only answer that cannot go out of date, and
+	 * it clears the reference on the way past so the next P opens a new one.
+	 */
+	private get presenterOpen(): boolean {
+		const leaf = this.presenterLeaf;
+		if (!leaf) return false;
+		if (this.app.workspace.getLeavesOfType(PRESENTER_VIEW).includes(leaf)) return true;
+		this.presenterLeaf = null;
+		return false;
+	}
+
 	private async openPresenter(): Promise<void> {
-		if (this.presenterLeaf) {
+		if (this.presenterOpen && this.presenterLeaf) {
 			this.app.workspace.setActiveLeaf(this.presenterLeaf, { focus: true });
 			return;
+		}
+		// With the deck on its own screen the presenter belongs in the sidebar,
+		// which is where it was opened. P should put it back where it was, not
+		// somewhere new.
+		if (this.windowed) {
+			await this.openPresenterPanel();
+			if (this.presenterOpen) return;
 		}
 		try {
 			const leaf = this.app.workspace.openPopoutLeaf();
@@ -1330,7 +1355,10 @@ ${this.themeCss}`,
 			// a window of its own, because then the deck *is* the projector and
 			// the main window is where you are looking. No setting overrides
 			// this: the cost of getting it wrong is your notes on a wall.
-			const elsewhere = !!this.presenterLeaf || this.windowed;
+			// Asked live, so closing the presenter puts the notes back on the
+			// deck on the next card rather than hiding them for the rest of the
+			// talk. It only ever fails closed: a presenter that is open wins.
+			const elsewhere = this.presenterOpen || this.windowed;
 			this.notesEl.toggleClass("is-shown", !!text && !elsewhere);
 		}
 
