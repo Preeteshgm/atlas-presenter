@@ -1245,6 +1245,7 @@ ${this.themeCss}`,
 		return {
 			actionSuffix: this.settings.actionSuffix,
 			linkBack: this.settings.actionsLinkBack,
+			includePrepared: this.settings.minutesIncludeNotes,
 		};
 	}
 

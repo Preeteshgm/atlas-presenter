@@ -549,23 +549,70 @@ note you cannot see. One card holds one note, kept at the time you first made it
 so the write-up stays in order. Clear the box and save to delete it. The Remark
 button in the bar is outlined when the card you are on already has one.
 
-Leaving the deck writes it all up as one note in `Meetings/`:
+Leaving the deck writes it all up as one note in `Meetings/` — ordered the way
+minutes are read, not the way the talk ran. Whoever opens it a fortnight later
+wants the actions, and should not have to scroll past twenty cards to find them.
 
 ```markdown
-# Northwind Depot — 11 September 2026
+---
+type: minutes
+deck: "Northwind Depot"
+date: 2026-09-14
+start: 11:02
+end: 11:49
+minutes: 47
+cards: 4
+actions: 3
+---
 
-14:02–14:38 · 24 cards · exec
+# Northwind Depot — 14 September 2026
 
-Deck: [[Northwind Depot]]
+> [!info] At a glance
+> **When** 11:02–11:49 · 47 min
+> **Deck** [[Northwind Depot]] · *short*
+> **Covered** 4 cards · **noted on** 3 · **actions** 3
 
-## Why the code
-### The join key
-%%the prepared note%%
-> 14:07 — Sam asked whether v6 changed this. Check and come back.
+## Attendees
+
+-
+
+## Decisions
+
+-
 
 ## Actions
-- [ ] Re-run the v6 comparison before Thursday
+
+- [ ] Send the cost breakdown to finance (What it costs) #minutes
+- [ ] Confirm shutdown dates with operations (What we need today) #minutes
+
+## Notes
+
+### The plan
+
+**The two options**
+
+11:13 — Ops pushed back on three shutdowns. Two may be possible if we split
+the backbone work.
+
+**What it costs**
+
+11:23 — Finance want the shutdown cover broken out.
+→ Send the cost breakdown to finance
 ```
+
+The frontmatter is there so a vault can count and query them. **Attendees** and
+**Decisions** are left empty on purpose — every set of minutes has both, and only
+a person can fill them in.
+
+An action is a checkbox **once**, under Actions. Where it appears again in the
+notes it is written as `→ …` rather than a second `- [ ]`: two boxes would have
+the Tasks plugin count the same job twice, and ticking one would leave the other
+undone. The line itself is otherwise untouched, so Tasks reads its own due-date
+and priority syntax as written.
+
+**A card's own `%%notes%%` are left out by default.** They are your prompts —
+*they will ask about the survey* — and minutes get sent round. Turn on *Include
+the cards' own notes* if you want them in.
 
 Cards appear **in the order you actually visited them**, detours through the map
 included. A card nobody wrote anything about is left out. Any line you type

@@ -20,6 +20,14 @@ export interface MinutesOptions {
 	actionSuffix: string;
 	/** Name the card each action came from, so it survives being moved. */
 	linkBack: boolean;
+	/**
+	 * Put the cards' own `%%notes%%` into the write-up.
+	 *
+	 * Off by default. Those are the speaker's prompts — "they will ask about the
+	 * survey" — and minutes get sent round. Including them should be a decision
+	 * rather than something that happened to you.
+	 */
+	includePrepared: boolean;
 }
 
 export interface Session {
@@ -229,27 +237,26 @@ function stamp(ms: number): string {
 }
 
 /**
- * The talk, written up.
+ * The talk, written up as minutes.
  *
- * Cards appear in the order they were actually visited — detours through the
- * map included, which is often where the interesting part happened.
+ * Ordered the way minutes are read rather than the way the talk ran: what has
+ * to happen first, then what was said, under the card it was said on. Someone
+ * opening this a fortnight later wants the actions, and they should not have to
+ * scroll past twenty cards to find them.
+ *
+ * Frontmatter so a vault can count them; empty Attendees and Decisions headings
+ * because a set of minutes has both and only a person can fill them in.
  */
 function minutesFor(session: Session, options: MinutesOptions): string {
-	const lines: string[] = [];
-	const date = new Date(session.startedAt).toLocaleDateString(undefined, {
+	const started = new Date(session.startedAt);
+	const date = started.toLocaleDateString(undefined, {
 		day: "numeric",
 		month: "long",
 		year: "numeric",
 	});
+	const mins = Math.max(1, Math.round((session.endedAt - session.startedAt) / 60000));
 
-	lines.push(`# ${session.deck} — ${date}`, "");
-	const spans = [
-		`${hhmm(session.startedAt)}–${hhmm(session.endedAt)}`,
-		`${session.visits.length} cards`,
-	];
-	if (session.variant) spans.push(session.variant);
-	lines.push(spans.join(" · "), "", `Deck: [[${session.deck}]]`, "");
-
+	// Captures in the order they were made, gathered under the card they are on.
 	const byCard = new Map<string, Capture[]>();
 	for (const c of [...session.captures].sort((a, b) => a.at - b.at)) {
 		const list = byCard.get(c.nodeId);
@@ -257,29 +264,10 @@ function minutesFor(session: Session, options: MinutesOptions): string {
 		else byCard.set(c.nodeId, [c]);
 	}
 
-	let section = "";
-	let written = 0;
-	for (const visit of session.visits) {
-		const prepared = session.prepared.get(visit.nodeId) ?? "";
-		const typed = byCard.get(visit.nodeId) ?? [];
-		// A card nobody wrote anything about is noise in a set of minutes.
-		if (!prepared && typed.length === 0) continue;
-
-		if (visit.section && visit.section !== section) {
-			section = visit.section;
-			lines.push(`## ${section}`, "");
-		}
-		lines.push(`### ${visit.title}`, "");
-		if (prepared) lines.push(prepared, "");
-		for (const c of typed) lines.push(`> ${hhmm(c.at)} — ${c.text.replace(/\n/g, "\n> ")}`, "");
-		byCard.delete(visit.nodeId);
-		written++;
-	}
-
 	// Left exactly as typed apart from what is appended, so the Tasks plugin
 	// parses its own due-date and priority syntax untouched.
 	const actions: string[] = [];
-	for (const capture of session.captures) {
+	for (const capture of [...session.captures].sort((a, b) => a.at - b.at)) {
 		for (const line of capture.text.split("\n")) {
 			if (!/^\s*-\s*\[ \]/.test(line)) continue;
 			const parts = [line.trim()];
@@ -288,13 +276,83 @@ function minutesFor(session: Session, options: MinutesOptions): string {
 			actions.push(parts.join(" "));
 		}
 	}
-	if (actions.length > 0) {
-		lines.push("## Actions", "", ...actions, "");
+
+	const noted = new Set(session.captures.map((c) => c.nodeId)).size;
+	const lines: string[] = [];
+
+	// ------------------------------------------------------------ frontmatter
+	lines.push(
+		"---",
+		"type: minutes",
+		`deck: "${session.deck.replace(/"/g, "'")}"`,
+		`date: ${stamp(session.startedAt)}`,
+		`start: ${hhmm(session.startedAt)}`,
+		`end: ${hhmm(session.endedAt)}`,
+		`minutes: ${mins}`,
+		`cards: ${session.visits.length}`,
+		`actions: ${actions.length}`,
+		"---",
+		""
+	);
+
+	// ------------------------------------------------------------- the header
+	lines.push(`# ${session.deck} \u2014 ${date}`, "");
+
+	const talk = session.variant ? ` \u00b7 *${session.variant}*` : "";
+	lines.push(
+		"> [!info] At a glance",
+		`> **When** ${hhmm(session.startedAt)}\u2013${hhmm(session.endedAt)} \u00b7 ${mins} min`,
+		`> **Deck** [[${session.deck}]]${talk}`,
+		`> **Covered** ${session.visits.length} cards \u00b7 **noted on** ${noted} \u00b7 ` +
+			`**actions** ${actions.length}`,
+		""
+	);
+
+	lines.push("## Attendees", "", "- ", "");
+	lines.push("## Decisions", "", "- ", "");
+
+	// ---------------------------------------------------------------- actions
+	lines.push("## Actions", "");
+	if (actions.length > 0) lines.push(...actions, "");
+	else lines.push("*None raised.*", "");
+
+	// ------------------------------------------------------------------ notes
+	lines.push("## Notes", "");
+
+	let section = "";
+	let written = 0;
+	for (const visit of session.visits) {
+		const prepared = options.includePrepared ? session.prepared.get(visit.nodeId) ?? "" : "";
+		const typed = byCard.get(visit.nodeId) ?? [];
+		// A card nobody wrote anything about is noise in a set of minutes.
+		if (!prepared && typed.length === 0) continue;
+
+		if (visit.section && visit.section !== section) {
+			section = visit.section;
+			lines.push(`### ${section}`, "");
+		}
+
+		// The card's name in bold rather than as a heading: a heading per card
+		// makes the outline unreadable on a deck of any size, and these are
+		// items under a section, not sections of their own.
+		lines.push(`**${visit.title}**`, "");
+		if (prepared) lines.push(`*Prepared:* ${prepared.replace(/\n/g, " ")}`, "");
+		for (const c of typed) {
+			// An action is a checkbox once, under Actions. Repeating the box here
+			// would have the Tasks plugin count it twice, and ticking one would
+			// leave the other undone \u2014 so here it is the sentence, not the task.
+			const body = c.text
+				.split("\n")
+				.map((line) => line.replace(/^(\s*)-\s*\[ \]\s*/, "$1\u2192 "))
+				.join("\n");
+			lines.push(`${hhmm(c.at)} \u2014 ${body}`, "");
+		}
+		byCard.delete(visit.nodeId);
+		written++;
 	}
 
-	if (written === 0 && actions.length === 0) {
-		lines.push("*Nothing was noted during this session.*", "");
-	}
+	if (written === 0) lines.push("*Nothing was noted against a card.*", "");
+
 	return lines.join("\n");
 }
 

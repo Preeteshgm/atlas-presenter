@@ -138,6 +138,8 @@ export interface AtlasSettings {
 	minutesFolder: string;
 	/** Write the minutes on leaving a deck, when anything was noted. */
 	minutesOnExit: boolean;
+	/** Put the cards' own %%notes%% into the write-up. Off: they are private. */
+	minutesIncludeNotes: boolean;
 	/** Appended to every action, e.g. a tag the Tasks plugin can query. */
 	actionSuffix: string;
 	/** Link each action back to the card it came from. */
@@ -182,6 +184,7 @@ export const DEFAULT_SETTINGS: AtlasSettings = {
 	timer: "off",
 	minutesFolder: "Meetings",
 	minutesOnExit: true,
+	minutesIncludeNotes: false,
 	actionSuffix: "",
 	actionsLinkBack: true,
 	showHud: true,

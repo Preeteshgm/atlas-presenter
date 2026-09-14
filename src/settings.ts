@@ -602,6 +602,20 @@ export class AtlasSettingTab extends PluginSettingTab {
 			);
 
 		new Setting(containerEl)
+			.setName("Include the cards' own notes")
+			.setDesc(
+				"Put each card's %%notes%% into the write-up as well as what you typed " +
+					"during the talk. Off by default: those are your prompts — “they will " +
+					"ask about the survey” — and minutes get sent round."
+			)
+			.addToggle((c) =>
+				c.setValue(s.minutesIncludeNotes).onChange(async (v) => {
+					s.minutesIncludeNotes = v;
+					await this.save();
+				})
+			);
+
+		new Setting(containerEl)
 			.setName("Append to every action")
 			.setDesc(
 				"Added to each line you type beginning - [ ]. A tag the Tasks plugin can "
