@@ -567,6 +567,15 @@ settings:
 	background: var(--background-secondary);
 	transition: transform 520ms cubic-bezier(0.22, 0.7, 0.24, 1), opacity 380ms ease;
 	backface-visibility: hidden;
+}
+
+/* Promoted only on the card you are on.
+   will-change puts an element on its own compositor layer, and this was on
+   every frame of every slide show in the deck, permanently — dozens of layers
+   being re-rasterised each time the camera scales the stage underneath them,
+   which is what read as a flicker on the way past. One card's frames are all
+   that ever move. */
+.atl-node.is-active .atl-frame-item {
 	will-change: transform, opacity;
 }
 
