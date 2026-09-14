@@ -31,8 +31,16 @@ import {
 	writeMinutes,
 } from "./capture";
 
-/** Anything that handles its own clicks must not also advance the slide. */
-const INTERACTIVE = "a, button, video, audio, iframe, input, textarea, select, .atl-hud";
+/**
+ * Anything that handles its own clicks must not also advance the slide.
+ *
+ * `label` and `summary` belong here for the same reason as `button`: clicking a
+ * details toggle, or a checkbox by its label, is a click the card is answering,
+ * and answering it twice — once in the card and once as "next" — is wrong. The
+ * exported deck is held to the same list.
+ */
+const INTERACTIVE =
+	"a, button, video, audio, iframe, input, textarea, select, label, summary, .atl-hud";
 
 export class Presentation extends Component {
 	private overlay!: HTMLElement;

@@ -445,8 +445,25 @@ const RUNTIME = `
   });
 
   blank.addEventListener('click', function () { blank.classList.remove('on'); });
+  /* A click inside a card's shadow root is retargeted to the host, so e.target
+     is the card and never the button that was pressed — pressing a control in
+     an interactive card advanced the slide instead of working. The composed
+     path still holds the real chain. Same list the deck uses, so a card that
+     behaves in Obsidian behaves here. */
+  var INTERACTIVE = 'a, button, video, audio, iframe, input, textarea, select,' +
+    ' label, summary, .atl-hud, .atl-show-controls';
+  function interactiveHit(e) {
+    var path = e.composedPath ? e.composedPath() : [e.target];
+    for (var n = 0; n < path.length; n++) {
+      var el = path[n];
+      if (el === stage) break;
+      if (el && el.nodeType === 1 && el.matches && el.matches(INTERACTIVE)) return true;
+    }
+    return false;
+  }
+
   view.addEventListener('click', function (e) {
-    if (e.target.closest('a, button, video, audio, input, .atl-show-controls')) return;
+    if (interactiveHit(e)) return;
     if (e.clientX > window.innerWidth / 3) advance(); else retreat();
   });
   addEventListener('resize', function () { paint(false); });
