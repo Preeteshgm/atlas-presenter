@@ -111,11 +111,11 @@ async function inlineMedia(app: App, root: HTMLElement): Promise<number> {
 /**
  * The cards' own scripts, rewritten to run in a plain document.
  *
- * In Obsidian a card script is handed `root` — its shadow root — and `host`,
- * the card element. The export has no shadow roots, because flattening them is
- * how the cloned DOM survives at all, so both names point at the card's body
- * here. `root.querySelector` means the same thing either way, which is the part
- * every script actually uses.
+ * A card script is handed `root` — its shadow root — and `host`, the card
+ * element. Both mean the same in the exported file, because wrapShadows() gives
+ * the cards their shadow roots back; if one could not be attached the script
+ * falls back to the card itself, and `root.querySelector` still finds that
+ * card's own content and nothing else.
  *
  * Only emitted when the vault has script execution turned on: a card that is
  * not trusted to run in Obsidian should not start running because it was sent
@@ -145,7 +145,10 @@ function cardScripts(clone: HTMLElement): string {
 (function () {
   var host = document.querySelector(${JSON.stringify(selector)});
   if (!host) return;
-  var root = host;
+  // The shadow root if it was given one back, the card itself otherwise —
+  // either way root.querySelector finds the card's own content and nothing
+  // else, which is the whole of what a card script uses it for.
+  var root = host.shadowRoot || host;
   try {
 ${safe}
   } catch (e) {
@@ -159,6 +162,47 @@ ${safe}
 		}
 	}
 	return out.join("\n");
+}
+
+/**
+ * Give the exported HTML cards their shadow roots back.
+ *
+ * Flattening is how the content survives cloning, but a flattened card is not
+ * the same card: `:host` — which is how every one of these stylesheets declares
+ * its own tokens — matches nothing outside a shadow root, so the card arrives
+ * with its CSS silently inert. Its `<style>` also stops being scoped, and leaks
+ * over every other card in the file.
+ *
+ * So the flattened content is parked in a `<template>` and a shadow root is
+ * built from it when the page loads. Done after the media is inlined and the
+ * print pages are taken, because neither reaches inside a template.
+ */
+function wrapShadows(clone: HTMLElement): string {
+	const hosts = Array.from(clone.querySelectorAll<HTMLElement>(".atl-was-shadow"));
+	if (hosts.length === 0) return "";
+
+	for (const host of hosts) {
+		const tpl = host.ownerDocument.createElement("template");
+		tpl.className = "card-shadow";
+		while (host.firstChild) tpl.content.appendChild(host.firstChild);
+		host.appendChild(tpl);
+	}
+
+	return `<script>
+(function () {
+  var tpls = document.querySelectorAll('.atl-was-shadow > template.card-shadow');
+  for (var i = 0; i < tpls.length; i++) {
+    var tpl = tpls[i], host = tpl.parentElement;
+    try {
+      var root = host.attachShadow({ mode: 'open' });
+      tpl.remove();
+      root.appendChild(tpl.content);
+    } catch (e) {
+      /* Already attached, or a host that cannot take one: leave it flattened. */
+    }
+  }
+})();
+</script>`;
 }
 
 /** Shadow roots do not survive cloneNode, so their content is folded back in. */
@@ -226,12 +270,40 @@ const RUNTIME = `
     for (var n = 0; n < f.length; n++) if (f[n].classList.contains('is-current')) return n;
     return 0;
   }
+  /* A frame's place is an inline transform and opacity, not the class: the deck
+     writes them as it moves. Toggling only the class left every clone frozen on
+     whichever frame it was exported showing, because inline styles win. This is
+     the deck's own layout, in the same five modes, read off the root's tx- class. */
+  function modeOf(show) {
+    var c = show.classList;
+    if (c.contains('tx-slide')) return 'slide';
+    if (c.contains('tx-slide-up')) return 'slide-up';
+    if (c.contains('tx-zoom')) return 'zoom';
+    if (c.contains('tx-flip')) return 'flip';
+    return 'fade';
+  }
   function setFrame(show, n) {
     var f = framesIn(show), dots = [].slice.call(show.querySelectorAll('.atl-show-dots > *'));
-    if (!f.length) return;
+    if (!f.length) return 0;
     n = Math.max(0, Math.min(n, f.length - 1));
-    for (var k = 0; k < f.length; k++) f[k].classList.toggle('is-current', k === n);
-    for (var d = 0; d < dots.length; d++) dots[d].classList.toggle('is-current', d === n);
+    var mode = modeOf(show);
+    for (var k = 0; k < f.length; k++) {
+      var d = k - n, st = f[k].style;
+      f[k].classList.toggle('is-current', d === 0);
+      if (mode === 'slide') {
+        st.transform = 'translateX(' + d * 100 + '%)'; st.opacity = '1';
+      } else if (mode === 'slide-up') {
+        st.transform = 'translateY(' + d * 100 + '%)'; st.opacity = '1';
+      } else if (mode === 'zoom') {
+        st.transform = d === 0 ? 'scale(1)' : 'scale(1.06)'; st.opacity = d === 0 ? '1' : '0';
+      } else if (mode === 'flip') {
+        st.transform = 'perspective(1400px) rotateY(' + d * 78 + 'deg)';
+        st.opacity = d === 0 ? '1' : '0';
+      } else {
+        st.transform = 'none'; st.opacity = d === 0 ? '1' : '0';
+      }
+    }
+    for (var j = 0; j < dots.length; j++) dots[j].classList.toggle('is-current', j === n);
     return n;
   }
 
@@ -488,13 +560,16 @@ export async function buildDeckHtml(
 <style>
   html, body { margin: 0; height: 100%; background: #f4f6f1; overflow: hidden;
     font-family: -apple-system, "Segoe UI", system-ui, sans-serif; }
-  #view { position: fixed; inset: 0; overflow: hidden; }
+  /* #view carries .atl-overlay so the theme's tokens reach the cards, and that
+     class brings z-index:100 with it — which put the slide above the map and
+     the blanking layer. An id beats a class, so the stack is stated here. */
+  #view { position: fixed; inset: 0; overflow: hidden; z-index: 0; }
   #stage { position: absolute; top: 0; left: 0; transform-origin: 0 0;
     transition: transform ${input.duration}ms cubic-bezier(0.6, 0, 0.2, 1); }
-  #bar { position: fixed; left: 0; right: 0; bottom: 0; display: flex;
+  #bar { z-index: 30; position: fixed; left: 0; right: 0; bottom: 0; display: flex;
     justify-content: space-between; padding: 10px 18px; font-size: 13px;
     color: #6b7a80; pointer-events: none; }
-  #rail { position: fixed; left: 0; right: 0; top: 0; height: 3px; background: rgb(0 0 0 / 0.08); }
+  #rail { z-index: 30; position: fixed; left: 0; right: 0; top: 0; height: 3px; background: rgb(0 0 0 / 0.08); }
   #railfill { height: 100%; width: 0; background: #1d5a78; transition: width 420ms ease; }
   #blank { position: fixed; inset: 0; background: #000; display: none; z-index: 40; }
   #blank.on { display: block; }
@@ -549,22 +624,36 @@ ${input.css}
   window.__ATLAS_PAD__ = ${input.padding};
   window.__ATLAS_MAX__ = ${input.maxScale};
 </script>
-<script>${RUNTIME}</script>
 __SCRIPTS__
+<script>${RUNTIME}</script>
 </body>
 </html>`;
 
 	// Read before the stage is serialised: it strips the attribute it reads.
+	// Taken while the cards are still flattened: a template's content is invisible
+	// to querySelectorAll, and paper has no shadow roots to give them back. The
+	// `:host` rules are re-aimed at the host itself so a printed HTML card keeps
+	// the look it had on screen.
+	const printHtml = printPages(clone, input.stops.filter((s) => !s.label)).replace(
+		/:host\b/g,
+		".atl-body"
+	);
 	const scripts = input.allowScripts ? cardScripts(clone) : "";
+	const shadows = wrapShadows(clone);
 	const stageHtml = clone.innerHTML;
+
 	return {
 		inlined,
 		html: html
 			.replace('<div id="stage" class="atl-stage"></div>', `<div id="stage" class="atl-stage">${stageHtml}</div>`)
-			.replace("__PRINT__", printPages(clone, input.stops.filter((s) => !s.label)))
-			// After the runtime, so a script that listens for atlas:enter is
-			// bound before the opening card is announced.
-			.replace("__SCRIPTS__", scripts),
+			.replace("__PRINT__", printHtml)
+			// Shadow roots first, then the cards' own scripts, then the runtime.
+			// A script needs its root to exist before it looks anything up, and
+			// the runtime announces the opening card as it starts — a listener
+			// bound after that announcement never hears it, so the very first
+			// card's animation, the one you are looking at, would be the one
+			// that stayed still.
+			.replace("__SCRIPTS__", `${shadows}\n${scripts}`),
 	};
 }
 

@@ -156,6 +156,14 @@ export default class AtlasPlugin extends Plugin {
 						.setIcon(ICON_ID)
 						.onClick(() => void this.present(file, undefined, "", { windowed: true }))
 				);
+				// Straight from the canvas. Having to present a deck before you
+				// could export it made a one-step job into three.
+				menu.addItem((item) =>
+					item
+						.setTitle("Export this canvas to HTML")
+						.setIcon(ICON_ID)
+						.onClick(() => void this.exportCanvas(file))
+				);
 			})
 		);
 
