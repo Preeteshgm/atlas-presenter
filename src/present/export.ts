@@ -422,11 +422,45 @@ const RUNTIME = `
     for (var k = n; k >= 0; k--) if (stops[k].label) return stops[k];
     return null;
   }
-  function look(animate) { placeAt(viewCx, viewCy, pickScale, animate); }
+  /* Keep the deck on screen. Scrolling used to run off into empty space above
+     the first group and keep going, which leaves you nowhere with nothing to
+     steer by. Half a screen past the edge is enough to see that it is one. */
+  function clampView() {
+    var b = bounds();
+    var halfW = view.clientWidth / pickScale / 2, halfH = view.clientHeight / pickScale / 2;
+    function pick(lo, hi, half, centre, at) {
+      if (hi - lo < half * 2) return centre;
+      return Math.min(Math.max(at, lo - half * 0.5), hi + half * 0.5);
+    }
+    viewCx = pick(b.x, b.x + b.width, halfW, b.x + b.width / 2, viewCx);
+    viewCy = pick(b.y, b.y + b.height, halfH, b.y + b.height / 2, viewCy);
+  }
+  function look(animate) { clampView(); placeAt(viewCx, viewCy, pickScale, animate); }
   function pan(dx, dy, animate) {
     viewCx += dx / pickScale;
     viewCy += dy / pickScale;
     look(animate);
+  }
+  function fitScale() {
+    var b = bounds();
+    return Math.min(view.clientWidth / (b.width * 1.06), view.clientHeight / (b.height * 1.06));
+  }
+  /* Zoom about a point, so what is under the cursor stays under it. */
+  function zoom(factor, ox, oy, animate) {
+    var was = pickScale;
+    var next = Math.min(Math.max(was * factor, fitScale()), Math.max(max, fitScale()));
+    if (next === was) return;
+    viewCx += (ox || 0) / was - (ox || 0) / next;
+    viewCy += (oy || 0) / was - (oy || 0) / next;
+    pickScale = next;
+    look(animate);
+  }
+  function showAll() {
+    var b = bounds();
+    pickScale = fitScale();
+    viewCx = b.x + b.width / 2;
+    viewCy = b.y + b.height / 2;
+    look(true);
   }
   function openOverview() {
     if (overview) return;
@@ -511,6 +545,9 @@ const RUNTIME = `
       else if (k === 'ArrowLeft') pan(-w, 0, true);
       else if (k === 'ArrowDown' || k === 'PageDown' || k === ' ') pan(0, h, true);
       else if (k === 'ArrowUp' || k === 'PageUp') pan(0, -h, true);
+      else if (k === '+' || k === '=') zoom(1.25, 0, 0, true);
+      else if (k === '-' || k === '_') zoom(0.8, 0, 0, true);
+      else if (k === '0') showAll();
       else if (k === 'Home' || k === 'End') {
         var e2 = stops[k === 'Home' ? 0 : stops.length - 1];
         viewCx = e2.x + e2.width / 2; viewCy = e2.y + e2.height / 2; look(true);
@@ -537,6 +574,31 @@ const RUNTIME = `
     if (e.data === 'atlas:print') window.print();
   });
 
+  /* Dragging the map. A few pixels is a click on a card; more is a pan, and the
+     click that follows a pan must not also choose. */
+  var from = null, moved = false;
+  view.addEventListener('pointerdown', function (e) {
+    if (!overview || e.button !== 0) return;
+    from = { x: e.clientX, y: e.clientY };
+    moved = false;
+  });
+  view.addEventListener('pointermove', function (e) {
+    if (!from) return;
+    var dx = e.clientX - from.x, dy = e.clientY - from.y;
+    if (!moved && Math.sqrt(dx * dx + dy * dy) < 5) return;
+    moved = true;
+    view.classList.add('is-dragging');
+    from = { x: e.clientX, y: e.clientY };
+    pan(-dx, -dy, false);
+  });
+  function release() {
+    from = null;
+    view.classList.remove('is-dragging');
+    setTimeout(function () { moved = false; }, 0);
+  }
+  view.addEventListener('pointerup', release);
+  view.addEventListener('pointercancel', release);
+
   blank.addEventListener('click', function () { blank.classList.remove('on'); });
   keys.addEventListener('click', function () { keys.classList.remove('on'); });
   /* A click inside a card's shadow root is retargeted to the host, so e.target
@@ -558,6 +620,7 @@ const RUNTIME = `
 
   view.addEventListener('click', function (e) {
     if (overview) {
+      if (moved) return;
       var path = e.composedPath ? e.composedPath() : [e.target];
       var id = null;
       for (var n = 0; n < path.length && !id; n++) {
@@ -581,6 +644,15 @@ const RUNTIME = `
   view.addEventListener('wheel', function (e) {
     if (!overview) return;
     e.preventDefault();
+    if (e.ctrlKey || e.metaKey) {
+      var box = view.getBoundingClientRect();
+      zoom(Math.pow(0.9988, e.deltaY),
+        e.clientX - box.left - box.width / 2,
+        e.clientY - box.top - box.height / 2, false);
+      return;
+    }
+    /* Shift swaps the axis: most mice have one wheel, and a deck laid out left
+       to right needs the other direction. */
     pan(e.shiftKey ? e.deltaY : e.deltaX, e.shiftKey ? 0 : e.deltaY, false);
   }, { passive: false });
 
@@ -722,7 +794,10 @@ export async function buildDeckHtml(
   /* The overview: the same map, readable, every card clickable. Off-camera
      cards are dimmed by the plugin stylesheet so the audience keeps its
      bearings; here that is exactly wrong. */
+  #view.is-overview { cursor: grab; }
+  #view.is-overview.is-dragging { cursor: grabbing; user-select: none; }
   #view.is-overview .atl-node { opacity: 1 !important; cursor: pointer; }
+  #view.is-overview.is-dragging .atl-node { cursor: grabbing; }
   #view.is-overview .atl-node:not(.atl-node-group) { outline: 2px solid transparent;
     outline-offset: 3px; transition: outline-color 140ms ease; }
   #view.is-overview .atl-node:not(.atl-node-group):hover { outline-color: #1d5a78; }
@@ -774,7 +849,7 @@ ${input.css}
 </head>
 <body>
 <div id="view" class="atl-overlay"><div id="stage" class="atl-stage"></div>${logoTag(input)}</div>
-<div id="hint">Scroll to look around &middot; click a card to go there &middot; O or Esc to come back</div>
+<div id="hint">Drag or scroll &middot; Ctrl+wheel or +/&minus; to zoom &middot; 0 shows all &middot; click a card to go there &middot; Esc</div>
 <div id="rail"><div id="railfill"></div></div>
 <div id="blank"></div>
 <div id="map"><div class="mh">Click a card to fly to it &middot; M or Esc to close</div></div>

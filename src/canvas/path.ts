@@ -49,10 +49,23 @@ const DECK_CARD = /(^|\n)[ \t]*#deck[ \t]*(\n|$)/;
  * decks want two different titles, and the person writing the talk should not
  * have to go into plugin settings to say so.
  */
+/**
+ * Every `#deck` card on the canvas, topmost first.
+ *
+ * A canvas stores its nodes in the order they were created, which is not an
+ * order anyone can see. If a canvas has two of these, the one that wins should
+ * be the one nearer the top of the map — something you can point at — and not
+ * whichever happened to be drawn first months ago.
+ */
+export function deckCardsIn(nodes: CanvasNode[]): CanvasNode[] {
+	return nodes
+		.filter((n) => n.type === "text" && DECK_CARD.test(outsideCode(n.text ?? "")))
+		.sort((a, b) => a.y - b.y || a.x - b.x);
+}
+
 function readDeckMeta(nodes: CanvasNode[]): Record<string, string> {
-	const card = nodes.find(
-		(n) => n.type === "text" && DECK_CARD.test(outsideCode(n.text ?? ""))
-	);
+	const cards = deckCardsIn(nodes);
+	const card = cards[0];
 	if (!card) return {};
 	const meta: Record<string, string> = {};
 	const body: string[] = [];
@@ -72,6 +85,8 @@ function readDeckMeta(nodes: CanvasNode[]): Record<string, string> {
 	// Anything that is not a key is the header's own content, as markdown.
 	const rest = body.join("\n").trim();
 	if (rest) meta.__body = rest;
+	// So the deck can say so out loud rather than quietly using one of them.
+	if (cards.length > 1) meta.__decks = String(cards.length);
 	return meta;
 }
 
@@ -94,9 +109,7 @@ function inVariant(node: CanvasNode, variant: string): boolean {
 /** The variant names a canvas mentions anywhere, for the picker. */
 /** `variant:` on the #deck card, when it names a default. */
 export function readDeckVariant(data: CanvasData): string {
-	const card = data.nodes.find(
-		(n) => n.type === "text" && DECK_CARD.test(outsideCode(n.text ?? ""))
-	);
+	const card = deckCardsIn(data.nodes)[0];
 	if (!card) return "";
 	const m = outsideCode(card.text ?? "").match(/^[ \t]*variant[ \t]*:[ \t]*(.+?)[ \t]*$/mi);
 	return m ? m[1].toLowerCase() : "";

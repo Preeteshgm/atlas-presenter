@@ -149,6 +149,18 @@ export class Presentation extends Component {
 
 		// A canvas may dress itself, so the deck's own keys land before
 		// anything reads a setting.
+		// Two title blocks on one canvas is a mistake, not a feature, and it used
+		// to be a silent one: the extras were hidden from the deck like the first,
+		// so nothing happened and nothing said why.
+		const decks = Number(this.scene.meta.__decks ?? "1");
+		if (decks > 1 && !this.headless) {
+			new Notice(
+				`Atlas: this canvas has ${decks} #deck cards. The topmost one is used; ` +
+					"the rest are ignored and stay off the deck.",
+				9000
+			);
+		}
+
 		this.settings = this.withDeckOverrides(this.settings);
 		this.themeCss = await this.loadThemeCss();
 		await this.collectNotes();
@@ -401,6 +413,8 @@ export class Presentation extends Component {
 			if (this.overviewing) {
 				e.preventDefault();
 				e.stopPropagation();
+				// The click that ends a drag is not a choice of card.
+				if (this.dragged?.()) return;
 				const card = this.matchInPath(e, "[data-node-id]");
 				const id = card?.dataset.nodeId;
 				const at = id ? this.scene.stops.findIndex((s) => s.node.id === id) : -1;
@@ -496,7 +510,8 @@ export class Presentation extends Component {
 			// and the camera follows at the same zoom. Nothing here moves the
 			// talk on — you are looking for a card, and the deck stays where it
 			// was until you choose one or give up.
-			if (this.overviewing && NAVIGATION.has(key)) {
+			const ZOOM = new Set(["+", "=", "-", "_", "0"]);
+			if (this.overviewing && (NAVIGATION.has(key) || ZOOM.has(key))) {
 				handled();
 				const w = this.overlay.clientWidth * 0.6;
 				const h = this.overlay.clientHeight * 0.6;
@@ -505,6 +520,9 @@ export class Presentation extends Component {
 				else if (key === "ArrowLeft") this.pan(-w, 0);
 				else if (key === "ArrowDown" || key === "PageDown" || key === " ") this.pan(0, h);
 				else if (key === "ArrowUp" || key === "PageUp") this.pan(0, -h);
+				else if (key === "+" || key === "=") this.zoom(1.25, 0, 0, 160);
+				else if (key === "-" || key === "_") this.zoom(0.8, 0, 0, 160);
+				else if (key === "0") this.showAll();
 				else if (key === "Home" || key === "End") {
 					// The ends of the deck, without picking anything there.
 					const r = rectOf(
@@ -665,10 +683,53 @@ export class Presentation extends Component {
 			(e: WheelEvent) => {
 				if (!this.overviewing) return;
 				e.preventDefault();
+				// Ctrl or Cmd with the wheel is how every map zooms, and it keeps
+				// the point under the cursor still.
+				if (e.ctrlKey || e.metaKey) {
+					const box = this.overlay.getBoundingClientRect();
+					this.zoom(
+						Math.pow(0.9988, e.deltaY),
+						e.clientX - box.left - box.width / 2,
+						e.clientY - box.top - box.height / 2
+					);
+					return;
+				}
+				// Shift swaps the axis, because most mice have one wheel and a
+				// deck laid out left to right needs the other direction.
 				this.pan(e.shiftKey ? e.deltaY : e.deltaX, e.shiftKey ? 0 : e.deltaY, 0);
 			},
 			{ passive: false }
 		);
+
+		// Dragging the map is how you move a map. Whether a press was a drag or a
+		// click is decided by distance: a few pixels is a click on a card, more
+		// than that is a pan, and the click that follows it must not also pick.
+		let from: { x: number; y: number } | null = null;
+		let moved = false;
+		this.overlay.addEventListener("pointerdown", (e: PointerEvent) => {
+			if (!this.overviewing || e.button !== 0) return;
+			from = { x: e.clientX, y: e.clientY };
+			moved = false;
+		});
+		this.overlay.addEventListener("pointermove", (e: PointerEvent) => {
+			if (!from) return;
+			const dx = e.clientX - from.x;
+			const dy = e.clientY - from.y;
+			if (!moved && Math.hypot(dx, dy) < 5) return;
+			moved = true;
+			this.overlay.addClass("is-dragging");
+			from = { x: e.clientX, y: e.clientY };
+			this.pan(-dx, -dy, 0);
+		});
+		const release = () => {
+			from = null;
+			this.overlay.removeClass("is-dragging");
+			// Cleared after the click has been and gone, not before it.
+			this.win.setTimeout(() => (moved = false), 0);
+		};
+		this.overlay.addEventListener("pointerup", release);
+		this.overlay.addEventListener("pointercancel", release);
+		this.dragged = () => moved;
 
 		this.onResize = () => this.goTo(this.index, { animate: false });
 		this.win.addEventListener("resize", this.onResize);
@@ -1365,6 +1426,8 @@ ${this.themeCss}`,
 	private viewCx = 0;
 	private viewCy = 0;
 	private viewScale = 1;
+	/** Whether the press that is ending was a drag rather than a click. */
+	private dragged: (() => boolean) | null = null;
 
 	private toggleOverview(): void {
 		if (this.overviewing) this.closeOverview();
@@ -1406,16 +1469,75 @@ ${this.themeCss}`,
 	 * clicking the one you can see.
 	 */
 	private look(duration: number): void {
+		this.clampView();
 		void this.camera.moveTo(
 			{ cx: this.viewCx, cy: this.viewCy, scale: this.viewScale },
 			duration
 		);
 	}
 
+	/**
+	 * Keep the deck on screen.
+	 *
+	 * Scrolling used to run off into empty space above the first group and keep
+	 * going, which leaves you nowhere with nothing to steer by. You can overrun
+	 * the edge by half a screen — enough to see that it is the edge — and no
+	 * further. Where the whole deck already fits in one direction, it is simply
+	 * centred in that direction.
+	 */
+	private clampView(): void {
+		const b = this.scene.bounds;
+		const halfW = this.overlay.clientWidth / this.viewScale / 2;
+		const halfH = this.overlay.clientHeight / this.viewScale / 2;
+		const pick = (lo: number, hi: number, half: number, centre: number, at: number) =>
+			hi - lo < half * 2 ? centre : Math.min(Math.max(at, lo - half * 0.5), hi + half * 0.5);
+
+		this.viewCx = pick(b.x, b.x + b.width, halfW, b.x + b.width / 2, this.viewCx);
+		this.viewCy = pick(b.y, b.y + b.height, halfH, b.y + b.height / 2, this.viewCy);
+	}
+
 	private pan(dx: number, dy: number, duration = 180): void {
 		this.viewCx += dx / this.viewScale;
 		this.viewCy += dy / this.viewScale;
 		this.look(duration);
+	}
+
+	/** The scale at which the whole deck is on screen — the floor for zooming. */
+	private fitScale(): number {
+		const b = this.scene.bounds;
+		return Math.min(
+			this.overlay.clientWidth / (b.width * 1.06 || 1),
+			this.overlay.clientHeight / (b.height * 1.06 || 1)
+		);
+	}
+
+	/**
+	 * Zoom about a point, so what is under the cursor stays under the cursor.
+	 *
+	 * `ox`/`oy` are pixels from the middle of the screen; pass zero for the
+	 * keyboard, which has no cursor to zoom about.
+	 */
+	private zoom(factor: number, ox = 0, oy = 0, duration = 0): void {
+		const was = this.viewScale;
+		const next = Math.min(
+			Math.max(was * factor, this.fitScale()),
+			Math.max(this.settings.maxScale, this.fitScale())
+		);
+		if (next === was) return;
+		// The world point under the cursor, held still across the change.
+		this.viewCx += ox / was - ox / next;
+		this.viewCy += oy / was - oy / next;
+		this.viewScale = next;
+		this.look(duration);
+	}
+
+	/** Everything at once — the way out of being lost. */
+	private showAll(): void {
+		const b = this.scene.bounds;
+		this.viewScale = this.fitScale();
+		this.viewCx = b.x + b.width / 2;
+		this.viewCy = b.y + b.height / 2;
+		this.look(300);
 	}
 
 	private closeOverview(go?: number): void {

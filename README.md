@@ -51,7 +51,7 @@ starts at the beginning.
 | **`M`** | The schematic map — titles and order, for a deck too big to read at once |
 | **`G`** | Obsidian's graph view of the whole vault |
 | `Backspace` | Return from a jump, or one level out of a peeked note |
-| **`O`** | The overview — the whole map at once, cards readable; click one to go to it |
+| **`O`** | The overview — drag or scroll around the deck, `Ctrl`+wheel or `+`/`−` to zoom, `0` shows all, click a card to go there |
 | `Home` `End` | First and last card |
 | `B` | Blank the screen — attention on the room, not the slide |
 | `N` | Note something against the card on screen |

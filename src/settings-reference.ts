@@ -299,7 +299,7 @@ The conclusion.`);
 		["M", "the schematic map — titles and order, for a deck too big to read at once"],
 		["G", "the graph of the whole vault"],
 		["Backspace", "return from a jump, or one level out of a peeked note"],
-		["O", "the overview — the whole map at once, cards readable; click one to go to it"],
+		["O", "the overview — drag or scroll around the deck, Ctrl+wheel or +/− to zoom, 0 shows all, click a card to go there"],
 		["Home  End", "first and last card"],
 		["Enter", "dive into the sub-deck on this card"],
 		["B", "blank the screen — attention on the room, not the slide"],

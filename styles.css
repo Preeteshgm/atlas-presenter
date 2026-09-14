@@ -1769,6 +1769,12 @@ settings:
 	outline-color: var(--atl-accent, var(--interactive-accent));
 }
 
+/* Dragging the map wants the hand, and must not select text as it goes. */
+.atl-overlay.is-overview .atl-viewport { cursor: grab; }
+.atl-overlay.is-overview.is-dragging .atl-viewport { cursor: grabbing; }
+.atl-overlay.is-overview.is-dragging { user-select: none; }
+.atl-overlay.is-overview.is-dragging .atl-node { cursor: grabbing; }
+
 /* Where the talk actually is, so scrolling away is never disorienting. */
 .atl-overlay.is-overview .atl-node.is-active {
 	outline-color: var(--atl-accent, var(--interactive-accent));
@@ -1779,7 +1785,7 @@ settings:
 
 /* A mode with no way out shown is a trap; this is the way out, named. */
 .atl-overlay.is-overview .atl-viewport::after {
-	content: "Scroll to look around  ·  click a card to go there  ·  O or Esc to come back";
+	content: "Drag or scroll  ·  Ctrl+wheel or +/− to zoom  ·  0 shows all  ·  click a card to go there  ·  Esc";
 	position: absolute;
 	left: 50%;
 	bottom: 22px;
