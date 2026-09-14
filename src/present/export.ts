@@ -531,6 +531,12 @@ const RUNTIME = `
     }
   });
 
+  /* The preview pane holds this file in a sandboxed frame, so it cannot reach
+     in and call print(). It can send a message, and this answers it. */
+  addEventListener('message', function (e) {
+    if (e.data === 'atlas:print') window.print();
+  });
+
   blank.addEventListener('click', function () { blank.classList.remove('on'); });
   keys.addEventListener('click', function () { keys.classList.remove('on'); });
   /* A click inside a card's shadow root is retargeted to the host, so e.target

@@ -943,9 +943,10 @@ ${this.themeCss}`,
 		};
 	}
 
-	async exportToHtml(): Promise<void> {
+	/** Returns where it was written, so a caller can offer to open it. */
+	async exportToHtml(): Promise<string | null> {
 		new Notice("Atlas: exporting…");
-		await exportDeck(this.app, this.exportInput());
+		return exportDeck(this.app, this.exportInput());
 	}
 
 	/** The exported document itself, for a preview that writes no file. */

@@ -33,7 +33,15 @@ export default class AtlasPlugin extends Plugin {
 		addIcon(ICON_ID, ICON_SVG);
 		this.registerView(PRESENTER_VIEW, (leaf) => new PresenterView(leaf));
 		this.registerView(DECK_VIEW, (leaf) => new DeckView(leaf));
-		this.registerView(PREVIEW_VIEW, (leaf) => new PreviewView(leaf, () => this.settings));
+		this.registerView(
+			PREVIEW_VIEW,
+			(leaf) =>
+				new PreviewView(
+					leaf,
+					() => this.settings,
+					(file) => void this.present(file, undefined, "", { windowed: true })
+				)
+		);
 
 		this.addCommand({
 			id: "present-canvas",

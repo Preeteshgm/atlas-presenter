@@ -1835,3 +1835,9 @@ settings:
 	border-left: 3px solid var(--interactive-accent);
 	background: var(--background-primary-alt);
 }
+
+/* The preview's action bar wraps rather than clipping: it lives in a side pane
+   as often as a full tab, and a button you cannot reach is not a button. */
+.atl-preview-bar { flex-wrap: wrap; row-gap: 6px; }
+.atl-preview-bar button { flex: 0 0 auto; }
+.atl-preview-status { flex: 1 0 100%; }
