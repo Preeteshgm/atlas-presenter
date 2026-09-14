@@ -24,7 +24,7 @@ import {
 	titleOf,
 } from "./render";
 import { Slideshow } from "./slideshow";
-import { exportDeck } from "./export";
+import { ExportInput, buildDeckHtml, exportDeck } from "./export";
 import { DeckSnapshot, PRESENTER_VIEW, setDeck } from "./presenter";
 import { DECK_VIEW, DeckView } from "./deck-window";
 import {
@@ -71,6 +71,16 @@ export class Presentation extends Component {
 	private deckLeaf: WorkspaceLeaf | null = null;
 	/** True while the deck has a window to itself. */
 	private windowed = false;
+	/**
+	 * Built to be read, not driven.
+	 *
+	 * The export is a clone of the live stage, so producing one has always
+	 * needed a deck on screen. A headless deck renders into a host element the
+	 * caller supplies — off to one side, laid out but not looked at — so a
+	 * canvas can be exported without being presented first. It takes no keys,
+	 * registers no deck for the presenter window and starts no timers.
+	 */
+	private headless: HTMLElement | null = null;
 	private presenterLeaf: WorkspaceLeaf | null = null;
 	/** The talk as it actually happened, detours included. */
 	private visits: Visit[] = [];
@@ -115,6 +125,15 @@ export class Presentation extends Component {
 		super();
 	}
 
+	/** Render without presenting, for an export or a preview. */
+	async startHeadless(host: HTMLElement): Promise<boolean> {
+		this.headless = host;
+		this.doc = host.ownerDocument;
+		this.win = host.ownerDocument.defaultView ?? window;
+		await this.start();
+		return this.scene !== undefined && this.scene.stops.length > 0;
+	}
+
 	async start(): Promise<void> {
 		const data = parseCanvas(await this.app.vault.cachedRead(this.file));
 		// A canvas may name its own default talk; an explicit choice wins.
@@ -122,7 +141,7 @@ export class Presentation extends Component {
 		this.variant = this.variant || declared;
 		this.scene = buildScene(data, this.settings.sectionOverviews, this.variant);
 		if (this.scene.stops.length === 0) {
-			new Notice("Atlas: this canvas has no cards to present.");
+			if (!this.headless) new Notice("Atlas: this canvas has no cards to present.");
 			return;
 		}
 
@@ -138,6 +157,11 @@ export class Presentation extends Component {
 		this.browser = new Browser(this.overlay, this.app, (file) => void this.peek.showFile(file));
 		this.minimap = new Minimap(this.overlay, this.app, this.scene, (i) => this.jumpTo(i));
 		this.began = Date.now();
+		if (this.headless) {
+			// Everything past this point is about being driven by someone.
+			this.goTo(this.startIndex(), { animate: false });
+			return;
+		}
 		setDeck(this);
 		if (this.windowed) await this.openPresenterPanel();
 		this.startAutoAdvance();
@@ -260,7 +284,7 @@ export class Presentation extends Component {
 	}
 
 	private buildChrome(): void {
-		this.overlay = this.doc.body.createDiv({ cls: "atl-overlay" });
+		this.overlay = (this.headless ?? this.doc.body).createDiv({ cls: "atl-overlay" });
 		if (this.themeCss) {
 			this.overlay.createEl("style", { text: this.themeCss });
 		}
@@ -820,8 +844,8 @@ export class Presentation extends Component {
 	 * One self-contained HTML file: the cards as they stand, their media as data
 	 * URIs, and a small camera. It opens in any browser with no Obsidian.
 	 */
-	async exportToHtml(): Promise<void> {
-		new Notice("Atlas: exporting…");
+	/** What the export is made of, gathered once for both of its uses. */
+	private exportInput(): ExportInput {
 		// Obsidian injects a plugin's styles.css as a <style> element; find ours
 		// by something only it contains.
 		const pluginCss =
@@ -829,7 +853,7 @@ export class Presentation extends Component {
 				.map((el) => el.textContent ?? "")
 				.find((text) => text.includes(".atl-stage") && text.includes(".atl-node")) ?? "";
 
-		await exportDeck(this.app, {
+		return {
 			title: this.file.basename,
 			stage: this.stage,
 			css: `${pluginCss}
@@ -847,7 +871,17 @@ ${this.themeCss}`,
 					label: stop.kind === "group" ? stop.node.label ?? "" : "",
 				};
 			}),
-		});
+		};
+	}
+
+	async exportToHtml(): Promise<void> {
+		new Notice("Atlas: exporting…");
+		await exportDeck(this.app, this.exportInput());
+	}
+
+	/** The exported document itself, for a preview that writes no file. */
+	async buildHtml(): Promise<string> {
+		return (await buildDeckHtml(this.app, this.exportInput())).html;
 	}
 
 	// ---- what a presenter window is allowed to know and do ----------------

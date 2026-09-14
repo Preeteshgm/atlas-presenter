@@ -1698,3 +1698,38 @@ settings:
 }
 
 .atl-notice-btn:hover { background: var(--interactive-accent-hover); }
+
+/* ---- the export preview -------------------------------------------------- */
+
+.atl-preview { display: flex; flex-direction: column; height: 100%; padding: 0; }
+
+.atl-preview-bar {
+	display: flex;
+	align-items: center;
+	gap: 12px;
+	padding: 8px 12px;
+	border-bottom: 1px solid var(--background-modifier-border);
+	flex: 0 0 auto;
+}
+
+.atl-preview-status { font-size: 0.85em; color: var(--text-muted); }
+
+.atl-preview-frame {
+	flex: 1 1 auto;
+	width: 100%;
+	border: 0;
+	background: var(--background-primary);
+}
+
+/* Laid out at a real size, off the screen. The cards measure themselves with
+   container queries, so a host with no width renders every one of them wrong —
+   display:none would be worse than useless here. */
+.atl-preview-host {
+	position: fixed;
+	left: -20000px;
+	top: 0;
+	width: 1600px;
+	height: 900px;
+	pointer-events: none;
+	opacity: 0;
+}

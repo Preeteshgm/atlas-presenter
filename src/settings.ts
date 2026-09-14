@@ -1009,10 +1009,17 @@ The conclusion.`);
 		);
 		entry(
 			screens,
+			"Preview the export",
+			"Opens the exported deck, running, in a tab beside the canvas. Press Refresh " +
+				"after editing and it rebuilds. Nothing is written to the vault — this is " +
+				"for seeing what the person you send the file to will actually get."
+		);
+		entry(
+			screens,
 			"Export to HTML",
-			"Only while a deck is running; the same as pressing E. Writes one standalone " +
-				"file to the vault root. Edit the canvas, present and export again, and " +
-				"the same file is overwritten — refresh the browser tab to see the change."
+			"Writes one standalone file to the vault root — the same as pressing E while " +
+				"presenting, but it no longer needs a deck running. Export again and the " +
+				"same file is overwritten — refresh the browser tab to see the change."
 		);
 
 		screens.createDiv({

@@ -6,6 +6,7 @@ import { variantsIn } from "./canvas/path";
 import { VariantPicker } from "./variant-picker";
 import { PRESENTER_VIEW, PresenterView } from "./present/presenter";
 import { DECK_VIEW, DeckView } from "./present/deck-window";
+import { PREVIEW_VIEW, PreviewView, openPreview } from "./present/preview";
 import { AtlasSettingTab } from "./settings";
 
 /**
@@ -32,6 +33,7 @@ export default class AtlasPlugin extends Plugin {
 		addIcon(ICON_ID, ICON_SVG);
 		this.registerView(PRESENTER_VIEW, (leaf) => new PresenterView(leaf));
 		this.registerView(DECK_VIEW, (leaf) => new DeckView(leaf));
+		this.registerView(PREVIEW_VIEW, (leaf) => new PreviewView(leaf, () => this.settings));
 
 		this.addCommand({
 			id: "present-canvas",
@@ -100,11 +102,29 @@ export default class AtlasPlugin extends Plugin {
 		});
 
 		this.addCommand({
+			id: "preview-export",
+			name: "Preview the export",
+			checkCallback: (checking: boolean) => {
+				const file = this.app.workspace.getActiveFile();
+				if (!file || file.extension !== "canvas") return false;
+				if (!checking) void openPreview(this.app, file);
+				return true;
+			},
+		});
+
+		// Works with or without a deck running. Having to present a canvas
+		// before you could export it made the obvious loop — edit, export,
+		// look — into three steps instead of one.
+		this.addCommand({
 			id: "export-deck",
 			name: "Export to HTML",
 			checkCallback: (checking: boolean) => {
-				if (!this.active) return false;
-				if (!checking) void this.active.exportToHtml();
+				const file = this.app.workspace.getActiveFile();
+				if (!this.active && file?.extension !== "canvas") return false;
+				if (!checking) {
+					if (this.active) void this.active.exportToHtml();
+					else if (file) void this.exportCanvas(file);
+				}
 				return true;
 			},
 		});
@@ -123,6 +143,12 @@ export default class AtlasPlugin extends Plugin {
 						.setTitle("Present with Atlas")
 						.setIcon(ICON_ID)
 						.onClick(() => void this.present(file))
+				);
+				menu.addItem((item) =>
+					item
+						.setTitle("Preview the Atlas export")
+						.setIcon(ICON_ID)
+						.onClick(() => void openPreview(this.app, file))
 				);
 				menu.addItem((item) =>
 					item
@@ -240,6 +266,29 @@ export default class AtlasPlugin extends Plugin {
 			new Notice(`Atlas: ${String(e)}`);
 			show.stop();
 			this.active = null;
+		}
+	}
+
+	/**
+	 * Export a canvas without presenting it.
+	 *
+	 * The deck is rendered off to one side — laid out at a real size, because
+	 * the cards measure themselves — written out, and thrown away.
+	 */
+	private async exportCanvas(file: TFile): Promise<void> {
+		new Notice("Atlas: exporting…");
+		const host = document.body.createDiv({ cls: "atl-preview-host" });
+		const deck = new Presentation(this.app, file, this.settings);
+		this.addChild(deck);
+		try {
+			if (await deck.startHeadless(host)) await deck.exportToHtml();
+			else new Notice("Atlas: this canvas has no cards to export.");
+		} catch (e) {
+			new Notice(`Atlas: could not export — ${String(e)}`);
+		} finally {
+			deck.stop();
+			this.removeChild(deck);
+			host.remove();
 		}
 	}
 

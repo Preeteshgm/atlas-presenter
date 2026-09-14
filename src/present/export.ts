@@ -365,7 +365,17 @@ function reveal(app: App, path: string, inlined: number): void {
 	});
 }
 
-export async function exportDeck(app: App, input: ExportInput): Promise<string | null> {
+/**
+ * The whole exported document, as a string.
+ *
+ * Separate from writing it, because the preview shows this same HTML in an
+ * iframe with no file existing at all — and a preview that built something
+ * different from the export would be worth nothing.
+ */
+export async function buildDeckHtml(
+	app: App,
+	input: ExportInput
+): Promise<{ html: string; inlined: number }> {
 	const clone = input.stage.cloneNode(true) as HTMLElement;
 	flattenShadows(input.stage, clone);
 	const inlined = await inlineMedia(app, clone);
@@ -439,10 +449,16 @@ ${input.css}
 </html>`;
 
 	const stageHtml = clone.innerHTML;
-	const out = html
-		.replace('<div id="stage"></div>', `<div id="stage">${stageHtml}</div>`)
-		.replace("__PRINT__", printPages(clone, input.stops.filter((s) => !s.label)));
+	return {
+		inlined,
+		html: html
+			.replace('<div id="stage"></div>', `<div id="stage">${stageHtml}</div>`)
+			.replace("__PRINT__", printPages(clone, input.stops.filter((s) => !s.label))),
+	};
+}
 
+export async function exportDeck(app: App, input: ExportInput): Promise<string | null> {
+	const { html: out, inlined } = await buildDeckHtml(app, input);
 	const folder = input.title.replace(/[\\/:*?"<>|]/g, "-");
 	const path = normalizePath(`${folder} — deck.html`);
 	try {
