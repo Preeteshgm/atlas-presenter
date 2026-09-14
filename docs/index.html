@@ -222,6 +222,7 @@
 		<div class="grp">Writing cards</div>
 		<a href="#markdown">Markdown and reveals</a>
 		<a href="#pictures">Pictures</a>
+		<a href="#media">Sound, video and the web</a>
 		<a href="#roles">Card roles</a>
 		<a href="#layouts">Placed layouts</a>
 		<a href="#tables">Tables and lists</a>
@@ -477,6 +478,41 @@ Because option A needs a survey we do not have.
 		<b>Put pictures inside a card, not on their own.</b> A media card is named by
 		its filename, which is fine when you chose it and poor when a camera did. A
 		picture in a card with a heading gets a name you chose and a caption for free.
+	</p>
+</div>
+
+<h2 id="media">Sound, video and the web</h2>
+
+<p>
+	A sound file on a card is given a face rather than a 40px player adrift in the
+	middle of a slide: its name, how long it runs, and bars that move only while it
+	is playing. Better still, put it <i>inside</i> a card — then you choose the
+	heading and have room to say why anyone is listening.
+</p>
+
+<pre><code>## The site call, 3 March
+
+The bit about the shutdown window starts around 40 seconds.
+
+![[call-3-march.wav]]</code></pre>
+
+<p>
+	Video plays on a card the same way. <code>.mp4</code> (H.264) and
+	<code>.webm</code> work; <code>.mov</code> and <code>.mkv</code> usually do not
+	— Chromium cannot decode those containers, so you get a black rectangle with
+	working controls. The file is fine; re-wrap it. A voice memo saved as
+	<code>.webm</code> has no picture at all, and Atlas shows it as a bar once the
+	metadata says so.
+</p>
+
+<div class="note">
+	<p>
+		<b>A link to the web opens over the deck</b>, not in your browser. Obsidian
+		would hand it to the system browser, leaving the talk behind a window you then
+		have to find your way back from, in front of a room. <kbd>Esc</kbd> closes it.
+		The bar carries the address and a way out to a real browser — always there,
+		because a site that refuses to be shown inside another page says so in a
+		header whose effect cannot be seen from inside.
 	</p>
 </div>
 

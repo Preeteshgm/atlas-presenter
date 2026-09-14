@@ -14,27 +14,31 @@ and come back.
 
 ## Install
 
-### Into a vault on this machine
+### From the community store
 
-```powershell
-npm install
-npm run vaults                       # lists the vaults Obsidian knows about
-npm run install:vault                # builds, then installs
-npm run install:vault -- -WithDemo   # and copies the demo decks in
-```
+Once Atlas is listed: **Settings → Community plugins → Browse**, search
+*Atlas Presenter*, Install, Enable. Nothing else to do.
 
-The script reads Obsidian's own vault list, so you rarely type a path. Then enable
-**Atlas** in **Settings → Community plugins**.
+### With BRAT, before then
 
-### From a release
+Install the **BRAT** community plugin, choose *Add a beta plugin for testing*,
+and paste `Preeteshgm/atlas-presenter`. BRAT keeps it up to date as releases are
+tagged.
 
-Download `atlas-presenter-x.y.z.zip`, unzip into `<vault>/.obsidian/plugins/`. You
-should end up with `<vault>/.obsidian/plugins/atlas-presenter/main.js`.
+### By hand
 
-### With BRAT
+Download `main.js`, `manifest.json` and `styles.css` from the
+[latest release](https://github.com/Preeteshgm/atlas-presenter/releases/latest)
+into `<your vault>/.obsidian/plugins/atlas-presenter/`, then enable **Atlas
+Presenter** under Settings → Community plugins.
 
-Install **BRAT**, then *Add a beta plugin for testing* and paste this repo's URL.
-Tags must be bare version numbers (`0.1.0`, never `v0.1.0`).
+After any of these, reload Obsidian with `Ctrl`/`Cmd`+`R` — a plugin already in
+memory does not pick up new files on its own.
+
+### The demo decks
+
+The six canvases this README refers to are in `demo/Atlas/`. Copy that folder
+into your vault to follow along; **`6 · A full talk`** is the one to present.
 
 ---
 
@@ -189,6 +193,26 @@ Three layouts, all taking the same markup:
 
 A slide show has dots, arrows, swipe (any direction) and five transitions. `→`
 steps through it before leaving the card.
+
+### Sound, video and the web
+
+A sound file on a card gets a face rather than a 40px player adrift in the
+middle of a slide: its name, how long it runs, and bars that move only while it
+is playing. Putting it *inside* a card is usually better — you choose the
+heading, and you have room to say why anyone is listening.
+
+Video plays the same way. `.mp4` (H.264) and `.webm` work; `.mov` and `.mkv`
+usually do not, because Chromium cannot decode those containers — you get a
+black rectangle with working controls, and the fix is to re-wrap the file. A
+voice memo saved as `.webm` has no picture, and shows as a bar once its metadata
+says so.
+
+**A link to the web opens over the deck**, not in your browser. Obsidian would
+hand it to the system browser, which leaves the talk behind a window you then
+have to find your way back from, in front of a room. `Esc` closes it, and the
+bar carries the address and a way out to a real browser — always there, because
+a site that refuses to be framed says so in a header we cannot see the effect of
+from inside.
 
 ### Styling hooks, with no CSS in the card
 
