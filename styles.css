@@ -1672,9 +1672,21 @@ settings:
 
 /* ---- the deck in a window of its own ------------------------------------ */
 
-/* The view draws nothing: the overlay is `position: fixed`, so it covers this
-   window whole, which is what a projector wants. */
-.atl-deck-host { padding: 0; }
+/* The deck is an overlay built inside this tab, so the tab has to be something
+   an absolutely-positioned child can fill. */
+.atl-deck-host {
+	padding: 0;
+	position: relative;
+	overflow: hidden;
+}
+
+/* Fixed would cover the whole window, sidebar and tab bar included — right for
+   a deck that owns its window, wrong for one that is a tab among tabs. Dragging
+   the tab out gives it the window anyway, and then the two are the same thing. */
+.atl-overlay.is-embedded {
+	position: absolute;
+	z-index: 0;
+}
 
 /* ---- a notice you can act on -------------------------------------------- */
 

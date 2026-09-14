@@ -329,11 +329,11 @@ The conclusion.`);
 	entry(
 		screens,
 		"Present",
-		"The only one you need. The deck opens in a window of its own \u2014 drag it " +
-			"wherever you want it and press F. Obsidian is left as it was, so the " +
-			"canvas, your notes and the presenter panel are all still in front of you, " +
-			"and speaker notes come off the deck because the deck is what the room " +
-			"sees. It starts on the card selected in the canvas, or at the beginning."
+		"The only one you need. The deck opens in a tab of its own, starting on the " +
+			"card selected in the canvas. Drag that tab out to a window and put it on " +
+			"whichever screen you like, then press F. Everything Obsidian opens \u2014 the " +
+			"presenter panel, the graph, a peeked note \u2014 lands beside it, because a " +
+			"tab is an ordinary leaf."
 	);
 	entry(
 		screens,

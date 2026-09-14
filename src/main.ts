@@ -249,13 +249,12 @@ export default class AtlasPlugin extends Plugin {
 		};
 		this.addChild(show);
 		try {
-			// Always its own window: a deck that takes over the window you work in
-			// leaves you with nothing to work in, and the presenter panel nowhere
-			// to live. Before start(), because the deck is built into whichever
-			// window it is given — and a window that will not open is not a reason
-			// to abandon the talk, so say so and present in place.
-			if (!(await show.useOwnWindow())) {
-				new Notice("Atlas: could not open a window; presenting here instead.");
+			// A tab of its own, before start(), because the deck is built inside
+			// whichever container it is given. Drag that tab to another screen and
+			// it takes the deck with it. A tab that will not open is not a reason
+			// to abandon the talk: say so and present over this window instead.
+			if (!(await show.useTab())) {
+				new Notice("Atlas: could not open a tab; presenting over this window.");
 			}
 			await show.start();
 		} catch (e) {

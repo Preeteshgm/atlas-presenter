@@ -70,7 +70,7 @@
 		{
 			"id": "s-screens",
 			"type": "text",
-			"text": "#two\n# A window of its own\n---\nRun **Present**. The deck always opens in a **separate window** — drag it\nwherever you want it, the projector or just to one side, and press `F`.\n\nObsidian is left exactly as it was.\n---\n## The presenter panel\n\nOpens itself in the sidebar: the card's `%%notes%%`, the clock, what is\ncoming, and a box to write a remark in.\n\nSpeaker notes are never on the deck. The deck is what the room sees.",
+			"text": "#two\n# A tab of its own\n---\nRun **Present**. The deck opens in its own **tab**.\n\nLike any Obsidian tab, **drag it out to a window** and put that window on\nwhichever screen you like — then press `F`.\n\nLeave it where it is and it is a tab you can switch away from.\n---\n## Everything lands beside it\n\nA tab is an ordinary leaf, which is the point. The presenter panel opens\nitself in the sidebar, `G` steps aside for the graph and offers a way back,\n`N` puts the cursor in the panel's note box.\n\nSpeaker notes are never on the deck. The deck is what the room sees.",
 			"x": 0,
 			"y": 1700,
 			"width": 1280,

@@ -67,16 +67,16 @@ control inside a card never advances the slide.
 
 ### Where the deck opens
 
-**Always in a window of its own.** Drag it wherever you want it — the projector,
-your second screen, or just to one side of this one — and press `F` for
-fullscreen.
+**In a tab of its own.** Like any Obsidian tab, you can **drag it out to a
+window** and put that window on whichever screen you like — then press `F` for
+fullscreen. Leave it where it is and it is simply a tab you can switch away from.
 
-Obsidian is left exactly as it was. The canvas, your notes and the presenter
-panel are all still in front of you while the talk runs, and speaker notes come
-off the deck because the deck is now what the room sees. `G` opens the vault
-graph on *your* screen while the deck goes on showing the card.
+A tab is an ordinary leaf, which is the point: everything Obsidian opens lands
+beside it rather than somewhere you cannot see. The presenter panel opens itself
+in the sidebar, `G` steps the deck aside for the real graph view and offers a way
+back, and `N` puts the cursor straight in the panel's note box.
 
-Closing that window ends the talk, and so does **Stop presenting** from here.
+Closing the tab ends the talk, and so does **Stop presenting**.
 
 ### Starting and stopping with a key
 

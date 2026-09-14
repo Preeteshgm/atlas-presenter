@@ -72,8 +72,8 @@ export class Presentation extends Component {
 	private doc: Document = document;
 	private win: Window = window;
 	private deckLeaf: WorkspaceLeaf | null = null;
-	/** True while the deck has a window to itself. */
-	private windowed = false;
+	/** The tab's own container, which the overlay is built inside. */
+	private host: HTMLElement | null = null;
 	/**
 	 * Built to be read, not driven.
 	 *
@@ -178,7 +178,7 @@ export class Presentation extends Component {
 			return;
 		}
 		setDeck(this);
-		if (this.windowed) await this.openPresenterPanel();
+		await this.openPresenterPanel();
 		this.startAutoAdvance();
 		this.goTo(this.startIndex(), { animate: false });
 		this.bindKeys();
@@ -191,13 +191,10 @@ export class Presentation extends Component {
 			this.startNodeId && opening.node.id === this.startNodeId
 				? `starting on “${titleOf(opening.node)}”`
 				: `${this.cardTotal} cards${talk}`;
-		// In its own window the first thing to do is not to advance: it is to get
-		// the window onto the other screen and make it fill that screen.
 		new Notice(
 			`Atlas · ${where}\n` +
-				(this.windowed
-					? "Drag this window to your other screen, then F for fullscreen · Esc leaves"
-					: "→ advances · O for the overview · M for the map · Esc exits"),
+				"Drag this tab to another screen if you want it there · F fullscreen\n" +
+				"→ advances · O the overview · M the map · Esc leaves",
 			8000
 		);
 	}
@@ -303,7 +300,11 @@ export class Presentation extends Component {
 	}
 
 	private buildChrome(): void {
-		this.overlay = (this.headless ?? this.doc.body).createDiv({ cls: "atl-overlay" });
+		this.overlay = (this.headless ?? this.host ?? this.doc.body).createDiv({
+			cls: "atl-overlay",
+		});
+		// Inside a tab the overlay fills the tab, not the window.
+		if (this.host && !this.headless) this.overlay.addClass("is-embedded");
 		if (this.themeCss) {
 			this.overlay.createEl("style", { text: this.themeCss });
 		}
@@ -878,13 +879,8 @@ export class Presentation extends Component {
 			return;
 		}
 
-		// The graph opens in the main window, on your screen, beside the canvas,
-		// while the deck goes on showing the card. `away` means the deck has
-		// stepped aside, and here it has not — setting it anyway left the key
-		// handler in its away branch, where nothing but Escape does anything, so
-		// one press of G killed M, N, W and the arrows for the rest of the talk.
-		if (this.windowed) return;
-
+		// The graph opens as a tab beside the deck's own, which covers it — so the
+		// deck really has stepped aside, and must say how to come back.
 		this.away = true;
 		this.overlay.addClass("is-away");
 		const bar = this.doc.body.createDiv({ cls: "atl-return" });
@@ -1089,53 +1085,58 @@ ${this.themeCss}`,
 	 * Returns false if the window could not be opened, so the caller can fall
 	 * back to presenting in place rather than not presenting at all.
 	 */
-	async useOwnWindow(): Promise<boolean> {
+	async useTab(): Promise<boolean> {
 		try {
-			const leaf = this.app.workspace.openPopoutLeaf();
+			const leaf = this.app.workspace.getLeaf(true);
 			await leaf.setViewState({ type: DECK_VIEW, active: true });
-
-			// Deliberately not an `instanceof DeckView` test. Obsidian may hand
-			// back a deferred stand-in for a view it has not rendered yet, and
-			// failing on that would mean the second attempt at presenting
-			// silently fell back to the main window. What actually matters is
-			// that this is a *different* document from the one we are in.
-			const doc = leaf.view.containerEl.ownerDocument;
-			const win = doc.defaultView;
-			if (!win || doc === document) {
+			const view = leaf.view;
+			const doc = view.containerEl.ownerDocument;
+			if (!doc.defaultView) {
 				leaf.detach();
 				return false;
 			}
 
 			this.deckLeaf = leaf;
+			this.host = (view as unknown as { contentEl: HTMLElement }).contentEl;
 			this.doc = doc;
-			this.win = win;
-			this.windowed = true;
+			this.win = doc.defaultView;
 
-			// Closing the window by hand is a way of ending the talk, and must
-			// end it properly — the write-up included. The view hook is the
-			// clean way; `pagehide` catches the window going with the view
-			// deferred, so the deck can never be left running with no screen.
-			if (leaf.view instanceof DeckView) {
-				leaf.view.onWindowClose = () => {
+			// Closing the tab is a way of ending the talk, and must end it
+			// properly — the write-up included.
+			if (view instanceof DeckView) {
+				view.onWindowClose = () => {
 					this.deckLeaf = null;
 					this.stop();
 				};
 			}
-			this.win.addEventListener(
-				"pagehide",
-				() => {
-					this.deckLeaf = null;
-					this.stop();
-				},
-				{ once: true }
-			);
+
+			// Dragging the tab into a window of its own moves the DOM, and the
+			// keys are bound to a document that is then the wrong one. Nothing
+			// announces that, so it is noticed here instead.
+			this.registerEvent(this.app.workspace.on("layout-change", () => this.followTab()));
 			return true;
 		} catch {
 			return false;
 		}
 	}
 
-	/** Obsidian restores its own windows, so leave the leaf alone on unload. */
+	/** Re-aim the keyboard and the camera at whichever window the tab is in. */
+	private followTab(): void {
+		const view = this.deckLeaf?.view;
+		if (!view) return;
+		const doc = view.containerEl.ownerDocument;
+		if (doc === this.doc || !doc.defaultView) return;
+
+		if (this.onKey) this.doc.removeEventListener("keydown", this.onKey, true);
+		if (this.onResize) this.win.removeEventListener("resize", this.onResize);
+		this.doc = doc;
+		this.win = doc.defaultView;
+		if (this.onKey) this.doc.addEventListener("keydown", this.onKey, true);
+		if (this.onResize) this.win.addEventListener("resize", this.onResize);
+		this.goTo(this.index, { animate: false });
+	}
+
+	/** Obsidian restores its own leaves, so leave this one alone on unload. */
 	private closeDeckWindow(unloading: boolean): void {
 		const leaf = this.deckLeaf;
 		this.deckLeaf = null;
@@ -1195,13 +1196,10 @@ ${this.themeCss}`,
 			this.app.workspace.setActiveLeaf(this.presenterLeaf, { focus: true });
 			return;
 		}
-		// With the deck on its own screen the presenter belongs in the sidebar,
-		// which is where it was opened. P should put it back where it was, not
-		// somewhere new.
-		if (this.windowed) {
-			await this.openPresenterPanel();
-			if (this.presenterOpen) return;
-		}
+		// The sidebar first: that is where it opens itself, and where it can be
+		// seen beside the deck without covering it.
+		await this.openPresenterPanel();
+		if (this.presenterOpen) return;
 		try {
 			const leaf = this.app.workspace.openPopoutLeaf();
 			await leaf.setViewState({ type: PRESENTER_VIEW, active: true });
@@ -1261,10 +1259,9 @@ ${this.themeCss}`,
 	}
 
 	private captureNote(): void {
-		// With the deck on its own screen, the note box that is already open in
-		// the sidebar beside your canvas is the right one: a modal would open in
-		// the window you are not looking at.
-		if (this.windowed && this.focusPresenterNote()) return;
+		// The panel's box is already open beside the deck and already holds this
+		// card's note, so there is no reason to put a modal over the slide.
+		if (this.focusPresenterNote()) return;
 
 		const stop = this.stopAt(this.index);
 		const title = titleOf(stop.node);
@@ -1324,9 +1321,6 @@ ${this.themeCss}`,
 			minute: "2-digit",
 		})} \u2014 now`;
 
-		if (this.windowed) {
-			new Notice("Atlas: the write-up opened in the Obsidian window.", 5000);
-		}
 		this.capturing = true;
 		const modal = new ReviewModal(this.app, {
 			title: `${this.file.basename} \u2014 the session so far`,
@@ -1701,7 +1695,7 @@ ${this.themeCss}`,
 			// Asked live, so closing the presenter puts the notes back on the
 			// deck on the next card rather than hiding them for the rest of the
 			// talk. It only ever fails closed: a presenter that is open wins.
-			const elsewhere = this.presenterOpen || this.windowed;
+			const elsewhere = this.presenterOpen;
 			this.notesEl.toggleClass("is-shown", !!text && !elsewhere);
 		}
 

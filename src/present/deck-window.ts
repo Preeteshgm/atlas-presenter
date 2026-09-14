@@ -3,20 +3,24 @@ import { ItemView, WorkspaceLeaf } from "obsidian";
 export const DECK_VIEW = "atlas-deck-view";
 
 /**
- * A window that exists only to hold a deck.
+ * The tab a deck is presented in.
  *
- * The deck itself is an overlay the presentation builds and owns; this view
- * supplies the window to build it in, and tells the presentation when that
- * window is closed by hand. It draws nothing of its own — the overlay is
- * `position: fixed`, so it covers this window whole, which is what a projector
- * wants.
+ * It was a popout window, opened for you. That put the deck somewhere Obsidian
+ * itself could not follow: a modal belongs to the main window, and so does a
+ * notice, and a new leaf opens in whichever window is focused — so pressing G
+ * built the graph inside the deck's own window, behind a full-screen overlay,
+ * where nothing could be seen of it.
  *
- * Splitting it this way is what lets the canvas stay on the first screen: the
- * main Obsidian window is never touched, so the map, your notes and the minutes
- * are all still there while the talk runs on the second.
+ * A tab is an ordinary leaf. Everything Obsidian opens lands beside it, the
+ * keys and the modals are in one place, and you can drag it out to a window of
+ * its own and onto whichever screen you like — which is the same thing the
+ * popout gave you, chosen by you rather than for you.
+ *
+ * The view draws nothing itself: the deck is an overlay the presentation builds
+ * inside it. This supplies the container, and says when the tab is closed.
  */
 export class DeckView extends ItemView {
-	/** Set by the presentation, so closing the window stops the deck. */
+	/** Set by the presentation, so closing the tab stops the deck. */
 	onWindowClose: (() => void) | null = null;
 
 	constructor(leaf: WorkspaceLeaf) {
@@ -39,11 +43,9 @@ export class DeckView extends ItemView {
 		this.contentEl.empty();
 		this.contentEl.addClass("atl-deck-host");
 
-		// As far as Chromium is concerned this is a plain window, and Ctrl+P in
-		// a plain window raises a print dialog — on the projector, over a live
-		// talk. The deck swallows it too, but only while it is running: this
-		// covers the window itself, including the moment after a deck has
-		// stopped and the window is still up.
+		// Chromium prints on Ctrl+P, and a print dialog over a live talk is a
+		// disaster. The deck swallows it too, but only while it is running: this
+		// covers the tab itself, including a window it has been dragged into.
 		this.registerDomEvent(
 			this.containerEl.ownerDocument,
 			"keydown",
