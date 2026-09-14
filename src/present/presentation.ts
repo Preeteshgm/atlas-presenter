@@ -514,6 +514,22 @@ export class Presentation extends Component {
 			// here would either steal the keystroke or let it through to the deck.
 			if (this.capturing || this.child) return;
 
+			// Anything being typed into belongs to whatever is being typed into.
+			//
+			// This listens on the document in the capture phase, so that the
+			// arrows never reach the canvas behind the deck — which also means it
+			// runs before the thing you are typing in and cannot be stopped by
+			// it. The presenter panel's note box is in this same document, so
+			// writing a remark was driving the deck: m opened the map, b blanked
+			// the screen, space advanced the talk. Asking what the event is for
+			// is the only guard that works from up here.
+			if (
+				isElement(e.target) &&
+				e.target.closest("input, textarea, select, [contenteditable='true'], .cm-editor")
+			) {
+				return;
+			}
+
 			// Browsing, not presenting: the arrows move the pick through the deck
 			// and the camera follows at the same zoom. Nothing here moves the
 			// talk on — you are looking for a card, and the deck stays where it
@@ -559,12 +575,9 @@ export class Presentation extends Component {
 
 			if (this.steppedAside) {
 				// While the deck has stepped aside you are using Obsidian: the
-				// graph, or a note you opened from it. Escape belongs to whatever
-				// you are typing in before it belongs to us.
-				const typing = (e.target as HTMLElement | null)?.closest(
-					"input, textarea, [contenteditable='true'], .cm-editor"
-				);
-				if (key === "Escape" && !typing) {
+				// graph, or a note you opened from it. Anything you are typing in
+				// has already been let through above.
+				if (key === "Escape") {
 					handled();
 					this.closeVaultGraph();
 				}
