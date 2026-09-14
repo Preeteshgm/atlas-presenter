@@ -1,42 +1,54 @@
-# Where things stand — 11 September 2026
+# Atlas Presenter — state at 0.6.1
 
-Atlas Presenter is feature-complete against everything we listed this morning.
-Working tree clean, `npm run check` passes, pushed to
-[Preeteshgm/atlas-presenter](https://github.com/Preeteshgm/atlas-presenter).
+Feature-complete against everything planned. All four audits clean, lint and
+type-check pass, 32 commits, 15 releases, CI green.
+[Preeteshgm/atlas-presenter](https://github.com/Preeteshgm/atlas-presenter)
 
-## Built today
+## Built
 
 | | |
 |---|---|
-| Path variants | `#skip-exec` / `#only-exec`; **Present this canvas as…**; `variant:` default |
-| HTML export | **`E`** — one file, media inlined, opens anywhere |
-| Presenter window | **`P`** — second screen: notes, clock, next card, Back/Next |
-| Note capture | **`N`** — a note against the card on screen, in a Modal so typing cannot leak |
-| Minutes | Leaving writes up the session; **`W`** writes without leaving |
-| Blank screen | **`B`** |
-| Auto-advance | `advance: 8s` on the `#deck` card |
-| Excalidraw | Drawings render as drawings |
+| The deck | A camera over the canvas; edges are the order, groups are sections |
+| `M` | The map of this canvas — jump anywhere, `Backspace` home |
+| `G` | Obsidian's own graph view of the vault, with a way back |
+| Peek | Click a wikilink and read the note over the deck |
+| Cards | Markdown, `+++` reveals, `%%notes%%`, three picture layouts, HTML cards with live scripts, Excalidraw drawings |
+| `#deck` card | Per-canvas header, theme, logo, transition, variant, auto-advance |
+| Themes | Eight card roles; Paper, Slate and Plain |
+| Variants | `#skip-x` / `#only-x` — one map, several talks |
+| Sub-decks | A `.canvas` card drawn to scale; `Enter` presents it |
+| `E` | Export to one standalone HTML file; print it for PDF |
+| `P` | Presenter window on a second screen |
+| `N` / `W` | Remark against a card; review the session and write it up |
+| `B`, timer, rail | Blank the screen, elapsed and clock, progress |
 
-## Genuinely left
+## Left
 
-1. **Nested canvases as sub-decks.** A `.canvas` card is still a signpost. `M`
-   already reaches any card, so this buys less than it looks.
-2. **PDF.** Deliberately skipped — printing flattens the camera. Print the
-   exported HTML if paper is needed.
-3. **Runtime testing.** Lint, type-check and the audit scripts pass; none of it
-   has been watched running except by Preetesh. This is the real gap.
+1. **Runtime testing.** Everything here is verified by lint, type-check and four
+   audit scripts. They have never caught a *wrong interaction* — the invisible
+   remark, the vanishing minutes, the caption-sized title and the scripts that
+   silently did nothing were all found by presenting. That is still the only way.
+2. **Community store submission.** Everything the review checks is in place. It
+   needs you to submit through the developer dashboard.
 
-## Before submitting to the community store
+## For the submission
 
-- `authorUrl` is set. `fundingUrl` is not, if that is ever wanted.
-- The review flags `innerHTML`. The defence: HTML cards are the feature, and
-  script execution is **off by default**.
-- Walk the five demo decks end to end first.
+- Public repo, MIT, `authorUrl` set, `versions.json` in step with the manifest.
+- No default hotkey; Vault API over Adapter API; leaves untouched on unload.
+- **Expect `innerHTML` to be flagged.** The answer: HTML cards are the feature,
+  they render into a shadow root, and **script execution is off by default**.
+- `isDesktopOnly: false` is accurate — no Node or Electron APIs are used — but
+  Atlas has never been run on mobile. The popout window will not open there; it
+  is caught and reported rather than breaking.
 
 ## Scripts
 
 ```
-npm run check          lint + type-check
+npm run check                     lint + type-check
+npm run audit                     all four sweeps
 npm run install:vault -- -WithDemo
-npm version patch && git push --follow-tags     cuts a release
 ```
+
+Releasing: bump `package.json`, `manifest.json` and `versions.json` together,
+commit, tag with the bare version (`0.6.2`, never `v0.6.2`), push the tag. CI
+lints, verifies the tag matches the manifest, builds and attaches the assets.
