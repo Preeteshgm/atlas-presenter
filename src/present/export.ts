@@ -800,12 +800,15 @@ function printPages(clone: HTMLElement, stops: ExportInput["stops"]): string {
 		const card = clone.querySelector<HTMLElement>(`[data-node-id="${stop.nodeId}"]`);
 		if (!card) continue;
 		const page = card.cloneNode(true) as HTMLElement;
-		// On a page a card is the page, not a rectangle on a plane.
-		page.style.position = "static";
-		page.style.left = "";
-		page.style.top = "";
-		page.style.width = "100%";
-		page.style.height = `${(stop.height / stop.width) * 100}%`;
+		// On a page a card is the page, not a rectangle on a plane. Its height
+		// comes from its own proportions, so this is arithmetic, not a class.
+		page.setCssStyles({
+			position: "static",
+			left: "",
+			top: "",
+			width: "100%",
+			height: `${(stop.height / stop.width) * 100}%`,
+		});
 		page.addClass("is-active");
 		// A page cannot be pressed through, so everything on the card has to be
 		// there at once: a reveal is invisible until something shows it, and a

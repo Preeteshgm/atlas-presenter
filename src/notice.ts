@@ -34,7 +34,7 @@ export function fail(what: string, e?: unknown): Notice {
  */
 export function offer(build: (el: HTMLElement, close: () => void) => void, ms = 12000): void {
 	const notice = new Notice("", ms);
-	const el = notice.noticeEl;
+	const el = notice.messageEl;
 	el.empty();
 	el.addClass("atl-notice");
 	build(el, () => notice.hide());

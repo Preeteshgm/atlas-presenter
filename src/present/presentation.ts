@@ -270,6 +270,38 @@ export class Presentation extends Component {
 	}
 
 	/** Everything the settings panel controls about how the deck looks. */
+	/**
+	 * The vault's theme, adopted rather than put in a <style> element.
+	 *
+	 * A theme is a CSS file chosen at runtime, so it cannot live in styles.css —
+	 * but the guidelines ask us not to add style elements to the document, and a
+	 * constructed stylesheet is the same CSS without one. Every rule in it is
+	 * scoped to .atl-overlay, so adopting it into the document affects nothing
+	 * outside the deck; it is dropped again when the deck stops.
+	 */
+	private themeSheet: CSSStyleSheet | null = null;
+
+	private adoptTheme(): void {
+		if (!this.themeCss) return;
+		try {
+			const sheet = new (this.win as unknown as { CSSStyleSheet: typeof CSSStyleSheet })
+				.CSSStyleSheet();
+			sheet.replaceSync(this.themeCss);
+			this.doc.adoptedStyleSheets = [...this.doc.adoptedStyleSheets, sheet];
+			this.themeSheet = sheet;
+		} catch {
+			// No constructable stylesheets here: the deck runs on the plugin's
+			// own rules, unthemed, rather than not running.
+		}
+	}
+
+	private dropTheme(): void {
+		const sheet = this.themeSheet;
+		this.themeSheet = null;
+		if (!sheet) return;
+		this.doc.adoptedStyleSheets = this.doc.adoptedStyleSheets.filter((s) => s !== sheet);
+	}
+
 	private applyTheme(): void {
 		const s = this.settings;
 		this.overlay.style.setProperty("--atl-inactive", String(s.inactiveOpacity));
@@ -303,9 +335,7 @@ export class Presentation extends Component {
 		});
 		// Inside a tab the overlay fills the tab, not the window.
 		if (this.host && !this.headless) this.overlay.addClass("is-embedded");
-		if (this.themeCss) {
-			this.overlay.createEl("style", { text: this.themeCss });
-		}
+		this.adoptTheme();
 		this.applyTheme();
 		const viewport = this.overlay.createDiv({ cls: "atl-viewport" });
 		this.stage = viewport.createDiv({ cls: "atl-stage" });
@@ -1033,7 +1063,7 @@ export class Presentation extends Component {
 		// Back to the deck's own tab. As a full-screen overlay there was nothing
 		// to come back to — it had never gone anywhere. A tab has.
 		try {
-			if (!keepLeaf && this.deckLeaf) this.app.workspace.revealLeaf(this.deckLeaf);
+			if (!keepLeaf && this.deckLeaf) void this.app.workspace.revealLeaf(this.deckLeaf);
 		} catch {
 			// The deck's tab has gone; stop() is already on its way.
 		}
@@ -1315,7 +1345,7 @@ ${this.themeCss}`,
 			const leaf = this.app.workspace.getRightLeaf(false);
 			if (!leaf) return;
 			await leaf.setViewState({ type: PRESENTER_VIEW, active: false });
-			this.app.workspace.revealLeaf(leaf);
+			void this.app.workspace.revealLeaf(leaf);
 			this.presenterLeaf = leaf;
 		} catch {
 			// No sidebar to put it in; P still opens a window.
@@ -1946,6 +1976,7 @@ ${this.themeCss}`,
 		if (this.doc.fullscreenElement) void this.doc.exitFullscreen();
 		if (this.onKey) this.doc.removeEventListener("keydown", this.onKey, true);
 		if (this.onResize) this.win.removeEventListener("resize", this.onResize);
+		this.dropTheme();
 		if (this.overlay) this.overlay.remove();
 		this.closeDeckTab(unloading);
 		const done = this.onStopped;

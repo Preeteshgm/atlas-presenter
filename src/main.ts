@@ -15,7 +15,10 @@ export default class AtlasPlugin extends Plugin {
 	private active: Presentation | null = null;
 
 	async onload(): Promise<void> {
-		this.settings = Object.assign({}, DEFAULT_SETTINGS, await this.loadData());
+		// loadData() is untyped, so the shape is asserted once, here, rather than
+		// letting an `any` spread through every setting read.
+		const saved = ((await this.loadData()) ?? {}) as Partial<AtlasSettings>;
+		this.settings = { ...DEFAULT_SETTINGS, ...saved };
 		registerIcons();
 		this.registerView(PRESENTER_VIEW, (leaf) => new PresenterView(leaf));
 		this.registerView(DECK_VIEW, (leaf) => new DeckView(leaf));
@@ -165,6 +168,7 @@ export default class AtlasPlugin extends Plugin {
 						};
 				  })
 				| null;
+
 			const canvas = view?.canvas;
 			if (!canvas) return undefined;
 

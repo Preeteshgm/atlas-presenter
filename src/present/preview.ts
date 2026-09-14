@@ -86,7 +86,7 @@ export class PreviewView extends ItemView {
 	async show(file: TFile): Promise<void> {
 		this.file = file;
 		// The tab renames itself, so two previews are told apart by their decks.
-		this.leaf.setViewState({ type: PREVIEW_VIEW, active: false, state: {} });
+		void this.leaf.setViewState({ type: PREVIEW_VIEW, active: false, state: {} });
 		await this.rebuild();
 	}
 
@@ -205,7 +205,7 @@ export async function openPreview(app: App, file: TFile): Promise<void> {
 	const existing = app.workspace.getLeavesOfType(PREVIEW_VIEW);
 	const leaf = existing[0] ?? app.workspace.getLeaf("split", "vertical");
 	if (!existing[0]) await leaf.setViewState({ type: PREVIEW_VIEW, active: true });
-	app.workspace.revealLeaf(leaf);
+	void app.workspace.revealLeaf(leaf);
 	const view = leaf.view;
 	if (view instanceof PreviewView) await view.show(file);
 }

@@ -86,7 +86,10 @@ for k in keys:
 
 # 6 ── shadow-root cards need their own copy of any rule they use
 shadow = src["src\\present\\render.ts"]
-shadow_block = shadow[shadow.index("reset.textContent"): shadow.index("const wrap =")]
+# The reset used to be assigned to a style element's textContent; it is a
+# constant adopted as a stylesheet now. Anchored on the constant, which is the
+# thing that actually holds the rules.
+shadow_block = shadow[shadow.index("const RESET ="): shadow.index("const win =")]
 for cls in ("atl-step", "atl-frame-item", "atl-slideshow", "atl-gallery", "atl-scroll",
             "atl-show-controls", "atl-show-arrow", "atl-show-dot"):
     if "." + cls not in shadow_block:

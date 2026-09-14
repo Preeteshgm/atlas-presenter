@@ -10,6 +10,9 @@ on:
 
 permissions:
   contents: write
+  # Required by attest-build-provenance.
+  id-token: write
+  attestations: write
 
 jobs:
   release:

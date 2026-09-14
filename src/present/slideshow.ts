@@ -24,7 +24,7 @@ export class Slideshow {
 		// so it filled the width and lost its bottom half.
 		this.frames = (Array.from(root.children) as HTMLElement[]).map((child) => {
 			if (child.tagName !== "IMG" && child.tagName !== "VIDEO") return child;
-			const wrapper = document.createElement("div");
+			const wrapper = createEl("div");
 			child.replaceWith(wrapper);
 			wrapper.appendChild(child);
 			return wrapper;
@@ -104,30 +104,34 @@ export class Slideshow {
 		for (const [i, frame] of this.frames.entries()) {
 			const d = i - this.index;
 			frame.classList.toggle("is-current", d === 0);
-			frame.style.transition = animate ? "" : "none";
+			frame.setCssStyles({ transition: animate ? "" : "none" });
 
+			// Where each frame sits is arithmetic on its distance from the current
+			// one, so it cannot be a class: setCssStyles is how Obsidian asks for
+			// a computed style to be written.
 			switch (this.mode) {
 				case "slide":
 					// A true carousel: every frame keeps its place on a strip and
 					// the strip moves, so direction comes out for free.
-					frame.style.transform = `translateX(${d * 100}%)`;
-					frame.style.opacity = "1";
+					frame.setCssStyles({ transform: `translateX(${d * 100}%)`, opacity: "1" });
 					break;
 				case "slide-up":
-					frame.style.transform = `translateY(${d * 100}%)`;
-					frame.style.opacity = "1";
+					frame.setCssStyles({ transform: `translateY(${d * 100}%)`, opacity: "1" });
 					break;
 				case "zoom":
-					frame.style.transform = d === 0 ? "scale(1)" : "scale(1.06)";
-					frame.style.opacity = d === 0 ? "1" : "0";
+					frame.setCssStyles({
+						transform: d === 0 ? "scale(1)" : "scale(1.06)",
+						opacity: d === 0 ? "1" : "0",
+					});
 					break;
 				case "flip":
-					frame.style.transform = `perspective(1400px) rotateY(${d * 78}deg)`;
-					frame.style.opacity = Math.abs(d) <= 1 ? (d === 0 ? "1" : "0") : "0";
+					frame.setCssStyles({
+						transform: `perspective(1400px) rotateY(${d * 78}deg)`,
+						opacity: Math.abs(d) <= 1 ? (d === 0 ? "1" : "0") : "0",
+					});
 					break;
 				default:
-					frame.style.transform = "none";
-					frame.style.opacity = d === 0 ? "1" : "0";
+					frame.setCssStyles({ transform: "none", opacity: d === 0 ? "1" : "0" });
 			}
 		}
 		this.dots.forEach((dot, i) => dot.toggleClass("is-current", i === this.index));
@@ -135,7 +139,7 @@ export class Slideshow {
 		if (!animate) {
 			// Force the frame to settle before transitions are allowed back.
 			void this.root.offsetHeight;
-			for (const frame of this.frames) frame.style.transition = "";
+			for (const frame of this.frames) frame.setCssStyles({ transition: "" });
 		}
 	}
 

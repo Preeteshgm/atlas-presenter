@@ -1,4 +1,4 @@
-import { App, Notice, PluginSettingTab, Setting, TFile } from "obsidian";
+import { App, Notice, Platform, PluginSettingTab, Setting, TFile } from "obsidian";
 import type AtlasPlugin from "./main";
 import { IMAGE_EXT } from "./media";
 import { renderReference } from "./settings-reference";
@@ -47,7 +47,7 @@ export class AtlasSettingTab extends PluginSettingTab {
 	 */
 	private currentHotkey(commandId: string): string {
 		const symbols: Record<string, string> = {
-			Mod: navigator.platform.startsWith("Mac") ? "Cmd" : "Ctrl",
+			Mod: Platform.isMacOS ? "Cmd" : "Ctrl",
 			Ctrl: "Ctrl",
 			Meta: "Cmd",
 			Alt: "Alt",
@@ -158,7 +158,7 @@ export class AtlasSettingTab extends PluginSettingTab {
 			.setName("Flight duration")
 			.setDesc("How long the camera takes to travel between cards, in milliseconds.")
 			.addSlider((c) =>
-				c.setLimits(0, 2000, 50).setValue(s.duration).setDynamicTooltip().onChange(async (v) => {
+				c.setLimits(0, 2000, 50).setValue(s.duration).onChange(async (v) => {
 					s.duration = v;
 					await this.save();
 				})
@@ -178,7 +178,7 @@ export class AtlasSettingTab extends PluginSettingTab {
 			.setName("Framing padding")
 			.setDesc("Breathing room around a card, as a fraction of its size.")
 			.addSlider((c) =>
-				c.setLimits(0, 0.4, 0.01).setValue(s.padding).setDynamicTooltip().onChange(async (v) => {
+				c.setLimits(0, 0.4, 0.01).setValue(s.padding).onChange(async (v) => {
 					s.padding = v;
 					await this.save();
 				})
@@ -205,7 +205,7 @@ export class AtlasSettingTab extends PluginSettingTab {
 			.setName("Maximum zoom")
 			.setDesc("Stops a small card from filling the screen with enormous text.")
 			.addSlider((c) =>
-				c.setLimits(1, 6, 0.1).setValue(s.maxScale).setDynamicTooltip().onChange(async (v) => {
+				c.setLimits(1, 6, 0.1).setValue(s.maxScale).onChange(async (v) => {
 					s.maxScale = v;
 					await this.save();
 				})
@@ -261,7 +261,7 @@ export class AtlasSettingTab extends PluginSettingTab {
 				.setName("Darken the backdrop")
 				.setDesc("Keeps slide text readable over a busy photograph.")
 				.addSlider((c) =>
-					c.setLimits(0, 0.9, 0.05).setValue(s.backgroundDim).setDynamicTooltip().onChange(
+					c.setLimits(0, 0.9, 0.05).setValue(s.backgroundDim).onChange(
 						async (v) => {
 							s.backgroundDim = v;
 							await this.save();
@@ -304,7 +304,7 @@ export class AtlasSettingTab extends PluginSettingTab {
 			.setName("Off-camera cards")
 			.setDesc("How visible the rest of the map stays behind the current slide. Zero hides it.")
 			.addSlider((c) =>
-				c.setLimits(0, 1, 0.05).setValue(s.inactiveOpacity).setDynamicTooltip().onChange(
+				c.setLimits(0, 1, 0.05).setValue(s.inactiveOpacity).onChange(
 					async (v) => {
 						s.inactiveOpacity = v;
 						await this.save();
@@ -351,7 +351,7 @@ export class AtlasSettingTab extends PluginSettingTab {
 				.setName("Height")
 				.setDesc("In pixels.")
 				.addSlider((c) =>
-					c.setLimits(16, 160, 2).setValue(s.logoHeight).setDynamicTooltip().onChange(
+					c.setLimits(16, 160, 2).setValue(s.logoHeight).onChange(
 						async (v) => {
 							s.logoHeight = v;
 							await this.save();
@@ -362,7 +362,7 @@ export class AtlasSettingTab extends PluginSettingTab {
 			new Setting(containerEl)
 				.setName("Opacity")
 				.addSlider((c) =>
-					c.setLimits(0.1, 1, 0.05).setValue(s.logoOpacity).setDynamicTooltip().onChange(
+					c.setLimits(0.1, 1, 0.05).setValue(s.logoOpacity).onChange(
 						async (v) => {
 							s.logoOpacity = v;
 							await this.save();

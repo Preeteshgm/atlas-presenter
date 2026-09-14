@@ -33,10 +33,11 @@ export function renderReference(containerEl: HTMLElement): void {
 		const box = row.createDiv({ cls: "atl-ref-code" });
 		box.createEl("pre", { text: code });
 		const copy = box.createEl("button", { cls: "atl-ref-copy", text: "Copy" });
-		copy.addEventListener("click", async () => {
-			await navigator.clipboard.writeText(code);
-			copy.setText("Copied");
-			window.setTimeout(() => copy.setText("Copy"), 1200);
+		copy.addEventListener("click", () => {
+			void navigator.clipboard.writeText(code).then(() => {
+				copy.setText("Copied");
+				window.setTimeout(() => copy.setText("Copy"), 1200);
+			});
 		});
 	};
 

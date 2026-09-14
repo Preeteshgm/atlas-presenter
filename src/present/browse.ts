@@ -226,7 +226,7 @@ export class Browser {
 
 	private kick(): void {
 		this.alpha = 1;
-		if (!this.raf) this.raf = requestAnimationFrame(() => this.tick());
+		if (!this.raf) this.raf = window.requestAnimationFrame(() => this.tick());
 	}
 
 	private tick(): void {
@@ -238,7 +238,7 @@ export class Browser {
 			this.alpha *= 0.975;
 		}
 		this.draw();
-		this.raf = requestAnimationFrame(() => this.tick());
+		this.raf = window.requestAnimationFrame(() => this.tick());
 	}
 
 	private step(): void {
