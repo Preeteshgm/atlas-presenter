@@ -400,29 +400,59 @@ const RUNTIME = `
 
   /* O — the whole map, readable, every card clickable. Its counterpart is M,
      the schematic index; this one is the cards themselves. */
-  var overview = false;
-  function frame(r, animate) {
-    var scale = Math.min(
-      view.clientWidth / (r.width * (1 + pad * 2)),
-      view.clientHeight / (r.height * (1 + pad * 2))
-    );
+  var overview = false, picked = 0, pickScale = 1, viewCx = 0, viewCy = 0;
+
+  /* Pan at a scale already chosen, rather than re-deciding it: browsing holds
+     the zoom and only moves. Fitting the whole deck is what M is for, and on a
+     real deck it makes every card too small to read — the opposite of useful
+     when the question is which card it was. */
+  function placeAt(cx, cy, scale, animate) {
     stage.style.transition = animate ? '' : 'none';
     stage.style.transform =
       'translate(' + view.clientWidth / 2 + 'px,' + view.clientHeight / 2 + 'px) ' +
       'scale(' + scale + ') ' +
-      'translate(' + -(r.x + r.width / 2) + 'px,' + -(r.y + r.height / 2) + 'px)';
+      'translate(' + -cx + 'px,' + -cy + 'px)';
+    if (!animate) { void stage.offsetWidth; stage.style.transition = ''; }
+  }
+  function readableScale() {
+    var s = stops[i];
+    return Math.min(view.clientWidth / (s.width * 2.5 * 1.08), max);
+  }
+  function showPick(animate) {
+    var s = stops[picked];
+    var all = stage.querySelectorAll('.atl-node');
+    for (var n = 0; n < all.length; n++) {
+      all[n].classList.toggle('is-picked', all[n].getAttribute('data-node-id') === s.nodeId);
+    }
+    viewCx = s.x + s.width / 2;
+    viewCy = s.y + s.height / 2;
+    placeAt(viewCx, viewCy, pickScale, animate);
+  }
+  function movePick(delta) {
+    var at = picked;
+    for (var n = 0; n < stops.length; n++) {
+      at += delta;
+      if (at < 0 || at >= stops.length) return;
+      if (!stops[at].label) break;
+    }
+    picked = at;
+    showPick(true);
   }
   function openOverview() {
     if (overview) return;
     overview = true;
+    picked = i;
+    pickScale = readableScale();
     view.classList.add('is-overview');
-    frame(bounds(), true);
+    showPick(true);
   }
-  function closeOverview() {
+  function closeOverview(at) {
     if (!overview) return;
     overview = false;
     view.classList.remove('is-overview');
-    paint(true);
+    var all = stage.querySelectorAll('.atl-node');
+    for (var n = 0; n < all.length; n++) all[n].classList.remove('is-picked');
+    if (at === undefined) paint(true); else go(at);
   }
 
   function buildMap() {
@@ -480,12 +510,12 @@ const RUNTIME = `
     /* The overview is a look, not a place. */
     if (overview) {
       e.preventDefault();
-      if (k === 'o' || k === 'O' || k === 'Escape') { closeOverview(); return; }
-      if (['ArrowRight', ' ', 'PageDown', 'ArrowDown'].indexOf(k) > -1) { closeOverview(); advance(); }
-      else if (['ArrowLeft', 'PageUp', 'ArrowUp'].indexOf(k) > -1) { closeOverview(); retreat(); }
-      else if (k === 'Home') { closeOverview(); go(0); }
-      else if (k === 'End') { closeOverview(); go(stops.length - 1); }
-      else if (k === 'm' || k === 'M') { closeOverview(); toggleMap(true); }
+      if (k === 'o' || k === 'O' || k === 'Escape') closeOverview();
+      else if (k === 'Enter' || k === ' ') closeOverview(picked);
+      else if (['ArrowRight', 'PageDown', 'ArrowDown'].indexOf(k) > -1) movePick(1);
+      else if (['ArrowLeft', 'PageUp', 'ArrowUp'].indexOf(k) > -1) movePick(-1);
+      else if (k === 'Home') { picked = 0; showPick(true); }
+      else if (k === 'End') { picked = stops.length - 1; showPick(true); }
       return;
     }
     if (['ArrowRight', ' ', 'PageDown', 'ArrowDown'].indexOf(k) > -1) { e.preventDefault(); advance(); }
@@ -528,18 +558,28 @@ const RUNTIME = `
       for (var n = 0; n < path.length && !id; n++) {
         if (path[n] && path[n].getAttribute) id = path[n].getAttribute('data-node-id');
       }
-      closeOverview();
-      if (id) {
-        for (var k = 0; k < stops.length; k++) if (stops[k].nodeId === id) { go(k); break; }
-      }
+      var at;
+      if (id) for (var k = 0; k < stops.length; k++) if (stops[k].nodeId === id) { at = k; break; }
+      closeOverview(at);
       return;
     }
     if (interactiveHit(e)) return;
     if (e.clientX > window.innerWidth / 3) advance(); else retreat();
   });
   addEventListener('resize', function () {
-    if (overview) frame(bounds(), false); else paint(false);
+    if (overview) showPick(false); else paint(false);
   });
+
+  /* Scrolling is how you move around a map. The camera centre is its own pair
+     of numbers: nudging the stop's own x and y would move the card itself, and
+     the deck would be wrong ever after. */
+  view.addEventListener('wheel', function (e) {
+    if (!overview) return;
+    e.preventDefault();
+    viewCx += (e.shiftKey ? e.deltaY : e.deltaX) / pickScale;
+    viewCy += (e.shiftKey ? 0 : e.deltaY) / pickScale;
+    placeAt(viewCx, viewCy, pickScale, false);
+  }, { passive: false });
 
   /* Every card starts folded, or a reveal would be showing before its turn. */
   var all = stage.querySelectorAll('.atl-node');

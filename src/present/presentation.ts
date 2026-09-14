@@ -404,8 +404,7 @@ export class Presentation extends Component {
 				const card = this.matchInPath(e, "[data-node-id]");
 				const id = card?.dataset.nodeId;
 				const at = id ? this.scene.stops.findIndex((s) => s.node.id === id) : -1;
-				this.closeOverview();
-				if (at >= 0) this.jumpTo(at);
+				this.closeOverview(at >= 0 ? at : undefined);
 				return;
 			}
 			if (this.matchInPath(e, INTERACTIVE)) return;
@@ -493,20 +492,24 @@ export class Presentation extends Component {
 			// here would either steal the keystroke or let it through to the deck.
 			if (this.capturing || this.child) return;
 
-			// The overview is a look, not a place. Escape and O close it; so does
-			// anything that moves, which then does what it was going to do.
-			if (this.overviewing && NAVIGATION.has(key)) {
+			// Browsing, not presenting: the arrows move the pick through the deck
+			// and the camera follows at the same zoom. Nothing here moves the
+			// talk on — you are looking for a card, and the deck stays where it
+			// was until you choose one or give up.
+			if (this.overviewing && (NAVIGATION.has(key) || key === "Enter")) {
 				handled();
-				this.closeOverview();
-				if (key === "Escape" || key === "Backspace") return;
-				if (key === "ArrowRight" || key === " " || key === "PageDown" || key === "ArrowDown") {
-					this.advance();
+				if (key === "Escape" || key === "Backspace") this.closeOverview();
+				else if (key === "Enter" || key === " ") this.closeOverview(this.picked);
+				else if (key === "ArrowRight" || key === "PageDown" || key === "ArrowDown") {
+					this.movePick(1);
 				} else if (key === "ArrowLeft" || key === "PageUp" || key === "ArrowUp") {
-					this.retreat();
+					this.movePick(-1);
 				} else if (key === "Home") {
-					this.goTo(0);
+					this.picked = 0;
+					this.showPick(240);
 				} else if (key === "End") {
-					this.goTo(this.scene.stops.length - 1);
+					this.picked = this.scene.stops.length - 1;
+					this.showPick(240);
 				}
 				return;
 			}
@@ -651,6 +654,26 @@ export class Presentation extends Component {
 		};
 		// Capture phase, so Obsidian's own hotkeys do not steal the arrow keys.
 		this.doc.addEventListener("keydown", this.onKey, true);
+
+		// Scrolling is how you move around a map. Only while browsing: a wheel
+		// during the talk belongs to whatever card is under it.
+		this.overlay.addEventListener(
+			"wheel",
+			(e: WheelEvent) => {
+				if (!this.overviewing) return;
+				e.preventDefault();
+				const now = this.camera.current;
+				void this.camera.moveTo(
+					{
+						cx: now.cx + (e.shiftKey ? e.deltaY : e.deltaX) / now.scale,
+						cy: now.cy + (e.shiftKey ? 0 : e.deltaY) / now.scale,
+						scale: now.scale,
+					},
+					0
+				);
+			},
+			{ passive: false }
+		);
 
 		this.onResize = () => this.goTo(this.index, { animate: false });
 		this.win.addEventListener("resize", this.onResize);
@@ -1310,24 +1333,72 @@ ${this.themeCss}`,
 	 * cards themselves, for picking the one you can see.
 	 */
 	private overviewing = false;
+	/** The card the overview is pointing at, which is not where the deck is. */
+	private picked = 0;
+	private pickScale = 1;
 
 	private toggleOverview(): void {
 		if (this.overviewing) this.closeOverview();
 		else this.openOverview();
 	}
 
+	/**
+	 * How big a card should be while browsing.
+	 *
+	 * Fitting the whole deck on screen is what M is for, and on any real deck it
+	 * makes every card too small to read — which is the opposite of what you
+	 * want when the question is "which one was it". So the zoom is set to show
+	 * the current section, or about two and a half cards where there is no
+	 * section, and then held while you scroll.
+	 */
+	private readableScale(): number {
+		const vw = this.overlay.clientWidth || 1;
+		const stop = this.stopAt(this.index);
+		const card = rectOf(stop.node);
+		const across = stop.group ? rectOf(stop.group).width : card.width * 2.5;
+		return Math.min(vw / (across * 1.08 || 1), this.settings.maxScale);
+	}
+
 	private openOverview(): void {
 		if (this.overviewing) return;
 		this.overviewing = true;
+		this.picked = this.index;
+		this.pickScale = this.readableScale();
 		this.overlay.addClass("is-overview");
-		void this.camera.flyTo(this.scene.bounds, this.settings.duration);
+		this.showPick(this.settings.duration);
 	}
 
-	private closeOverview(): void {
+	/** Pan to the picked card, holding the zoom: scrolling, not travelling. */
+	private showPick(duration: number): void {
+		const r = rectOf(this.stopAt(this.picked).node);
+		for (const [id, el] of this.nodeEls) {
+			el.toggleClass("is-picked", id === this.stopAt(this.picked).node.id);
+		}
+		void this.camera.moveTo(
+			{ cx: r.x + r.width / 2, cy: r.y + r.height / 2, scale: this.pickScale },
+			duration
+		);
+	}
+
+	/** Step the pick through the cards, skipping the section overviews. */
+	private movePick(delta: number): void {
+		let at = this.picked;
+		for (let n = 0; n < this.scene.stops.length; n++) {
+			at += delta;
+			if (at < 0 || at >= this.scene.stops.length) return;
+			if (this.scene.stops[at].kind === "node") break;
+		}
+		this.picked = at;
+		this.showPick(240);
+	}
+
+	private closeOverview(go?: number): void {
 		if (!this.overviewing) return;
 		this.overviewing = false;
 		this.overlay.removeClass("is-overview");
-		this.goTo(this.index, { animate: true });
+		for (const el of this.nodeEls.values()) el.removeClass("is-picked");
+		if (go === undefined) this.goTo(this.index, { animate: true });
+		else this.jumpTo(go);
 	}
 
 	private tickClock(): void {

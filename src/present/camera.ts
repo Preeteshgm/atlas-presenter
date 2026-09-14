@@ -1,7 +1,7 @@
 import { Rect } from "../types";
 import { rectOf } from "../canvas/parse";
 
-interface CameraPose {
+export interface CameraPose {
 	cx: number;
 	cy: number;
 	scale: number;
@@ -63,6 +63,39 @@ export class Camera {
 		const vw = this.viewport.clientWidth / 2;
 		const vh = this.viewport.clientHeight / 2;
 		return `translate(${vw}px, ${vh}px) scale(${p.scale}) translate(${-p.cx}px, ${-p.cy}px)`;
+	}
+
+	/**
+	 * Move to a pose that has already been decided.
+	 *
+	 * `flyTo` works out its own zoom from what it is framing, which is right for
+	 * presenting and wrong for browsing: scrolling around the deck at a readable
+	 * size means the scale is chosen once and then held while only the position
+	 * changes. No zoom-out arc either — that reads as travel, and this is not
+	 * travel, it is scrolling.
+	 */
+	moveTo(pose: CameraPose, duration: number): Promise<void> {
+		const fromT = this.transform(this.pose);
+		const toT = this.transform(pose);
+		this.pose = pose;
+		this.stage.style.transform = toT;
+
+		this.anim?.cancel();
+		if (duration <= 0 || fromT === toT) return Promise.resolve();
+		this.anim = this.stage.animate([{ transform: fromT }, { transform: toT }], {
+			duration,
+			easing: "cubic-bezier(0.33, 0, 0.2, 1)",
+			fill: "both",
+		});
+		return this.anim.finished.then(
+			() => undefined,
+			() => undefined
+		);
+	}
+
+	/** The pose in force, so a browsing mode can pan from where it is. */
+	get current(): CameraPose {
+		return { ...this.pose };
 	}
 
 	snapTo(target: Rect): void {

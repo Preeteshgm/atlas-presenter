@@ -1769,17 +1769,24 @@ settings:
 	outline-color: var(--atl-accent, var(--interactive-accent));
 }
 
-/* The card you would come back to, marked so leaving is never disorienting. */
-.atl-overlay.is-overview .atl-node.is-active {
+/* The card the arrows are on. This is a picker, so something has to be picked. */
+.atl-overlay.is-overview .atl-node.is-picked {
 	outline-color: var(--atl-accent, var(--interactive-accent));
 	outline-width: 3px;
+	box-shadow: 0 10px 44px rgb(0 0 0 / 0.28);
+}
+
+/* Where the talk actually is, so choosing not to move is still informed. */
+.atl-overlay.is-overview .atl-node.is-active:not(.is-picked) {
+	outline-color: var(--atl-accent, var(--interactive-accent));
+	outline-style: dashed;
 }
 
 .atl-overlay.is-overview .atl-group-label { opacity: 1; }
 
 /* A mode with no way out shown is a trap; this is the way out, named. */
 .atl-overlay.is-overview .atl-viewport::after {
-	content: "Click a card to go to it  ·  O or Esc to come back";
+	content: "← → to look through  ·  click or Enter to go there  ·  O or Esc to come back";
 	position: absolute;
 	left: 50%;
 	bottom: 22px;
