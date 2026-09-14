@@ -216,7 +216,7 @@
 		<div class="grp">Presenting</div>
 		<a href="#commands">The commands</a>
 		<a href="#keys">Keys</a>
-		<a href="#screens">Two screens</a>
+		<a href="#screens">Where the deck opens</a>
 		<a href="#order">Order and sections</a>
 
 		<div class="grp">Writing cards</div>
@@ -318,13 +318,12 @@
 
 <h2 id="commands">The commands</h2>
 
-<p>Six, of which two are the ones you will actually use.</p>
+<p>Six, of which one is the one you will actually use.</p>
 
 <table>
 	<thead><tr><th>Command</th><th>What it does</th></tr></thead>
 	<tbody>
-		<tr><td><b>Present</b></td><td>One screen. Fills this window, starting on the selected card. The everyday one.</td></tr>
-		<tr><td><b>Present in a separate window</b></td><td>The deck opens in a window of its own — drag it to the projector. See <a href="#screens">Two screens</a>.</td></tr>
+		<tr><td><b>Present</b></td><td>The only one you need — the deck in a window of its own, starting on the card selected in the canvas.</td></tr>
 		<tr><td>Present from the beginning</td><td>Ignores what is selected and starts at the first card.</td></tr>
 		<tr><td>Present a variant…</td><td>Asks which talk to give, if the canvas has <a href="#variants">variants</a>.</td></tr>
 		<tr><td>Stop presenting</td><td>Ends the talk from this window, wherever the deck is.</td></tr>
@@ -379,50 +378,28 @@
 	deck — so your own shortcuts still work mid-talk.
 </p>
 
-<h2 id="screens">Two screens</h2>
+<h2 id="screens">Where the deck opens</h2>
 
 <p>
-	<b>A deck gets a window of its own by default.</b> Drag it to your other screen
-	and press <kbd>F</kbd>. Obsidian is left exactly as it was, so the canvas, your
-	notes and the presenter panel are all still in front of you — and speaker notes
-	come off the deck, because the deck is now what the room sees. Turn off
-	<b>Present in a window of its own</b> only if you have one screen.
+	<b>Always in a window of its own.</b> Drag it wherever you want it — the
+	projector, your second screen, or just to one side of this one — and press
+	<kbd>F</kbd> for fullscreen.
 </p>
 
-<table>
-	<thead><tr><th>Command</th><th>What it does</th></tr></thead>
-	<tbody>
-		<tr>
-			<td><b>Present</b></td>
-			<td>
-				A window of its own. Drag it to the projector, press <kbd>F</kbd>. This
-				window is never touched, so the canvas stays in front of you, the
-				presenter panel opens in the sidebar beside it, and <kbd>G</kbd> opens the
-				vault graph on <i>your</i> screen while the projector goes on showing the
-				card.
-			</td>
-		</tr>
-		<tr>
-			<td><b>Present in a separate window</b></td>
-			<td>The same, whatever the setting says — for anyone who usually presents on one screen.</td>
-		</tr>
-		<tr>
-			<td>With the setting off</td>
-			<td>
-				The deck fills this window instead, and <kbd>P</kbd> opens the presenter in
-				a popout to put on your own screen. For a single display, where there is
-				nowhere else to put anything.
-			</td>
-		</tr>
-	</tbody>
-</table>
+<p>
+	Obsidian is left exactly as it was: the canvas, your notes and the presenter
+	panel are all still in front of you while the talk runs. <kbd>G</kbd> opens the
+	vault graph on <i>your</i> screen while the deck goes on showing the card, and
+	closing the deck's window ends the talk — as does <b>Stop presenting</b>, which
+	works from here wherever the deck has got to.
+</p>
 
 <div class="note">
 	<p>
-		<b>Speaker notes are never in both places at once.</b> The moment there is a
-		presenter panel to read them in — and always when the deck has a window of its
-		own — <code>%%notes%%</code> come off the deck itself, whatever the on-screen
-		notes setting says. The deck is what the room sees.
+		<b>Speaker notes are never on the deck.</b> The deck is what the room sees, so
+		<code>%%notes%%</code> live in the presenter panel, which opens itself in the
+		sidebar beside your canvas. There is a box there to write remarks into as
+		well — the same note <kbd>N</kbd> opens.
 	</p>
 </div>
 

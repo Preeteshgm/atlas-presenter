@@ -65,24 +65,18 @@ starts at the beginning.
 Clicking the right two-thirds advances, the left third goes back. Clicking a
 control inside a card never advances the slide.
 
-### Two screens
+### Where the deck opens
 
-**A deck gets a window of its own by default.** Drag it to your other screen and
-press `F`. Obsidian is left exactly as it was, so the canvas, your notes and the
-presenter panel are all still in front of you while the talk runs — and speaker
-notes come off the deck, because the deck is now what the room sees.
+**Always in a window of its own.** Drag it wherever you want it — the projector,
+your second screen, or just to one side of this one — and press `F` for
+fullscreen.
 
-Turn off **Present in a window of its own** only if you have one screen. Then the
-deck fills this window and `P` opens the presenter in a popout instead.
+Obsidian is left exactly as it was. The canvas, your notes and the presenter
+panel are all still in front of you while the talk runs, and speaker notes come
+off the deck because the deck is now what the room sees. `G` opens the vault
+graph on *your* screen while the deck goes on showing the card.
 
-| | |
-|---|---|
-| **Present this canvas** | The deck fills the main Obsidian window. Press `P` for a presenter window — notes, the clock, what is coming — and put that on your own screen. Best when the projector *is* your main display. |
-| **Present this canvas in a separate window** | The deck opens in a window of its own. Drag it to the projector and press `F`. The main window is never touched, so the canvas, your notes and the minutes stay in front of you — and `G` opens the vault graph on your screen without the projector ever leaving the card. |
-
-Speaker notes are never in both places at once. The moment a presenter window is
-open, `%%notes%%` come off the deck itself, whatever the on-screen notes setting
-says — the deck is what the room sees.
+Closing that window ends the talk, and so does **Stop presenting** from here.
 
 ### Starting and stopping with a key
 
@@ -92,7 +86,7 @@ across platforms. Assign your own under **Settings → Hotkeys**, searching for
 
 | Command | |
 |---|---|
-| **Present this canvas in a separate window** | Starts the talk |
+| **Present** | Starts the talk |
 | **Stop presenting** | Ends it from the main window |
 
 `Esc` ends the talk too, but it works on the deck's own window — which may be

@@ -321,26 +321,19 @@ The conclusion.`);
 	screens.createDiv({
 		cls: "atl-ref-lead",
 		text:
-			"Six commands, and only two of them are ones you need day to day. They " +
-			"all appear in the command palette under Atlas Presenter, and every one " +
-			"needs a canvas to be the open tab.",
+			"Six commands, and one of them is the one you need day to day. They all " +
+			"appear in the command palette under Atlas Presenter, and every one needs " +
+			"a canvas to be the open tab.",
 	});
 
 	entry(
 		screens,
 		"Present",
-		"The everyday one. The deck opens in a window of its own — drag it to your " +
-			"other screen and press F. Obsidian is left as it was, so the canvas, your " +
-			"notes and the presenter panel are all still in front of you, and speaker " +
-			"notes come off the deck because the deck is now what the room sees. It " +
-			"starts on the card selected in the canvas, or at the beginning. Turn off " +
-			"“Present in a window of its own” if you only have one screen."
-	);
-	entry(
-		screens,
-		"Present in a separate window",
-		"The same, whatever that setting says. Worth a key of its own if you " +
-			"usually present on one screen and occasionally do not."
+		"The only one you need. The deck opens in a window of its own \u2014 drag it " +
+			"wherever you want it and press F. Obsidian is left as it was, so the " +
+			"canvas, your notes and the presenter panel are all still in front of you, " +
+			"and speaker notes come off the deck because the deck is what the room " +
+			"sees. It starts on the card selected in the canvas, or at the beginning."
 	);
 	entry(
 		screens,

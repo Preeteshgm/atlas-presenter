@@ -39,7 +39,7 @@ export default class AtlasPlugin extends Plugin {
 				new PreviewView(
 					leaf,
 					() => this.settings,
-					(file) => void this.present(file, undefined, "", { windowed: true })
+					(file) => void this.present(file)
 				)
 		);
 
@@ -53,19 +53,6 @@ export default class AtlasPlugin extends Plugin {
 				const file = this.app.workspace.getActiveFile();
 				if (!file || file.extension !== "canvas") return false;
 				if (!checking) void this.present(file, this.selectedCardId());
-				return true;
-			},
-		});
-
-		this.addCommand({
-			id: "present-canvas-windowed",
-			name: "Present in a separate window",
-			checkCallback: (checking: boolean) => {
-				const file = this.app.workspace.getActiveFile();
-				if (!file || file.extension !== "canvas") return false;
-				if (!checking) {
-					void this.present(file, this.selectedCardId(), "", { windowed: true });
-				}
 				return true;
 			},
 		});
@@ -160,14 +147,6 @@ export default class AtlasPlugin extends Plugin {
 				);
 				menu.addItem((item) =>
 					item
-						.setTitle("Present with Atlas in a separate window")
-						.setIcon(ICON_ID)
-						.onClick(() => void this.present(file, undefined, "", { windowed: true }))
-				);
-				// Straight from the canvas. Having to present a deck before you
-				// could export it made a one-step job into three.
-				menu.addItem((item) =>
-					item
 						.setTitle("Export this canvas to HTML")
 						.setIcon(ICON_ID)
 						.onClick(() => void this.exportCanvas(file))
@@ -259,11 +238,7 @@ export default class AtlasPlugin extends Plugin {
 		file: TFile,
 		startNodeId?: string,
 		variant = "",
-		options: { windowed?: boolean } = {}
 	): Promise<void> {
-		// A window of its own unless told otherwise, because that is what leaves
-		// Obsidian usable while the talk runs.
-		const windowed = options.windowed ?? this.settings.presentInWindow;
 		if (this.active) this.active.stop();
 		const show = new Presentation(this.app, file, this.settings, startNodeId, variant);
 		this.active = show;
@@ -274,11 +249,13 @@ export default class AtlasPlugin extends Plugin {
 		};
 		this.addChild(show);
 		try {
-			// Before start(), because the deck is built into whichever window it
-			// is given. A window that will not open is not a reason to abandon
-			// the talk: say so and present in place.
-			if (windowed && !(await show.useOwnWindow())) {
-				new Notice("Atlas: could not open a second window; presenting here.");
+			// Always its own window: a deck that takes over the window you work in
+			// leaves you with nothing to work in, and the presenter panel nowhere
+			// to live. Before start(), because the deck is built into whichever
+			// window it is given — and a window that will not open is not a reason
+			// to abandon the talk, so say so and present in place.
+			if (!(await show.useOwnWindow())) {
+				new Notice("Atlas: could not open a window; presenting here instead.");
 			}
 			await show.start();
 		} catch (e) {
