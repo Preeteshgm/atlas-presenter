@@ -1257,26 +1257,8 @@ settings:
 
 /* --- Noting something mid-talk ----------------------------------------- */
 
-.atl-capture-box {
-	width: 100%;
-	resize: vertical;
-	font-size: 15px;
-	line-height: 1.55;
-	padding: 10px 12px;
-}
 
-.atl-capture-row {
-	display: flex;
-	justify-content: space-between;
-	align-items: center;
-	gap: 14px;
-	margin-top: 12px;
-}
 
-.atl-capture-hint {
-	font-size: 12px;
-	color: var(--text-faint);
-}
 
 /* B blanks the screen: attention on the room, not the slide. */
 .atl-overlay.is-blank .atl-viewport,
@@ -1347,7 +1329,6 @@ settings:
 }
 
 /* The remark box, so the textarea fills the modal. */
-.atl-capture .atl-capture-box { min-height: 140px; }
 
 /* An HTML card in an export: its shadow root was folded back into the page,
    so the isolation it relied on is gone and it needs the reset restated. */
@@ -1881,3 +1862,50 @@ settings:
 .atl-preview-bar { flex-wrap: wrap; row-gap: 6px; }
 .atl-preview-bar button { flex: 0 0 auto; }
 .atl-preview-status { flex: 1 0 100%; }
+
+/* ---- the note box, inside the deck ---------------------------------------- */
+
+/* It was an Obsidian modal, which the browser will not paint over a fullscreen
+   element — so N did nothing at the one moment you are most likely to press it.
+   This is part of the overlay, which *is* the fullscreen element. */
+.atl-note {
+	position: absolute;
+	left: 50%;
+	bottom: 5vh;
+	transform: translateX(-50%);
+	z-index: 7;
+	width: min(720px, 82vw);
+	padding: 16px 18px 14px;
+	border-radius: 14px;
+	background: var(--background-primary);
+	border: 1px solid var(--background-modifier-border);
+	box-shadow: 0 18px 60px rgb(0 0 0 / 0.4);
+}
+
+.atl-note-title {
+	margin-bottom: 9px;
+	font-size: 0.95em;
+	font-weight: 600;
+	color: var(--text-normal);
+}
+
+.atl-note-box {
+	width: 100%;
+	padding: 10px 12px;
+	resize: vertical;
+	font-family: var(--font-text);
+	font-size: 1em;
+	line-height: 1.5;
+	color: var(--text-normal);
+	background: var(--background-primary-alt);
+	border: 1px solid var(--background-modifier-border);
+	border-radius: 9px;
+}
+
+.atl-note-box:focus { outline: none; border-color: var(--interactive-accent); }
+
+.atl-note-hint {
+	margin-top: 8px;
+	font-size: 0.8em;
+	color: var(--text-faint);
+}

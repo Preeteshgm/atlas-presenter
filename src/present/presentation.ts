@@ -24,7 +24,6 @@ import { DeckSnapshot, PRESENTER_VIEW, setDeck } from "./presenter";
 import { DECK_VIEW, DeckView } from "./deck-window";
 import {
 	Capture,
-	CaptureModal,
 	MinutesOptions,
 	ReviewModal,
 	Session,
@@ -905,8 +904,24 @@ export class Presentation extends Component {
 		return false;
 	}
 
+	/** Set while the graph has the screen, so we can put fullscreen back after. */
+	private wasFullscreen = false;
+
 	private async openVaultGraph(): Promise<void> {
 		if (this.steppedAside) return;
+
+		// The graph is Obsidian's own view, and the browser paints nothing over a
+		// fullscreen element except that element. Fullscreen therefore has to go:
+		// it was showing the graph underneath a deck that still owned the screen,
+		// so it could be seen and not touched. It comes back on the way home.
+		this.wasFullscreen = !!this.doc.fullscreenElement;
+		if (this.wasFullscreen) {
+			try {
+				await this.doc.exitFullscreen();
+			} catch {
+				// Refused; the graph will open behind, and Escape still returns.
+			}
+		}
 		try {
 			const leaf = this.app.workspace.getLeaf(true);
 			await leaf.setViewState({ type: "graph", active: true });
@@ -961,6 +976,13 @@ export class Presentation extends Component {
 			if (!keepLeaf && this.deckLeaf) this.app.workspace.revealLeaf(this.deckLeaf);
 		} catch {
 			// The deck's tab has gone; stop() is already on its way.
+		}
+
+		// You were fullscreen when you left, so you are fullscreen when you come
+		// back. Anything else is a change you did not ask for, mid-talk.
+		if (this.wasFullscreen && !keepLeaf) {
+			this.wasFullscreen = false;
+			void this.overlay?.requestFullscreen().catch(() => undefined);
 		}
 	}
 
@@ -1285,17 +1307,6 @@ ${this.themeCss}`,
 	 * blank note you cannot see. One card therefore holds one note, kept at the
 	 * time it was first made so the write-up stays in order.
 	 */
-	/** True if the presenter panel took the cursor. */
-	private focusPresenterNote(): boolean {
-		const leaf = this.app.workspace.getLeavesOfType(PRESENTER_VIEW)[0];
-		if (!leaf) return false;
-		const view = leaf.view as unknown as { focusRemark?: () => void };
-		if (typeof view.focusRemark !== "function") return false;
-		this.app.workspace.revealLeaf(leaf);
-		view.focusRemark();
-		return true;
-	}
-
 	/** What has been written against a card so far, wherever it was written. */
 	private remarkOn(nodeId: string): string {
 		return this.captures
@@ -1325,38 +1336,83 @@ ${this.themeCss}`,
 		for (const listener of this.listeners) listener();
 	}
 
+	/**
+	 * A box to write a remark in, inside the deck itself.
+	 *
+	 * It was an Obsidian modal, then it was the presenter panel's box. Neither
+	 * can be seen while the deck is fullscreen: a modal belongs to the app's own
+	 * DOM, which the browser does not paint over a fullscreen element, and the
+	 * sidebar is not on the screen at all. So N appeared to do nothing at the one
+	 * time you are most likely to press it.
+	 *
+	 * This lives in the overlay, which *is* the fullscreen element, so it is
+	 * there whatever state the deck is in. The keyboard is safe because the deck
+	 * lets anything aimed at a text box through untouched.
+	 */
+	private noteBox: HTMLTextAreaElement | null = null;
+
 	private captureNote(): void {
-		// The panel's box is already open beside the deck and already holds this
-		// card's note, so there is no reason to put a modal over the slide.
-		if (this.focusPresenterNote()) return;
+		if (this.noteBox) {
+			this.noteBox.focus();
+			return;
+		}
 
 		const stop = this.stopAt(this.index);
 		const title = titleOf(stop.node);
 		const existing = this.captures.filter((c) => c.nodeId === stop.node.id);
 		const firstAt = existing.length > 0 ? existing[0].at : Date.now();
 
-		this.capturing = true;
-		new CaptureModal(
-			this.app,
-			title,
-			existing.map((c) => c.text).join("\n\n"),
-			(text) => {
-				this.captures = this.captures.filter((c) => c.nodeId !== stop.node.id);
-				if (text) {
-					this.captures.push({ nodeId: stop.node.id, title, text, at: firstAt });
-					new Notice(`Atlas: noted against “${title}”`);
-				} else {
-					new Notice(`Atlas: note on “${title}” removed`);
-				}
-				this.updateHud(this.stopAt(this.index), 0);
-				for (const listener of this.listeners) listener();
-			},
-			// However it closes — saved or dismissed — the deck takes the
-			// keyboard back only then. A timer here would hand it back mid-word.
-			() => {
-				this.capturing = false;
+		const panel = this.overlay.createDiv({ cls: "atl-note" });
+		panel.createDiv({ cls: "atl-note-title", text: `Note on “${title}”` });
+		const box = panel.createEl("textarea", { cls: "atl-note-box" });
+		box.rows = 4;
+		box.placeholder =
+			"What was said, what was asked, what to do next.\n" +
+			"A line starting - [ ] becomes an action.";
+		box.value = existing.map((c) => c.text).join("\n\n");
+		this.noteBox = box;
+
+		panel.createDiv({
+			cls: "atl-note-hint",
+			text: "Enter saves · Shift+Enter for a new line · Esc closes · empty it to delete",
+		});
+
+		const close = () => {
+			this.noteBox = null;
+			panel.remove();
+			this.stage.focus();
+		};
+
+		const save = () => {
+			const text = box.value.trim();
+			this.captures = this.captures.filter((c) => c.nodeId !== stop.node.id);
+			if (text) {
+				this.captures.push({ nodeId: stop.node.id, title, text, at: firstAt });
+				new Notice(`Atlas: noted against “${title}”`);
+			} else if (existing.length > 0) {
+				new Notice(`Atlas: note on “${title}” removed`);
 			}
-		).open();
+			this.updateHud(this.stopAt(this.index), 0);
+			for (const listener of this.listeners) listener();
+			close();
+		};
+
+		box.addEventListener("keydown", (e) => {
+			// Whatever happens, the deck does not also hear it.
+			e.stopPropagation();
+			if (e.key === "Enter" && !e.shiftKey) {
+				e.preventDefault();
+				save();
+			} else if (e.key === "Escape") {
+				e.preventDefault();
+				close();
+			}
+		});
+
+		this.win.setTimeout(() => {
+			box.focus();
+			box.setSelectionRange(box.value.length, box.value.length);
+		}, 0);
 	}
 
 	/**
