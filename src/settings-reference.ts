@@ -303,7 +303,7 @@ The conclusion.`);
 		["Home  End", "first and last card"],
 		["Enter", "dive into the sub-deck on this card"],
 		["B", "blank the screen — attention on the room, not the slide"],
-		["N", "note something against the card on screen"],
+		["N", "note against the card on screen — the cursor goes to the presenter panel's box"],
 		["W", "write the session up now"],
 		["P", "the presenter panel — notes, the clock, what is next, and a box to write a remark in"],
 		["E", "export the deck to one standalone HTML file"],

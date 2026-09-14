@@ -865,7 +865,7 @@ export class Presentation extends Component {
 	 * screen. You get the real graph, filters, groups and all.
 	 */
 	private async openVaultGraph(): Promise<void> {
-		if (this.away) return;
+		if (this.away || this.awayLeaf) return;
 		try {
 			const leaf = this.app.workspace.getLeaf(true);
 			await leaf.setViewState({ type: "graph", active: true });
@@ -878,13 +878,14 @@ export class Presentation extends Component {
 			return;
 		}
 
-		this.away = true;
-		// With the deck in a window of its own, the graph opens in the main
-		// window — on your screen, beside the canvas — and the projector goes on
-		// showing the card. There is nothing to step aside from, and no way back
-		// to offer: the deck never left.
+		// The graph opens in the main window, on your screen, beside the canvas,
+		// while the deck goes on showing the card. `away` means the deck has
+		// stepped aside, and here it has not — setting it anyway left the key
+		// handler in its away branch, where nothing but Escape does anything, so
+		// one press of G killed M, N, W and the arrows for the rest of the talk.
 		if (this.windowed) return;
 
+		this.away = true;
 		this.overlay.addClass("is-away");
 		const bar = this.doc.body.createDiv({ cls: "atl-return" });
 		bar.createSpan({ text: "Presenting · " });
@@ -899,7 +900,9 @@ export class Presentation extends Component {
 	 * to detach leaves in onunload, because Obsidian restores them itself.
 	 */
 	private closeVaultGraph(keepLeaf = false): void {
-		if (!this.away) return;
+		// Guarded on the leaf, not on `away`: in a window of its own the deck
+		// never steps aside, but the graph it opened still has to be tidied up.
+		if (!this.away && !this.awayLeaf) return;
 		this.away = false;
 		this.returnBar?.remove();
 		this.returnBar = null;
@@ -1217,6 +1220,17 @@ ${this.themeCss}`,
 	 * blank note you cannot see. One card therefore holds one note, kept at the
 	 * time it was first made so the write-up stays in order.
 	 */
+	/** True if the presenter panel took the cursor. */
+	private focusPresenterNote(): boolean {
+		const leaf = this.app.workspace.getLeavesOfType(PRESENTER_VIEW)[0];
+		if (!leaf) return false;
+		const view = leaf.view as unknown as { focusRemark?: () => void };
+		if (typeof view.focusRemark !== "function") return false;
+		this.app.workspace.revealLeaf(leaf);
+		view.focusRemark();
+		return true;
+	}
+
 	/** What has been written against a card so far, wherever it was written. */
 	private remarkOn(nodeId: string): string {
 		return this.captures
@@ -1247,6 +1261,11 @@ ${this.themeCss}`,
 	}
 
 	private captureNote(): void {
+		// With the deck on its own screen, the note box that is already open in
+		// the sidebar beside your canvas is the right one: a modal would open in
+		// the window you are not looking at.
+		if (this.windowed && this.focusPresenterNote()) return;
+
 		const stop = this.stopAt(this.index);
 		const title = titleOf(stop.node);
 		const existing = this.captures.filter((c) => c.nodeId === stop.node.id);
@@ -1305,6 +1324,9 @@ ${this.themeCss}`,
 			minute: "2-digit",
 		})} \u2014 now`;
 
+		if (this.windowed) {
+			new Notice("Atlas: the write-up opened in the Obsidian window.", 5000);
+		}
 		this.capturing = true;
 		const modal = new ReviewModal(this.app, {
 			title: `${this.file.basename} \u2014 the session so far`,

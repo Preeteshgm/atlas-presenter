@@ -162,6 +162,20 @@ export class PresenterView extends ItemView {
 		this.ticker = window.setInterval(() => this.paintTime(), 1000);
 	}
 
+	/**
+	 * Put the cursor in the note box.
+	 *
+	 * An Obsidian modal belongs to the main window, so N pressed on a deck that
+	 * has a window of its own opens a box in the window you are not looking at.
+	 * The panel is already here, on the screen you are using, and already holds
+	 * the same note — so N comes here instead.
+	 */
+	focusRemark(): void {
+		this.remarkEl.focus();
+		const end = this.remarkEl.value.length;
+		this.remarkEl.setSelectionRange(end, end);
+	}
+
 	/** Follow whichever deck is running now, and stop following the last one. */
 	private attach(): void {
 		this.unsubscribeStop?.();

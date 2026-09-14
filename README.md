@@ -54,7 +54,7 @@ starts at the beginning.
 | **`O`** | The overview — drag or scroll around the deck, `Ctrl`+wheel or `+`/`−` to zoom, `0` shows all, click a card to go there |
 | `Home` `End` | First and last card |
 | `B` | Blank the screen — attention on the room, not the slide |
-| `N` | Note something against the card on screen |
+| `N` | Note against the card on screen — the cursor goes to the presenter panel's box |
 | `W` | Write the session up now |
 | `P` | Open the presenter panel — notes, the clock, what is next, and a box to write a remark in |
 | `Enter` | Dive into the sub-deck on this card |
