@@ -1,4 +1,5 @@
 import { ItemView, WorkspaceLeaf } from "obsidian";
+import { ICON_ID } from "../icons";
 import { hhmm, mmss } from "../format";
 
 export const PRESENTER_VIEW = "atlas-presenter-view";
@@ -82,7 +83,7 @@ export class PresenterView extends ItemView {
 	}
 
 	getIcon(): string {
-		return "atlas-route";
+		return ICON_ID;
 	}
 
 	async onOpen(): Promise<void> {

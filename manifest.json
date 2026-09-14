@@ -1,7 +1,7 @@
 {
 	"id": "atlas-presenter",
 	"name": "Atlas Presenter",
-	"version": "0.20.1",
+	"version": "0.21.0",
 	"minAppVersion": "1.5.0",
 	"description": "Present an Obsidian Canvas as a map you fly across: edges set the running order, groups become sections, and you can jump to any card — or any note in the vault — mid-talk and land back exactly where you were.",
 	"author": "Preetesh",

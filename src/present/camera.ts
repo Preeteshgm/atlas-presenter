@@ -1,7 +1,7 @@
 import { Rect } from "../types";
 import { rectOf } from "../canvas/parse";
 
-export interface CameraPose {
+interface CameraPose {
 	cx: number;
 	cy: number;
 	scale: number;
@@ -91,11 +91,6 @@ export class Camera {
 			() => undefined,
 			() => undefined
 		);
-	}
-
-	/** The pose in force, so a browsing mode can pan from where it is. */
-	get current(): CameraPose {
-		return { ...this.pose };
 	}
 
 	snapTo(target: Rect): void {

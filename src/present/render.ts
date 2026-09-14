@@ -298,9 +298,13 @@ async function resolveEmbeds(app: App, root: HTMLElement, sourcePath: string): P
 			markAudioOnly(video);
 			replacement = video;
 		} else if (AUDIO_EXT.test(dest.path)) {
+			// The same class the card-sized player uses, so a sound embedded in a
+			// card is sized and spaced like one rather than like a browser default.
 			const audio = document.createElement("audio");
+			audio.className = "atl-audio";
 			audio.src = url;
 			audio.controls = true;
+			audio.preload = "metadata";
 			replacement = audio;
 		}
 		if (replacement) {
@@ -519,10 +523,33 @@ async function renderFileNode(
 		return;
 	}
 	if (AUDIO_EXT.test(path)) {
-		const audio = body.createEl("audio", { cls: "atl-audio" });
+		// A bare <audio> is a 40px bar adrift in the middle of a slide, which is
+		// not a slide. Give it a face: what it is, and something to look at while
+		// the room listens to it.
+		const card = body.createDiv({ cls: "atl-audio-card" });
+		const bars = card.createDiv({ cls: "atl-audio-bars" });
+		for (let n = 0; n < 9; n++) bars.createEl("i");
+		card.createDiv({
+			cls: "atl-audio-title",
+			text: mediaTitle(path) ?? (path.split("/").pop() ?? "").replace(/\.\w+$/, ""),
+		});
+		const time = card.createDiv({ cls: "atl-audio-time", text: "—" });
+
+		const audio = card.createEl("audio", { cls: "atl-audio" });
 		audio.src = resourcePath(app, path);
 		audio.controls = true;
 		audio.preload = "metadata";
+		// The length is worth knowing before you commit a room to listening.
+		audio.addEventListener("loadedmetadata", () => {
+			const secs = Math.round(audio.duration);
+			if (!Number.isFinite(secs)) return;
+			time.setText(`${Math.floor(secs / 60)}:${String(secs % 60).padStart(2, "0")}`);
+		});
+		// Bars move only while it is playing; a still card should be still.
+		audio.addEventListener("play", () => card.addClass("is-playing"));
+		for (const stop of ["pause", "ended"]) {
+			audio.addEventListener(stop, () => card.removeClass("is-playing"));
+		}
 		return;
 	}
 	if (!(file instanceof TFile)) {

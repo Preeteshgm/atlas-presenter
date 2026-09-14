@@ -57,7 +57,7 @@ const DECK_CARD = /(^|\n)[ \t]*#deck[ \t]*(\n|$)/;
  * be the one nearer the top of the map — something you can point at — and not
  * whichever happened to be drawn first months ago.
  */
-export function deckCardsIn(nodes: CanvasNode[]): CanvasNode[] {
+function deckCardsIn(nodes: CanvasNode[]): CanvasNode[] {
 	return nodes
 		.filter((n) => n.type === "text" && DECK_CARD.test(outsideCode(n.text ?? "")))
 		.sort((a, b) => a.y - b.y || a.x - b.x);

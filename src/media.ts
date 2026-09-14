@@ -38,7 +38,7 @@ const AUDIO: Record<string, string> = {
 	aac: "audio/aac",
 };
 
-export const MIME: Record<string, string> = { ...IMAGE, ...VIDEO, ...AUDIO };
+const MIME: Record<string, string> = { ...IMAGE, ...VIDEO, ...AUDIO };
 
 /** `\.(png|jpe?g|…)$` built from the table, so the two cannot drift apart. */
 function matcher(table: Record<string, string>): RegExp {

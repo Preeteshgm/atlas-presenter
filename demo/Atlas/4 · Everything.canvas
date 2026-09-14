@@ -130,7 +130,7 @@
 		{
 			"id": "d3",
 			"type": "text",
-			"text": "## Media plays itself\n\nAudio and video start when the camera arrives and pause when it leaves,\nso nothing runs off-screen. Clicking the controls does **not** advance\nthe slide.\n\nThe card to the left is a generated tone — audio with no picture, shown\nas a slim bar rather than a black rectangle.\n\n*No video ships with the demo. Drop any `.mp4` on the canvas and it\nbehaves the same way.*",
+			"text": "## A sound, inside a card\n\nThe card before this one is the sound file on its own — Atlas gives it a\nface, because a bare player is a bar adrift in the middle of a slide.\n\nEmbedding it in a card instead is the other way, and it is usually the\nbetter one: you choose the heading, and you get room to say why anyone\nis listening.\n\n![[tone.wav]]\n\n%%Media starts when the camera arrives and pauses when it leaves, so\nnothing runs off screen.%%",
 			"x": 3040,
 			"y": 3540,
 			"width": 1280,
@@ -286,7 +286,7 @@
 			"label": "Media",
 			"x": -130,
 			"y": 3410,
-			"width": 6100,
+			"width": 7620,
 			"height": 980
 		},
 		{
@@ -404,6 +404,16 @@
 			"y": 8220,
 			"width": 7620,
 			"height": 1120
+		},
+		{
+			"id": "d-video",
+			"type": "text",
+			"color": "6",
+			"x": 6210,
+			"y": 3530,
+			"width": 1280,
+			"height": 860,
+			"text": "## Video, and how to try it\n\n**No video ships with this pack** — a sample film would be most of its\ndownload size, so there is a sound file and this card instead.\n\nTo see one work: drop any `.mp4` into `Atlas/Assets/`, then either put it\non the canvas as its own card, or embed it in a card like this:\n\n```text\n## The walk-round, 3 March\n\n![[walk-round.mp4]]\n```\n\n| Plays | Usually does not |\n| --- | --- |\n| `.mp4` (H.264), `.webm` | `.mov`, `.mkv` |\n\nThose two carry codecs Chromium will not decode, so the card is a black\nrectangle with working controls — the file is fine, the browser cannot\nread it. Re-wrap it as mp4.\n\n%%A voice memo saved as .webm has no picture at all. Atlas notices once\nthe metadata lands and shows it as a bar rather than a black box.%%"
 		}
 	],
 	"edges": [
@@ -574,6 +584,12 @@
 			"fromNode": "e-agenda",
 			"toNode": "e-table",
 			"label": "28."
+		},
+		{
+			"id": "e-video",
+			"fromNode": "d3",
+			"toNode": "d-video",
+			"label": ""
 		}
 	]
 }

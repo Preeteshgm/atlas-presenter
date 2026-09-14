@@ -432,8 +432,12 @@ export class Presentation extends Component {
 			// the app behind the deck.
 			e.preventDefault();
 			e.stopPropagation();
-			// Click the right two-thirds to advance, the left third to go back.
-			if (e.clientX > this.win.innerWidth / 3) this.advance();
+			// Measured on the deck, not the window. In a tab the overlay starts
+			// after the sidebars and the tab bar, so splitting the window put the
+			// boundary at about a sixth of the deck rather than a third — and the
+			// presenter panel, which opens itself, made it worse.
+			const box = this.overlay.getBoundingClientRect();
+			if (e.clientX - box.left > box.width / 3) this.advance();
 			else this.retreat();
 		});
 	}
@@ -555,7 +559,7 @@ export class Presentation extends Component {
 
 			this.stopAutoAdvance();
 
-			if (this.away) {
+			if (this.steppedAside) {
 				// While the deck has stepped aside you are using Obsidian: the
 				// graph, or a note you opened from it. Escape belongs to whatever
 				// you are typing in before it belongs to us.
@@ -871,8 +875,27 @@ export class Presentation extends Component {
 	 * even public — so instead the deck steps aside and puts a way back on
 	 * screen. You get the real graph, filters, groups and all.
 	 */
+	/**
+	 * Is the deck still stepped aside?
+	 *
+	 * Holding the leaf is not the same as the leaf existing. Closing the graph
+	 * tab by hand left `away` true, and the key handler answers nothing but
+	 * Escape while it is — so the deck went deaf to the arrows, M, O, N and W,
+	 * with the return bar still pinned over the workspace and G unable to
+	 * recover it. The workspace is the only answer that cannot go out of date.
+	 */
+	private get steppedAside(): boolean {
+		if (!this.away) return false;
+		const leaf = this.awayLeaf;
+		if (leaf && this.app.workspace.getLeavesOfType(leaf.view.getViewType()).includes(leaf)) {
+			return true;
+		}
+		this.closeVaultGraph();
+		return false;
+	}
+
 	private async openVaultGraph(): Promise<void> {
-		if (this.away || this.awayLeaf) return;
+		if (this.steppedAside) return;
 		try {
 			const leaf = this.app.workspace.getLeaf(true);
 			await leaf.setViewState({ type: "graph", active: true });
@@ -1002,6 +1025,18 @@ ${this.themeCss}`,
 			maxScale: this.settings.maxScale,
 			duration: this.settings.duration,
 			allowScripts: this.settings.allowScripts,
+			look: {
+				accent: this.settings.accent,
+				background:
+					this.settings.background === "colour" ? this.settings.backgroundColour : "",
+				backgroundImage:
+					this.settings.background === "image" && this.settings.backgroundImage
+						? resourcePath(this.app, this.settings.backgroundImage)
+						: "",
+				dim: this.settings.backgroundDim,
+				inactive: this.settings.inactiveOpacity,
+				sectionTitles: this.settings.sectionTitles,
+			},
 			openAfter: this.settings.openExport,
 			logo: this.settings.logo
 				? {
@@ -1108,26 +1143,28 @@ ${this.themeCss}`,
 		try {
 			const leaf = this.app.workspace.getLeaf(true);
 			await leaf.setViewState({ type: DECK_VIEW, active: true });
+			// Narrowed before anything is read off it. A leaf that is not our view
+			// — the type not registered yet, a restored layout racing us — would
+			// otherwise have the deck built into a foreign container with nothing
+			// to stop it when that container closes.
 			const view = leaf.view;
 			const doc = view.containerEl.ownerDocument;
-			if (!doc.defaultView) {
+			if (!(view instanceof DeckView) || !doc.defaultView) {
 				leaf.detach();
 				return false;
 			}
 
 			this.deckLeaf = leaf;
-			this.host = (view as unknown as { contentEl: HTMLElement }).contentEl;
+			this.host = view.contentEl;
 			this.doc = doc;
 			this.win = doc.defaultView;
 
 			// Closing the tab is a way of ending the talk, and must end it
 			// properly — the write-up included.
-			if (view instanceof DeckView) {
-				view.onWindowClose = () => {
-					this.deckLeaf = null;
-					this.stop();
-				};
-			}
+			view.onWindowClose = () => {
+				this.deckLeaf = null;
+				this.stop();
+			};
 
 			// Dragging the tab into a window of its own moves the DOM, and the
 			// keys are bound to a document that is then the wrong one. Nothing
@@ -1156,7 +1193,7 @@ ${this.themeCss}`,
 	}
 
 	/** Obsidian restores its own leaves, so leave this one alone on unload. */
-	private closeDeckWindow(unloading: boolean): void {
+	private closeDeckTab(unloading: boolean): void {
 		const leaf = this.deckLeaf;
 		this.deckLeaf = null;
 		if (!leaf || unloading) return;
@@ -1340,6 +1377,14 @@ ${this.themeCss}`,
 			minute: "2-digit",
 		})} \u2014 now`;
 
+		// A modal belongs to the main window. With the deck dragged to a screen
+		// of its own, W would set `capturing` — which makes the key handler
+		// return early, so the deck goes deaf — while the box it is waiting on
+		// sits invisible on the other monitor. Bring that window forward first.
+		if (this.doc !== document) {
+			if (this.presenterLeaf) this.app.workspace.revealLeaf(this.presenterLeaf);
+			new Notice("Atlas: the write-up opened in the Obsidian window.", 6000);
+		}
 		this.capturing = true;
 		const modal = new ReviewModal(this.app, {
 			title: `${this.file.basename} \u2014 the session so far`,
@@ -1749,12 +1794,22 @@ ${this.themeCss}`,
 	private stopped = false;
 
 	stop(unloading = false): void {
-		// A deck can be stopped from several directions at once — the window
+		// A deck can be stopped from several directions at once — the tab
 		// closing, Escape, and the next deck starting. Writing the minutes twice
 		// or unloading twice is not something to leave to chance.
 		if (this.stopped) return;
 		this.stopped = true;
 		this.stopAutoAdvance();
+
+		// A headless deck was never presented: it registered nothing, took no
+		// keys and owns no screen. Running the full teardown had it unregister
+		// the *live* deck from the presenter panel and drop the real talk out of
+		// fullscreen — exporting one canvas broke the one being presented.
+		if (this.headless) {
+			this.overlay?.remove();
+			this.unload();
+			return;
+		}
 		// Leaving is the one click: a talk that was noted gets written up.
 		if (!unloading && !this.written && this.captures.length > 0 && this.settings.minutesOnExit) {
 			// Leaving is the one click, so the note opens rather than waiting to
@@ -1790,7 +1845,7 @@ ${this.themeCss}`,
 		if (this.onKey) this.doc.removeEventListener("keydown", this.onKey, true);
 		if (this.onResize) this.win.removeEventListener("resize", this.onResize);
 		if (this.overlay) this.overlay.remove();
-		this.closeDeckWindow(unloading);
+		this.closeDeckTab(unloading);
 		const done = this.onStopped;
 		this.onStopped = null;
 		done?.();

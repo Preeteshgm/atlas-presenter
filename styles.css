@@ -778,30 +778,6 @@ settings:
 
 .atl-browse-row.is-linked .atl-browse-name { color: var(--text-muted); font-weight: 400; }
 
-.atl-bg-edge { stroke: var(--text-faint); stroke-width: 1.4; opacity: 0.55; }
-.atl-bg-edge.is-in { stroke-dasharray: 4 4; }
-
-.atl-bg-node {
-	fill: var(--background-secondary);
-	stroke: var(--atl-accent);
-	stroke-width: 1.6;
-	cursor: pointer;
-}
-
-.atl-bg-node.is-in { stroke: var(--text-faint); }
-.atl-bg-node:hover { fill: var(--atl-accent); }
-
-.atl-bg-hub { fill: var(--atl-accent); stroke: none; }
-
-.atl-bg-label, .atl-bg-hublabel {
-	font-family: var(--font-interface);
-	font-size: 11px;
-	fill: var(--text-muted);
-	pointer-events: none;
-}
-
-.atl-bg-hublabel { font-size: 13px; font-weight: 600; fill: var(--text-normal); }
-
 .atl-browse-hint {
 	padding: 10px 18px;
 	font-size: 12px;
@@ -1000,10 +976,75 @@ settings:
 
 /* --- Media that had no rule -------------------------------------------- */
 
-.atl-audio {
-	width: min(560px, 90%);
-	margin: auto;
+/* A sound file is the one media card with nothing to look at. A bare <audio>
+   is a 40px bar adrift in the middle of a slide, so it gets a face: what it
+   is, how long it runs, and bars that move only while it is playing. */
+.atl-audio-card {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	gap: 3cqh;
+	width: 100%;
+	height: 100%;
+	text-align: center;
+}
+
+.atl-audio-bars {
+	display: flex;
+	align-items: flex-end;
+	gap: 1.1cqh;
+	height: 16cqh;
+}
+
+.atl-audio-bars i {
 	display: block;
+	width: 1.4cqh;
+	height: 30%;
+	border-radius: 999px;
+	background: var(--atl-accent, var(--interactive-accent));
+	opacity: 0.55;
+}
+
+/* A still card should be still: they move only while something is playing. */
+.atl-audio-card.is-playing .atl-audio-bars i {
+	animation: atl-audio-bar 900ms ease-in-out infinite alternate;
+	opacity: 1;
+}
+
+.atl-audio-bars i:nth-child(2n) { animation-delay: 140ms; height: 62%; }
+.atl-audio-bars i:nth-child(3n) { animation-delay: 280ms; height: 100%; }
+.atl-audio-bars i:nth-child(5n) { animation-delay: 420ms; height: 46%; }
+
+@keyframes atl-audio-bar {
+	from { transform: scaleY(0.35); }
+	to { transform: scaleY(1); }
+}
+
+.atl-audio-title {
+	font-family: var(--display-font, var(--atl-heading-font, var(--font-interface)));
+	font-size: 4.2cqh;
+	font-weight: 700;
+	line-height: 1.15;
+	max-width: 80%;
+	color: var(--ink, var(--text-normal));
+}
+
+.atl-audio-time {
+	font-size: 2.2cqh;
+	font-variant-numeric: tabular-nums lining-nums;
+	color: var(--ink-soft, var(--text-muted));
+}
+
+.atl-audio {
+	width: min(560px, 82%);
+	margin: 0;
+	display: block;
+}
+
+/* Someone who does not want the animation should not be given it. */
+@media (prefers-reduced-motion: reduce) {
+	.atl-audio-card.is-playing .atl-audio-bars i { animation: none; }
 }
 
 .atl-embed {

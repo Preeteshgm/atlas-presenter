@@ -58,6 +58,23 @@ export interface ExportInput {
 	 */
 	logo?: { src: string; corner: string; height: number; opacity: number };
 	/**
+	 * The rest of the deck's branding.
+	 *
+	 * The logo was carried across because a branded deck exported unbranded is
+	 * the one context where the branding was the point. That is just as true of
+	 * the accent colour, the backdrop and how far an image behind the cards is
+	 * dimmed — all of which the deck writes onto the overlay as inline styles,
+	 * and the export built a fresh overlay without.
+	 */
+	look: {
+		accent: string;
+		background: string;
+		backgroundImage: string;
+		dim: number;
+		inactive: number;
+		sectionTitles: boolean;
+	};
+	/**
 	 * Whether this vault runs card scripts.
 	 *
 	 * The export follows the same answer. A card not trusted to run in Obsidian
@@ -73,6 +90,22 @@ export interface ExportInput {
 	 * asked.
 	 */
 	openAfter: boolean;
+}
+
+/** The deck's look, as the attributes the exported overlay is opened with. */
+function lookAttrs(input: ExportInput): string {
+	const k = input.look;
+	const style = [`--atl-inactive:${k.inactive}`];
+	if (k.accent) style.push(`--atl-accent:${k.accent}`);
+	if (k.backgroundImage) {
+		style.push(`background-image:url("${k.backgroundImage}")`, `--atl-dim:${k.dim}`);
+	} else if (k.background) {
+		style.push(`background:${k.background}`);
+	}
+	const classes = ["atl-overlay"];
+	if (k.backgroundImage) classes.push("has-image");
+	if (!k.sectionTitles) classes.push("hide-sections");
+	return `class="${classes.join(" ")}" style="${style.join(";")}"`;
 }
 
 /** The logo markup, with its source inlined along with everything else. */
@@ -863,6 +896,10 @@ export async function buildDeckHtml(
 		const uri = await dataUri(app, input.logo.src);
 		input = { ...input, logo: uri ? { ...input.logo, src: uri } : undefined };
 	}
+	if (input.look.backgroundImage) {
+		const uri = await dataUri(app, input.look.backgroundImage);
+		input = { ...input, look: { ...input.look, backgroundImage: uri ?? "" } };
+	}
 
 	const html = `<!doctype html>
 <html lang="en">
@@ -871,7 +908,7 @@ export async function buildDeckHtml(
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>${input.title}</title>
 <style>
-  html, body { margin: 0; height: 100%; background: #f4f6f1; overflow: hidden;
+  html, body { margin: 0; height: 100%; overflow: hidden;
     font-family: -apple-system, "Segoe UI", system-ui, sans-serif; }
   /* #view carries .atl-overlay so the theme's tokens reach the cards, and that
      class brings z-index:100 with it — which put the slide above the map and
@@ -948,7 +985,7 @@ ${input.css}
 </style>
 </head>
 <body>
-<div id="view" class="atl-overlay"><div id="stage" class="atl-stage"></div>${logoTag(input)}</div>
+<div id="view" ${lookAttrs(input)}><div id="stage" class="atl-stage"></div>${logoTag(input)}</div>
 <div id="hint">Drag or scroll &middot; Ctrl+wheel or +/&minus; to zoom &middot; 0 shows all &middot; click a card to go there &middot; Esc</div>
 <div id="rail"><div id="railfill"></div></div>
 <div id="blank"></div>

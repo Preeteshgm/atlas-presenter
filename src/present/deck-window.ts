@@ -1,4 +1,5 @@
-import { ItemView, WorkspaceLeaf } from "obsidian";
+import { ItemView, Notice, WorkspaceLeaf } from "obsidian";
+import { ICON_ID, POPOUT_ICON } from "../icons";
 
 export const DECK_VIEW = "atlas-deck-view";
 
@@ -36,12 +37,29 @@ export class DeckView extends ItemView {
 	}
 
 	getIcon(): string {
-		return "atlas-route";
+		return ICON_ID;
 	}
 
 	async onOpen(): Promise<void> {
 		this.contentEl.empty();
 		this.contentEl.addClass("atl-deck-host");
+
+		// A tab can already be dragged out, and Obsidian offers the same on the
+		// tab's own menu. This is the one tab anybody wants it for every time,
+		// so it is a click on the tab rather than two through a menu.
+		this.addAction(POPOUT_ICON, "Move the deck to its own window", () => {
+			try {
+				const move = (
+					this.app.workspace as unknown as {
+						moveLeafToPopout?: (leaf: unknown) => void;
+					}
+				).moveLeafToPopout;
+				if (typeof move === "function") move.call(this.app.workspace, this.leaf);
+				else new Notice("Atlas: drag this tab out to give it a window.");
+			} catch {
+				new Notice("Atlas: drag this tab out to give it a window.");
+			}
+		});
 
 		// Chromium prints on Ctrl+P, and a print dialog over a live talk is a
 		// disaster. The deck swallows it too, but only while it is running: this

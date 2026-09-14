@@ -1,4 +1,5 @@
 import { App, ItemView, Notice, TFile, WorkspaceLeaf } from "obsidian";
+import { ICON_ID } from "../icons";
 import { AtlasSettings } from "../types";
 import { Presentation } from "./presentation";
 
@@ -42,7 +43,7 @@ export class PreviewView extends ItemView {
 	}
 
 	getIcon(): string {
-		return "atlas-route";
+		return ICON_ID;
 	}
 
 	async onOpen(): Promise<void> {
