@@ -324,7 +324,7 @@
 	<thead><tr><th>Command</th><th>What it does</th></tr></thead>
 	<tbody>
 		<tr><td><b>Present</b></td><td>One screen. Fills this window, starting on the selected card. The everyday one.</td></tr>
-		<tr><td><b>Present on a second screen</b></td><td>The deck opens in a window of its own — drag it to the projector. See <a href="#screens">Two screens</a>.</td></tr>
+		<tr><td><b>Present in a separate window</b></td><td>The deck opens in a window of its own — drag it to the projector. See <a href="#screens">Two screens</a>.</td></tr>
 		<tr><td>Present from the beginning</td><td>Ignores what is selected and starts at the first card.</td></tr>
 		<tr><td>Present a variant…</td><td>Asks which talk to give, if the canvas has <a href="#variants">variants</a>.</td></tr>
 		<tr><td>Stop presenting</td><td>Ends the talk from this window, wherever the deck is.</td></tr>
@@ -343,7 +343,7 @@
 	<p>
 		<b>Atlas sets no keyboard shortcuts.</b> Defaults collide between plugins and
 		differ across platforms, so the choice is yours: <b>Settings → Hotkeys</b>,
-		search <i>Atlas</i>. A pair worth binding is <b>Present on a second screen</b>
+		search <i>Atlas</i>. A pair worth binding is <b>Present</b>
 		and <b>Stop presenting</b>. Avoid combinations built on <kbd>Enter</kbd> —
 		Obsidian's capture box treats it as <i>confirm</i>, so they never save.
 	</p>
@@ -381,27 +381,37 @@
 
 <h2 id="screens">Two screens</h2>
 
-<p>Two ways round, differing in which window the deck takes over.</p>
+<p>
+	<b>A deck gets a window of its own by default.</b> Drag it to your other screen
+	and press <kbd>F</kbd>. Obsidian is left exactly as it was, so the canvas, your
+	notes and the presenter panel are all still in front of you — and speaker notes
+	come off the deck, because the deck is now what the room sees. Turn off
+	<b>Present in a window of its own</b> only if you have one screen.
+</p>
 
 <table>
-	<thead><tr><th>Command</th><th>Use it when</th></tr></thead>
+	<thead><tr><th>Command</th><th>What it does</th></tr></thead>
 	<tbody>
 		<tr>
-			<td><b>Present</b>, then <kbd>P</kbd></td>
+			<td><b>Present</b></td>
 			<td>
-				The projector <i>is</i> your main display. The deck fills this window;
-				<kbd>P</kbd> opens a presenter window — notes, the clock, what is coming —
-				to put on your own screen.
+				A window of its own. Drag it to the projector, press <kbd>F</kbd>. This
+				window is never touched, so the canvas stays in front of you, the
+				presenter panel opens in the sidebar beside it, and <kbd>G</kbd> opens the
+				vault graph on <i>your</i> screen while the projector goes on showing the
+				card.
 			</td>
 		</tr>
 		<tr>
-			<td><b>Present on a second screen</b></td>
+			<td><b>Present in a separate window</b></td>
+			<td>The same, whatever the setting says — for anyone who usually presents on one screen.</td>
+		</tr>
+		<tr>
+			<td>With the setting off</td>
 			<td>
-				You want to keep working. The deck opens in a window of its own: drag it
-				to the projector and press <kbd>F</kbd>. This window is never touched, so
-				the canvas stays in front of you, and the presenter panel opens in the
-				sidebar beside it. <kbd>G</kbd> opens the vault graph on <i>your</i>
-				screen while the projector goes on showing the card.
+				The deck fills this window instead, and <kbd>P</kbd> opens the presenter in
+				a popout to put on your own screen. For a single display, where there is
+				nowhere else to put anything.
 			</td>
 		</tr>
 	</tbody>

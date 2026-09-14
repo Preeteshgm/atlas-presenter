@@ -1,4 +1,5 @@
 import { App, Component, Notice, TFile, WorkspaceLeaf } from "obsidian";
+import { isElement } from "../dom";
 import { AtlasSettings, Scene, Stop } from "../types";
 import { hhmm, mmss } from "../format";
 import { fileAt, readFileAt } from "../vault";
@@ -747,7 +748,7 @@ export class Presentation extends Component {
 	 */
 	private matchInPath(e: Event, selector: string): HTMLElement | null {
 		for (const node of e.composedPath()) {
-			if (node instanceof HTMLElement && node.matches(selector)) return node;
+			if (isElement(node) && node.matches(selector)) return node;
 			if (node === this.stage) break;
 		}
 		return null;

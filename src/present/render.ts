@@ -1,4 +1,5 @@
 import { App, Component, MarkdownRenderer, TFile, normalizePath } from "obsidian";
+import { isElement } from "../dom";
 import { CanvasNode } from "../types";
 import { boundsOf, outsideCode, parseCanvas, rectOf } from "../canvas/parse";
 import { AUDIO_EXT, IMAGE_EXT, VIDEO_EXT } from "../media";
@@ -627,7 +628,7 @@ function layOutPanes(card: HTMLElement, body: HTMLElement): void {
 
 	const parts: HTMLElement[][] = [[]];
 	for (const child of Array.from(body.children)) {
-		if (!(child instanceof HTMLElement)) continue;
+		if (!isElement(child)) continue;
 		if (child.tagName === "HR") parts.push([]);
 		else parts[parts.length - 1].push(child);
 	}

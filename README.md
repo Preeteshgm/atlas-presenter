@@ -67,7 +67,13 @@ control inside a card never advances the slide.
 
 ### Two screens
 
-There are two ways round, and they differ in which window the deck takes over.
+**A deck gets a window of its own by default.** Drag it to your other screen and
+press `F`. Obsidian is left exactly as it was, so the canvas, your notes and the
+presenter panel are all still in front of you while the talk runs — and speaker
+notes come off the deck, because the deck is now what the room sees.
+
+Turn off **Present in a window of its own** only if you have one screen. Then the
+deck fills this window and `P` opens the presenter in a popout instead.
 
 | | |
 |---|---|

@@ -142,6 +142,15 @@ export interface AtlasSettings {
 	minutesIncludeNotes: boolean;
 	/** Open the exported file in your browser as soon as it is written. */
 	openExport: boolean;
+	/**
+	 * Give the deck a window of its own.
+	 *
+	 * On by default. A deck that takes over the window you work in leaves you
+	 * with nothing to work in, and the presenter panel — notes, the clock, the
+	 * box you type remarks into — has nowhere to live. Turn it off only on a
+	 * single screen, where there is no second place to put anything.
+	 */
+	presentInWindow: boolean;
 	/** Appended to every action, e.g. a tag the Tasks plugin can query. */
 	actionSuffix: string;
 	/** Link each action back to the card it came from. */
@@ -188,6 +197,7 @@ export const DEFAULT_SETTINGS: AtlasSettings = {
 	minutesOnExit: true,
 	minutesIncludeNotes: false,
 	openExport: true,
+	presentInWindow: true,
 	actionSuffix: "",
 	actionsLinkBack: true,
 	showHud: true,

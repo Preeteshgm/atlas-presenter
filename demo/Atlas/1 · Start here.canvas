@@ -70,7 +70,7 @@
 		{
 			"id": "s-screens",
 			"type": "text",
-			"text": "#two\n# Two screens\n---\n## Projector is your main screen\n\nRun **Present**. Then press `P` for the presenter panel — notes, the\nclock, what is next — and put that on your own screen.\n---\n## You want to keep working\n\nRun **Present on a second screen**. The deck opens in a window of its\nown: drag it to the projector, press `F`.\n\nThis window never moves, so the canvas stays in front of you.",
+			"text": "#two\n# A window of its own\n---\nRun **Present**. The deck opens in a **separate window** — drag it to your\nother screen and press `F`.\n\nObsidian is left exactly as it was, so the canvas, your notes and the\npresenter panel are all still in front of you.\n---\n## The presenter panel\n\nOpens itself in the sidebar: the card's `%%notes%%`, the clock, what is\ncoming, and a box to write a remark in.\n\nSpeaker notes come **off** the deck the moment it has a window of its own.\nThe deck is what the room sees.\n\n%%On one screen, turn off “Present in a window of its own” and press P\nfor the presenter instead.%%",
 			"x": 0,
 			"y": 1700,
 			"width": 1280,

@@ -536,7 +536,7 @@
 		{
 			"id": "O2",
 			"type": "text",
-			"text": "#two\n# Present, or export?\n---\n## Presenting\n\nThe deck runs **inside Obsidian**. Everything works: the map, peeking a\nnote, remarks, minutes, card scripts.\n\n`Present` — one screen.\n\n`Present on a second screen` — deck to the projector, canvas stays here.\n---\n## Exporting\n\nOne **standalone HTML file**. No Obsidian, no network. Send it to someone,\nor open it on a machine that has never heard of your vault.\n\n`Export to HTML`, or press `E` mid-talk.",
+			"text": "#two\n# Present, or export?\n---\n## Presenting\n\nThe deck runs **inside Obsidian**, in a window of its own. Everything\nworks: the map, the overview, peeking a note, remarks, minutes, card\nscripts.\n\n`Present` — and drag the window to your other screen.\n---\n## Exporting\n\nOne **standalone HTML file**. No Obsidian, no network. Send it to someone,\nor open it on a machine that has never heard of your vault.\n\n`Export to HTML`, or press `E` mid-talk.",
 			"x": 1520,
 			"y": 10240,
 			"width": 1280,
@@ -576,7 +576,7 @@
 		{
 			"id": "O6",
 			"type": "text",
-			"text": "## The commands, and what each is for\n\n| Command | Reach for it when |\n| --- | --- |\n| **Present** | The everyday one. Starts on the selected card. |\n| **Present on a second screen** | A projector, and you want the canvas too. |\n| Present from the beginning | Ignore what is selected. |\n| Present a variant… | The canvas holds more than one talk. |\n| Stop presenting | End it from *this* window, wherever the deck is. |\n| Preview the export | Check the file before sending it. |\n| Export to HTML | Write the file. |\n\nAll of them need a canvas to be the open tab. **Atlas sets no shortcuts** —\nbind your own under **Settings → Hotkeys**, searching *Atlas*.\n\n%%Worth binding as a pair: Present on a second screen, and Stop presenting.\nAvoid anything built on Enter — Obsidian cannot record those.%%",
+			"text": "## The commands, and what each is for\n\n| Command | Reach for it when |\n| --- | --- |\n| **Present** | The everyday one. A window of its own, starting on the selected card. |\n| Present in a separate window | The same, whatever the setting says. |\n| Present from the beginning | Ignore what is selected. |\n| Present a variant… | The canvas holds more than one talk. |\n| **Stop presenting** | End it from *this* window, wherever the deck is. |\n| Preview the export | Check the file before sending it. |\n| Export to HTML | Write the file. It opens itself. |\n\nAll of them need a canvas to be the open tab. **Atlas sets no shortcuts** —\nbind your own under **Settings → Hotkeys**, searching *Atlas*.\n\n%%Worth binding as a pair: Present, and Stop presenting. Avoid anything\nbuilt on Enter — Obsidian cannot record those.%%",
 			"x": 7600,
 			"y": 10240,
 			"width": 1280,

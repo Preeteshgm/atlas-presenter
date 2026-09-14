@@ -140,6 +140,21 @@ export class AtlasSettingTab extends PluginSettingTab {
 			);
 
 		new Setting(containerEl)
+			.setName("Present in a window of its own")
+			.setDesc(
+				"The deck opens in a separate window — drag it to your other screen and " +
+					"press F. Obsidian stays as it was, so the canvas, your notes and the " +
+					"presenter panel are all still in front of you. Turn this off only on a " +
+					"single screen, where there is nowhere else to put them."
+			)
+			.addToggle((c) =>
+				c.setValue(s.presentInWindow).onChange(async (v) => {
+					s.presentInWindow = v;
+					await this.save();
+				})
+			);
+
+		new Setting(containerEl)
 			.setName("Keyboard shortcut")
 			.setDesc(
 				`Currently ${this.currentHotkey("present-canvas")}. No shortcut is set by ` +

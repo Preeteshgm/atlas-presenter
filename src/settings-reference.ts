@@ -329,18 +329,18 @@ The conclusion.`);
 	entry(
 		screens,
 		"Present",
-		"One screen. The deck fills this window, starting on the card you have " +
-			"selected on the canvas — or at the beginning if none is. This is the " +
-			"everyday one."
+		"The everyday one. The deck opens in a window of its own — drag it to your " +
+			"other screen and press F. Obsidian is left as it was, so the canvas, your " +
+			"notes and the presenter panel are all still in front of you, and speaker " +
+			"notes come off the deck because the deck is now what the room sees. It " +
+			"starts on the card selected in the canvas, or at the beginning. Turn off " +
+			"“Present in a window of its own” if you only have one screen."
 	);
 	entry(
 		screens,
-		"Present on a second screen",
-		"Two screens. The deck opens in a window of its own: drag it to the " +
-			"projector and press F. This window is never touched, so the canvas stays " +
-			"in front of you, and the presenter panel — notes, the clock, what is " +
-			"coming — opens in the sidebar beside it. Speaker notes are taken off the " +
-			"deck entirely, because the deck is now what the room sees."
+		"Present in a separate window",
+		"The same, whatever that setting says. Worth a key of its own if you " +
+			"usually present on one screen and occasionally do not."
 	);
 	entry(
 		screens,

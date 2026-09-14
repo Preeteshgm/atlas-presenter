@@ -59,7 +59,7 @@ export default class AtlasPlugin extends Plugin {
 
 		this.addCommand({
 			id: "present-canvas-windowed",
-			name: "Present on a second screen",
+			name: "Present in a separate window",
 			checkCallback: (checking: boolean) => {
 				const file = this.app.workspace.getActiveFile();
 				if (!file || file.extension !== "canvas") return false;
@@ -160,7 +160,7 @@ export default class AtlasPlugin extends Plugin {
 				);
 				menu.addItem((item) =>
 					item
-						.setTitle("Present with Atlas on a second screen")
+						.setTitle("Present with Atlas in a separate window")
 						.setIcon(ICON_ID)
 						.onClick(() => void this.present(file, undefined, "", { windowed: true }))
 				);
@@ -261,6 +261,9 @@ export default class AtlasPlugin extends Plugin {
 		variant = "",
 		options: { windowed?: boolean } = {}
 	): Promise<void> {
+		// A window of its own unless told otherwise, because that is what leaves
+		// Obsidian usable while the talk runs.
+		const windowed = options.windowed ?? this.settings.presentInWindow;
 		if (this.active) this.active.stop();
 		const show = new Presentation(this.app, file, this.settings, startNodeId, variant);
 		this.active = show;
@@ -274,7 +277,7 @@ export default class AtlasPlugin extends Plugin {
 			// Before start(), because the deck is built into whichever window it
 			// is given. A window that will not open is not a reason to abandon
 			// the talk: say so and present in place.
-			if (options.windowed && !(await show.useOwnWindow())) {
+			if (windowed && !(await show.useOwnWindow())) {
 				new Notice("Atlas: could not open a second window; presenting here.");
 			}
 			await show.start();

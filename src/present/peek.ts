@@ -1,4 +1,5 @@
 import { App, Component, MarkdownRenderer, TFile } from "obsidian";
+import { isElement } from "../dom";
 
 /**
  * Click a wikilink in a slide and read the note without leaving the deck.
@@ -41,7 +42,7 @@ export class Peek {
 		// Links inside the peek keep working, one level deeper each time.
 		this.bodyEl.addEventListener("click", (e) => {
 			const target = (e.target as HTMLElement | null)?.closest("a.internal-link");
-			if (!(target instanceof HTMLElement)) return;
+			if (!isElement(target)) return;
 			e.preventDefault();
 			e.stopPropagation();
 			const href = target.getAttr("href") ?? target.innerText;
