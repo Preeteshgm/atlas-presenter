@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Dots — an Atlas Presenter backdrop.
+
+     A quiet dot matrix on bone white. Pairs with: Paper, Harbour.
+
+     Settings -> Atlas -> Backdrop -> An image, then pick this file. Or put
+     `image: Atlas/Backdrops/Dots.svg` on a canvas's #deck card.
+
+     A backdrop sits behind the cards and must never compete with them: these
+     are all low contrast on purpose. Turn "Darken the backdrop" up if a deck
+     still feels busy. Edit the colours below to make your own — it is a text
+     file, and SVG stays sharp on any projector. -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1920 1080"
+     width="1920" height="1080" preserveAspectRatio="xMidYMid slice">
+
+  <defs>
+    <pattern id="d" width="34" height="34" patternUnits="userSpaceOnUse">
+      <circle cx="17" cy="17" r="1.6" fill="#1D5A78" opacity="0.16"/>
+    </pattern>
+  </defs>
+  <rect width="1920" height="1080" fill="#F5F6F2"/>
+  <rect width="1920" height="1080" fill="url(#d)"/>
+</svg>

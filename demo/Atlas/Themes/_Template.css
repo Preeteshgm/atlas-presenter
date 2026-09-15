@@ -1,0 +1,161 @@
+/* ===========================================================================
+   _Template — copy this to make a theme.
+
+   HOW TO USE
+     1. Copy this file. Name it whatever the theme is called: `Brass.css`.
+     2. Keep it in a folder called `Themes` — Atlas lists those first, by name.
+     3. Settings → Atlas → Theme stylesheet, and pick it. Or pin one deck to it
+        with a `theme: Atlas/Themes/Brass.css` line on that canvas's #deck card.
+     4. Edit the values below. You never have to write a selector.
+
+   HOW IT WORKS
+     A theme sets tokens. The plugin's own stylesheet does the work, reading
+     every one of these with a sensible fallback — so a half-finished theme is
+     never a broken one, and you can delete any line you have no opinion about.
+
+     Tokens live on `.atl-overlay`, which is the deck. Obsidian's own interface
+     is outside it and is never touched.
+
+     Only write a selector when you want a *role* to behave differently, not
+     just look different. There are a few examples at the bottom.
+
+   THE ONE RULE
+     Atlas only offers stylesheets that contain `.atl-` somewhere. Keep the
+     `.atl-overlay {` line below and your theme will always be listed.
+   =========================================================================== */
+
+.atl-overlay {
+
+	/* ---- the backdrop --------------------------------------------------
+	   What sits behind the cards. Falls back to --paper, so a theme that
+	   says nothing here still looks deliberate. Any CSS background works:
+	   a colour, a gradient, or a repeating pattern. */
+	--backdrop: #EDEEE8;
+
+	/* ---- paper and ink -------------------------------------------------
+	   The two that matter most. Everything else is a shade between them. */
+	--paper: #F4F5F0;                   /* card background            */
+	--ink: #14232A;                     /* body text                  */
+	--ink-soft: #4E5F66;                /* secondary text, captions   */
+	--ink-faint: rgb(20 35 42 / 0.30);  /* section names off-camera   */
+	--rule: #C6CDC6;                    /* hairlines, borders, table  */
+	--wash: rgb(20 35 42 / 0.06);       /* inline code, striped rows  */
+	--panel: #FFFFFF;                   /* peek, browser, review      */
+
+	/* ---- accent --------------------------------------------------------
+	   Links, list markers, the live card on the map, the #stat number,
+	   the rule under a #section name. One colour, used everywhere. */
+	--accent: #1D5A78;
+	--accent-soft: #6FA8C4;             /* hover, and bold on #dark   */
+	--accent-ink: #FFFFFF;              /* text drawn ON the accent   */
+
+	/* ---- ==highlight== -------------------------------------------------- */
+	--highlight: #FCE9A0;
+	--highlight-ink: #14232A;
+
+	/* ---- cards ---------------------------------------------------------- */
+	--radius: 14px;
+	--card: var(--paper);               /* override to tint cards only  */
+	--card-border: 1px solid var(--rule);
+	--card-shadow: 0 10px 44px rgb(0 0 0 / 0.22);   /* the live card    */
+	--card-ring: none;                  /* e.g. 3px solid var(--accent) */
+	--card-ring-offset: 3px;
+	--atl-inactive: 0.18;               /* off-camera cards, 0 hides    */
+
+	/* ---- sections ------------------------------------------------------
+	   A colour per section, cycling after six. Delete these and every
+	   section uses --accent instead. They colour the live group's border,
+	   its name, and the rule under a #section card. */
+	--section-1: #1D5A78;
+	--section-2: #7A5230;
+	--section-3: #3F6B4A;
+	--section-4: #6B3F5E;
+	--section-5: #2E4A6B;
+	--section-6: #6B5A2E;
+
+	/* ---- the section name on the map ------------------------------------ */
+	--group-size: 96px;                 /* it is big on purpose          */
+	--group-weight: 700;
+	--group-tracking: -0.015em;
+	--group-transform: none;            /* or uppercase                  */
+	--group-fill: transparent;          /* a tint inside the group box   */
+	--group-border: 2px dashed var(--rule);
+	--group-radius: 16px;
+	--group-opacity: 0.6;
+
+	/* ---- type ----------------------------------------------------------
+	   Give every font a real fallback: a deck opened on another machine
+	   should degrade, not break. */
+	--display-font: 'Archivo Narrow', 'Arial Narrow', var(--font-interface), sans-serif;
+	--body-font: 'IBM Plex Sans', var(--font-interface), sans-serif;
+	--mono-font: 'IBM Plex Mono', var(--font-monospace), monospace;
+
+	--body-size: 19px;                  /* the base every em is built on */
+	--measure: 62ch;                    /* paragraph width               */
+	--heading-weight: 700;
+	--heading-transform: none;          /* or uppercase                  */
+	--tracking: -0.012em;
+
+	/* Sizes are ems, so they scale with --body-size. */
+	--scale-h1: 2.9em;
+	--scale-h2: 2.05em;
+	--scale-h3: 1.35em;
+	--scale-title: 4.1em;               /* #title   */
+	--scale-section: 3.2em;             /* #section */
+	--scale-quote: 2.05em;              /* #quote   */
+	--scale-stat: 6.6em;                /* #stat    */
+
+	/* ---- code ----------------------------------------------------------- */
+	--code-bg: var(--wash);
+	--code-ink: var(--ink);
+	--code-rule: var(--rule);
+	--code-size: 0.78em;                /* fenced blocks, not inline     */
+
+	/* ---- roles that invert ---------------------------------------------- */
+	--section-bg: var(--ink);           /* the #section card's background */
+	--section-ink: var(--paper);
+	--dark-bg: var(--ink);              /* #dark                          */
+	--dark-ink: var(--paper);
+	--stat-ink: var(--accent);          /* the big number                 */
+
+	/* ---- pictures -------------------------------------------------------- */
+	--media-radius: 8px;
+
+	/* ---- background image, when a deck sets one -------------------------- */
+	--atl-dim: 0.45;                    /* how far it is darkened         */
+	--atl-band: 24;                     /* title band height, in vh       */
+}
+
+/* ===========================================================================
+   Beyond the tokens.
+
+   Everything above is enough for most themes. Write a selector when you want
+   a role to *behave* differently. Three examples, all commented out.
+   =========================================================================== */
+
+/* Give every card a coloured edge in its section's colour:
+
+.atl-node:not(.atl-node-group) {
+	border-left: 4px solid var(--section, var(--accent));
+}
+*/
+
+/* A #title card that fills with the accent instead of the paper:
+
+.atl-node.atl-tag-title:not(.atl-node-group) {
+	background: var(--accent);
+	border-color: var(--accent);
+}
+.atl-node.atl-tag-title .atl-body,
+.atl-node.atl-tag-title h1 { color: var(--accent-ink); }
+*/
+
+/* Your own tag. Any tag on a card becomes a class, so `#brand` is
+   `.atl-tag-brand` with no plugin change at all:
+
+.atl-node.atl-tag-brand:not(.atl-node-group) {
+	background: linear-gradient(140deg, #123, #245);
+	border-color: transparent;
+}
+.atl-node.atl-tag-brand .atl-body { color: #fff; }
+*/

@@ -1,316 +1,316 @@
 {
-	"nodes": [
-		{
-			"id": "c1",
-			"type": "text",
-			"text": "#title\n\n# Three surfaces, built in order.\n\nThe whole card is plain markdown. The only extra is the tag line at the top,\nwhich never reaches the slide — it just tells the stylesheet this is a title card.\n",
-			"x": 0,
-			"y": 0,
-			"width": 1280,
-			"height": 720
-		},
-		{
-			"id": "c2",
-			"type": "text",
-			"text": "#section\n\n## Why the code\n",
-			"x": 1520,
-			"y": 0,
-			"width": 1280,
-			"height": 720
-		},
-		{
-			"id": "c3",
-			"type": "text",
-			"text": "#stat\n\n# 24,173\n\nof 24,180 activity codes survived the re-import. Task ids that survived: none.\n",
-			"x": 3040,
-			"y": 0,
-			"width": 1280,
-			"height": 720
-		},
-		{
-			"id": "c4",
-			"type": "text",
-			"text": "#quote\n\n> A shared folder is not a database, and this project has already produced\n> OneDrive conflict copies.\n",
-			"x": 0,
-			"y": 1180,
-			"width": 1280,
-			"height": 720
-		},
-		{
-			"id": "c5",
-			"type": "text",
-			"text": "#dark\n\n## The same card, inverted\n\nNothing changed in the markdown — only the tag. **The stylesheet** decides that\n`#dark` means an inverted card, so a deck can be re-skinned without touching a\nsingle note.\n",
-			"x": 1520,
-			"y": 1180,
-			"width": 1280,
-			"height": 720
-		},
-		{
-			"id": "c6",
-			"type": "text",
-			"text": "#split\n\n## Two columns, no HTML\n\nColumn layout comes from the stylesheet, not from markup in the card. The text\nhere is an ordinary paragraph and knows nothing about columns.\n\nDesktop keeps the model work, because geometry is gigabytes and the engine is\nWindows-only. Web takes anything more than one person touches. Field takes\nwhatever originates on site, because a foreman does not open a laptop to say a\npour went in.\n\nSplitting by treatment rather than by markup is what keeps the note readable on\nits own.\n",
-			"x": 3040,
-			"y": 1180,
-			"width": 1280,
-			"height": 720
-		},
-		{
-			"id": "c7",
-			"type": "text",
-			"text": "#full\n\n![[Atlas/Assets/site-1.svg]]\n",
-			"x": 0,
-			"y": 2360,
-			"width": 1280,
-			"height": 720
-		},
-		{
-			"id": "c8",
-			"type": "text",
-			"text": "## An ordinary card\n\nNo tag, so it gets the base treatment: the card background, type scale and\nheading font from the stylesheet, and nothing else.\n\nOpen any of these cards as a note and there is no CSS in sight — that is the\npoint. Only the presentation applies the theme.\n",
-			"x": 1520,
-			"y": 2360,
-			"width": 1280,
-			"height": 720
-		},
-		{
-			"id": "c9",
-			"type": "text",
-			"text": "#section\n\n## The evidence\n",
-			"x": 3040,
-			"y": 2360,
-			"width": 1280,
-			"height": 720
-		},
-		{
-			"id": "c10",
-			"type": "text",
-			"text": "## Styled by its group\n\nThis card sits in a group called *The evidence*, and the stylesheet targets\n`[data-group=\"the-evidence\"]`. A whole section can be treated at once without\ntagging every card in it.\n",
-			"x": 0,
-			"y": 3540,
-			"width": 1280,
-			"height": 720
-		},
-		{
-			"id": "c11",
-			"type": "text",
-			"text": "## How to use it\n\n1. Put a `.css` file anywhere in the vault.\n2. Settings → Background → **Theme stylesheet** → pick it.\n3. Tag a card with `#title`, `#section`, `#quote`, `#stat`, `#dark`, `#split`\n   or `#full` — a bare tag line, on its own.\n\nA note card can use `cssclasses:` in its frontmatter instead, which is\nObsidian's own convention and equally invisible on the slide.\n",
-			"x": 1520,
-			"y": 3540,
-			"width": 1280,
-			"height": 720
-		},
-		{
-			"id": "g1",
-			"type": "group",
-			"label": "Openers",
-			"x": -120,
-			"y": -120,
-			"width": 4560,
-			"height": 960
-		},
-		{
-			"id": "g2",
-			"type": "group",
-			"label": "Treatments",
-			"x": -120,
-			"y": 1060,
-			"width": 4560,
-			"height": 960
-		},
-		{
-			"id": "g3",
-			"type": "group",
-			"label": "The evidence",
-			"x": -120,
-			"y": 2240,
-			"width": 4560,
-			"height": 960
-		},
-		{
-			"id": "g4",
-			"type": "group",
-			"label": "Using it",
-			"x": -120,
-			"y": 3420,
-			"width": 3040,
-			"height": 960
-		},
-		{
-			"id": "deck-meta",
-			"type": "text",
-			"text": "#deck\n\ntitle: Atlas — a themed deck\npresenter: Sam Avery\nheader: {title}   ·   {presenter}   ·   {section}\n\n%% This card is never presented and never appears on the map.\nIt is the deck's title block, and it belongs to this canvas alone.\nAnything between double percent signs is a note to yourself. %%",
-			"x": -120,
-			"y": -1220,
-			"width": 900,
-			"height": 420,
-			"color": "3"
-		},
-		{
-			"id": "t-agenda",
-			"type": "text",
-			"text": "#agenda\n# What we will cover\n\n1. Where the site stands today\n2. The three options on the table\n3. What each one costs\n4. What we need decided in this room",
-			"x": 0,
-			"y": 4800,
-			"width": 1280,
-			"height": 860,
-			"color": "3"
-		},
-		{
-			"id": "t-two",
-			"type": "text",
-			"text": "#two\n# Two columns, placed\n---\n`#split` flows — text spills out of this column into the next one, and\nyou cannot say what goes where.\n\nCompare it with the `#split` card earlier in this deck.\n---\n`#two` places. The `---` rule is the break, so this paragraph is here\nbecause it was written second.\n\nThe heading above spans both.",
-			"x": 1520,
-			"y": 4800,
-			"width": 1280,
-			"height": 860,
-			"color": "4"
-		},
-		{
-			"id": "t-compare",
-			"type": "text",
-			"text": "#compare\n## Patch it\n\n- Four weeks\n- £18k\n- Buys eighteen months\n---\n## Replace it\n\n- Eleven weeks\n- £52k\n- Buys a decade",
-			"x": 3040,
-			"y": 4800,
-			"width": 1280,
-			"height": 860,
-			"color": "4"
-		},
-		{
-			"id": "t-left",
-			"type": "text",
-			"text": "#left\n![[surfaces.svg]]\n---\n## Picture one side\n\n`#left` fills the left half with the picture. `#right` is the mirror —\nwrite the picture second.\n\nUseful alternating down a run, so a sequence does not read as one long\ncolumn.",
-			"x": 4560,
-			"y": 4800,
-			"width": 1280,
-			"height": 860,
-			"color": "5"
-		},
-		{
-			"id": "t-table",
-			"type": "text",
-			"text": "## And a table\n\nNo tag. Every theme styles these for a slide — ruled header, banded\nrows, tabular figures.\n\n| Option | Weeks | Cost | Risk |\n| --- | ---: | ---: | :---: |\n| Do nothing | 0 | £0 | High |\n| Patch it | 4 | £18k | Medium |\n| Replace | 11 | £52k | Low |",
-			"x": 6080,
-			"y": 4800,
-			"width": 1280,
-			"height": 860,
-			"color": "6"
-		},
-		{
-			"id": "t-end",
-			"type": "text",
-			"text": "#end\n# Swap the theme\n\nChange the `theme:` line on this canvas's `#deck` card and present again.\nNot one card changes.\n\nPaper · Slate · Plain",
-			"x": 7600,
-			"y": 4800,
-			"width": 1280,
-			"height": 860,
-			"color": "2"
-		},
-		{
-			"id": "grp-t-agenda",
-			"type": "group",
-			"label": "Newer roles, in this theme",
-			"x": -130,
-			"y": 4670,
-			"width": 9140,
-			"height": 1120
-		}
-	],
-	"edges": [
-		{
-			"id": "e1",
-			"fromNode": "c1",
-			"toNode": "c2",
-			"label": "1."
-		},
-		{
-			"id": "e2",
-			"fromNode": "c2",
-			"toNode": "c3",
-			"label": "2."
-		},
-		{
-			"id": "e3",
-			"fromNode": "c3",
-			"toNode": "c4",
-			"label": "3."
-		},
-		{
-			"id": "e4",
-			"fromNode": "c4",
-			"toNode": "c5",
-			"label": "4."
-		},
-		{
-			"id": "e5",
-			"fromNode": "c5",
-			"toNode": "c6",
-			"label": "5."
-		},
-		{
-			"id": "e6",
-			"fromNode": "c6",
-			"toNode": "c7",
-			"label": "6."
-		},
-		{
-			"id": "e7",
-			"fromNode": "c7",
-			"toNode": "c8",
-			"label": "7."
-		},
-		{
-			"id": "e8",
-			"fromNode": "c8",
-			"toNode": "c9",
-			"label": "8."
-		},
-		{
-			"id": "e9",
-			"fromNode": "c9",
-			"toNode": "c10",
-			"label": "9."
-		},
-		{
-			"id": "e10",
-			"fromNode": "c10",
-			"toNode": "c11",
-			"label": "10."
-		},
-		{
-			"id": "y11",
-			"fromNode": "c11",
-			"toNode": "t-agenda",
-			"label": "11."
-		},
-		{
-			"id": "y12",
-			"fromNode": "t-agenda",
-			"toNode": "t-two",
-			"label": "12."
-		},
-		{
-			"id": "y13",
-			"fromNode": "t-two",
-			"toNode": "t-compare",
-			"label": "13."
-		},
-		{
-			"id": "y14",
-			"fromNode": "t-compare",
-			"toNode": "t-left",
-			"label": "14."
-		},
-		{
-			"id": "y15",
-			"fromNode": "t-left",
-			"toNode": "t-table",
-			"label": "15."
-		},
-		{
-			"id": "y16",
-			"fromNode": "t-table",
-			"toNode": "t-end",
-			"label": "16."
-		}
-	]
+  "nodes": [
+    {
+      "id": "c1",
+      "type": "text",
+      "text": "#title\n\n# Three surfaces, built in order.\n\nThe whole card is plain markdown. The only extra is the tag line at the top,\nwhich never reaches the slide — it just tells the stylesheet this is a title card.\n",
+      "x": 0,
+      "y": 0,
+      "width": 1280,
+      "height": 720
+    },
+    {
+      "id": "c2",
+      "type": "text",
+      "text": "#section\n\n## Why the code\n",
+      "x": 1520,
+      "y": 0,
+      "width": 1280,
+      "height": 720
+    },
+    {
+      "id": "c3",
+      "type": "text",
+      "text": "#stat\n\n# 24,173\n\nof 24,180 activity codes survived the re-import. Task ids that survived: none.\n",
+      "x": 3040,
+      "y": 0,
+      "width": 1280,
+      "height": 720
+    },
+    {
+      "id": "c4",
+      "type": "text",
+      "text": "#quote\n\n> A shared folder is not a database, and this project has already produced\n> OneDrive conflict copies.\n",
+      "x": 0,
+      "y": 1180,
+      "width": 1280,
+      "height": 720
+    },
+    {
+      "id": "c5",
+      "type": "text",
+      "text": "#dark\n\n## The same card, inverted\n\nNothing changed in the markdown — only the tag. **The stylesheet** decides that\n`#dark` means an inverted card, so a deck can be re-skinned without touching a\nsingle note.\n",
+      "x": 1520,
+      "y": 1180,
+      "width": 1280,
+      "height": 720
+    },
+    {
+      "id": "c6",
+      "type": "text",
+      "text": "#split\n\n## Two columns, no HTML\n\nColumn layout comes from the stylesheet, not from markup in the card. The text\nhere is an ordinary paragraph and knows nothing about columns.\n\nDesktop keeps the model work, because geometry is gigabytes and the engine is\nWindows-only. Web takes anything more than one person touches. Field takes\nwhatever originates on site, because a foreman does not open a laptop to say a\npour went in.\n\nSplitting by treatment rather than by markup is what keeps the note readable on\nits own.\n",
+      "x": 3040,
+      "y": 1180,
+      "width": 1280,
+      "height": 720
+    },
+    {
+      "id": "c7",
+      "type": "text",
+      "text": "#full\n\n![[Atlas/Assets/site-1.svg]]\n",
+      "x": 0,
+      "y": 2360,
+      "width": 1280,
+      "height": 720
+    },
+    {
+      "id": "c8",
+      "type": "text",
+      "text": "## An ordinary card\n\nNo tag, so it gets the base treatment: the card background, type scale and\nheading font from the stylesheet, and nothing else.\n\nOpen any of these cards as a note and there is no CSS in sight — that is the\npoint. Only the presentation applies the theme.\n",
+      "x": 1520,
+      "y": 2360,
+      "width": 1280,
+      "height": 720
+    },
+    {
+      "id": "c9",
+      "type": "text",
+      "text": "#section\n\n## The evidence\n",
+      "x": 3040,
+      "y": 2360,
+      "width": 1280,
+      "height": 720
+    },
+    {
+      "id": "c10",
+      "type": "text",
+      "text": "## Styled by its group\n\nThis card sits in a group called *The evidence*, and the stylesheet targets\n`[data-group=\"the-evidence\"]`. A whole section can be treated at once without\ntagging every card in it.\n",
+      "x": 0,
+      "y": 3540,
+      "width": 1280,
+      "height": 720
+    },
+    {
+      "id": "c11",
+      "type": "text",
+      "text": "## How to use it\n\n1. Put a `.css` file anywhere in the vault.\n2. Settings → Background → **Theme stylesheet** → pick it.\n3. Tag a card with `#title`, `#section`, `#quote`, `#stat`, `#dark`, `#split`\n   or `#full` — a bare tag line, on its own.\n\nA note card can use `cssclasses:` in its frontmatter instead, which is\nObsidian's own convention and equally invisible on the slide.\n",
+      "x": 1520,
+      "y": 3540,
+      "width": 1280,
+      "height": 720
+    },
+    {
+      "id": "g1",
+      "type": "group",
+      "label": "Openers",
+      "x": -120,
+      "y": -120,
+      "width": 4560,
+      "height": 960
+    },
+    {
+      "id": "g2",
+      "type": "group",
+      "label": "Treatments",
+      "x": -120,
+      "y": 1060,
+      "width": 4560,
+      "height": 960
+    },
+    {
+      "id": "g3",
+      "type": "group",
+      "label": "The evidence",
+      "x": -120,
+      "y": 2240,
+      "width": 4560,
+      "height": 960
+    },
+    {
+      "id": "g4",
+      "type": "group",
+      "label": "Using it",
+      "x": -120,
+      "y": 3420,
+      "width": 3040,
+      "height": 960
+    },
+    {
+      "id": "deck-meta",
+      "type": "text",
+      "text": "#deck\n\ntitle: Atlas — a themed deck\npresenter: Sam Avery\nheader: {title}   ·   {presenter}   ·   {section}\n\n%% This card is never presented and never appears on the map.\nIt is the deck's title block, and it belongs to this canvas alone.\nAnything between double percent signs is a note to yourself. %%",
+      "x": -120,
+      "y": -1220,
+      "width": 900,
+      "height": 420,
+      "color": "3"
+    },
+    {
+      "id": "t-agenda",
+      "type": "text",
+      "text": "#agenda\n# What we will cover\n\n1. Where the site stands today\n2. The three options on the table\n3. What each one costs\n4. What we need decided in this room",
+      "x": 0,
+      "y": 4800,
+      "width": 1280,
+      "height": 860,
+      "color": "3"
+    },
+    {
+      "id": "t-two",
+      "type": "text",
+      "text": "#two\n# Two columns, placed\n---\n`#split` flows — text spills out of this column into the next one, and\nyou cannot say what goes where.\n\nCompare it with the `#split` card earlier in this deck.\n---\n`#two` places. The `---` rule is the break, so this paragraph is here\nbecause it was written second.\n\nThe heading above spans both.",
+      "x": 1520,
+      "y": 4800,
+      "width": 1280,
+      "height": 860,
+      "color": "4"
+    },
+    {
+      "id": "t-compare",
+      "type": "text",
+      "text": "#compare\n## Patch it\n\n- Four weeks\n- £18k\n- Buys eighteen months\n---\n## Replace it\n\n- Eleven weeks\n- £52k\n- Buys a decade",
+      "x": 3040,
+      "y": 4800,
+      "width": 1280,
+      "height": 860,
+      "color": "4"
+    },
+    {
+      "id": "t-left",
+      "type": "text",
+      "text": "#left\n![[surfaces.svg]]\n---\n## Picture one side\n\n`#left` fills the left half with the picture. `#right` is the mirror —\nwrite the picture second.\n\nUseful alternating down a run, so a sequence does not read as one long\ncolumn.",
+      "x": 4560,
+      "y": 4800,
+      "width": 1280,
+      "height": 860,
+      "color": "5"
+    },
+    {
+      "id": "t-table",
+      "type": "text",
+      "text": "## And a table\n\nNo tag. Every theme styles these for a slide — ruled header, banded\nrows, tabular figures.\n\n| Option | Weeks | Cost | Risk |\n| --- | ---: | ---: | :---: |\n| Do nothing | 0 | £0 | High |\n| Patch it | 4 | £18k | Medium |\n| Replace | 11 | £52k | Low |",
+      "x": 6080,
+      "y": 4800,
+      "width": 1280,
+      "height": 860,
+      "color": "6"
+    },
+    {
+      "id": "t-end",
+      "type": "text",
+      "text": "#end\n# Swap the theme\n\nChange the `theme:` line on this canvas's `#deck` card and present again.\nNot one card changes.\n\nPaper · Slate · Plain · Mono · Blueprint · Harbour · Midnight\n\nCopy _Template.css to make your own — it is only a list of colours.",
+      "x": 7600,
+      "y": 4800,
+      "width": 1280,
+      "height": 860,
+      "color": "2"
+    },
+    {
+      "id": "grp-t-agenda",
+      "type": "group",
+      "label": "Newer roles, in this theme",
+      "x": -130,
+      "y": 4670,
+      "width": 9140,
+      "height": 1120
+    }
+  ],
+  "edges": [
+    {
+      "id": "e1",
+      "fromNode": "c1",
+      "toNode": "c2",
+      "label": "1."
+    },
+    {
+      "id": "e2",
+      "fromNode": "c2",
+      "toNode": "c3",
+      "label": "2."
+    },
+    {
+      "id": "e3",
+      "fromNode": "c3",
+      "toNode": "c4",
+      "label": "3."
+    },
+    {
+      "id": "e4",
+      "fromNode": "c4",
+      "toNode": "c5",
+      "label": "4."
+    },
+    {
+      "id": "e5",
+      "fromNode": "c5",
+      "toNode": "c6",
+      "label": "5."
+    },
+    {
+      "id": "e6",
+      "fromNode": "c6",
+      "toNode": "c7",
+      "label": "6."
+    },
+    {
+      "id": "e7",
+      "fromNode": "c7",
+      "toNode": "c8",
+      "label": "7."
+    },
+    {
+      "id": "e8",
+      "fromNode": "c8",
+      "toNode": "c9",
+      "label": "8."
+    },
+    {
+      "id": "e9",
+      "fromNode": "c9",
+      "toNode": "c10",
+      "label": "9."
+    },
+    {
+      "id": "e10",
+      "fromNode": "c10",
+      "toNode": "c11",
+      "label": "10."
+    },
+    {
+      "id": "y11",
+      "fromNode": "c11",
+      "toNode": "t-agenda",
+      "label": "11."
+    },
+    {
+      "id": "y12",
+      "fromNode": "t-agenda",
+      "toNode": "t-two",
+      "label": "12."
+    },
+    {
+      "id": "y13",
+      "fromNode": "t-two",
+      "toNode": "t-compare",
+      "label": "13."
+    },
+    {
+      "id": "y14",
+      "fromNode": "t-compare",
+      "toNode": "t-left",
+      "label": "14."
+    },
+    {
+      "id": "y15",
+      "fromNode": "t-left",
+      "toNode": "t-table",
+      "label": "15."
+    },
+    {
+      "id": "y16",
+      "fromNode": "t-table",
+      "toNode": "t-end",
+      "label": "16."
+    }
+  ]
 }

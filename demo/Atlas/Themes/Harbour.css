@@ -1,0 +1,53 @@
+/* Harbour — an Atlas Presenter theme.
+
+   A house look: deep harbour blue on warm white, a colour for every section.
+
+   Use it when: Anything that goes in front of management or a client.
+
+   Settings → Atlas → Theme stylesheet, or put
+   `theme: Atlas/Themes/Harbour.css` on a canvas's #deck card to use it for
+   that deck alone.
+
+   A theme is only the values below — the plugin's own stylesheet does the work
+   and reads every one of them with a fallback, so nothing here is required.
+   To make your own, copy _Template.css, which documents all of them. */
+
+.atl-overlay {
+	--backdrop: linear-gradient(160deg, #F7F8F4 0%, #E9EEEF 100%);
+	--paper: #FFFFFF;
+	--panel: #F7F8F4;
+	--ink: #132A33;
+	--ink-soft: #53666E;
+	--ink-faint: rgb(19 42 51 / 0.26);
+	--rule: #D5DEE1;
+	--wash: rgb(29 90 120 / 0.06);
+	--accent: #1D5A78;
+	--accent-soft: #4E90B0;
+	--accent-ink: #FFFFFF;
+	--highlight: #D8ECF4;
+	--highlight-ink: #132A33;
+	--radius: 10px;
+	--card-border: 1px solid #D5DEE1;
+	--card-shadow: 0 12px 40px rgb(19 42 51 / 0.16);
+	--card-ring: 3px solid var(--section, var(--accent));
+	--card-ring-offset: 4px;
+	--atl-inactive: 0.16;
+	--group-border: 2px solid var(--section, var(--rule));
+	--group-opacity: 0.5;
+	--group-size: 84px;
+	--section-1: #1D5A78;
+	--section-2: #B5762A;
+	--section-3: #2F7A54;
+	--section-4: #8A3E6B;
+	--section-5: #3B5BA5;
+	--section-6: #7A6A24;
+	--section-bg: #132A33;
+	--section-ink: #FFFFFF;
+	--dark-bg: #132A33;
+	--dark-ink: #FFFFFF;
+	--stat-ink: var(--section, var(--accent));
+	--display-font: 'Archivo Narrow', 'Arial Narrow', var(--font-interface), sans-serif;
+	--body-font: 'IBM Plex Sans', var(--font-interface), sans-serif;
+	--mono-font: 'IBM Plex Mono', var(--font-monospace), monospace;
+	--body-size: 19px;
+}

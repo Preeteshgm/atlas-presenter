@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Hatch — an Atlas Presenter backdrop.
+
+     Fine diagonal ruling, charcoal. Pairs with: Slate, Mono (inverted).
+
+     Settings -> Atlas -> Backdrop -> An image, then pick this file. Or put
+     `image: Atlas/Backdrops/Hatch.svg` on a canvas's #deck card.
+
+     A backdrop sits behind the cards and must never compete with them: these
+     are all low contrast on purpose. Turn "Darken the backdrop" up if a deck
+     still feels busy. Edit the colours below to make your own — it is a text
+     file, and SVG stays sharp on any projector. -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1920 1080"
+     width="1920" height="1080" preserveAspectRatio="xMidYMid slice">
+
+  <defs>
+    <pattern id="h" width="12" height="12" patternUnits="userSpaceOnUse"
+             patternTransform="rotate(45)">
+      <line x1="0" y1="0" x2="0" y2="12" stroke="#FFFFFF" stroke-width="1" opacity="0.045"/>
+    </pattern>
+  </defs>
+  <rect width="1920" height="1080" fill="#14171D"/>
+  <rect width="1920" height="1080" fill="url(#h)"/>
+</svg>

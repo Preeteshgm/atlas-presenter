@@ -113,6 +113,8 @@ export class Presentation extends Component {
 
 	/** A CSS file from the vault, applied to the whole deck. */
 	private themeCss = "";
+	/** Whether the theme came from this canvas's #deck card or from Settings. */
+	private themeFromDeck = false;
 
 	constructor(
 		private app: App,
@@ -212,7 +214,10 @@ export class Presentation extends Component {
 			return Number.isFinite(parsed) ? parsed : fallback;
 		};
 
-		if (m.theme) next.themeCss = m.theme;
+		if (m.theme) {
+			next.themeCss = m.theme;
+			this.themeFromDeck = true;
+		}
 		if (m.logo) next.logo = m.logo;
 		if (m.logocorner) next.logoCorner = m.logocorner as AtlasSettings["logoCorner"];
 		if (m.logoheight) next.logoHeight = num(m.logoheight, base.logoHeight);
@@ -244,7 +249,12 @@ export class Presentation extends Component {
 		if (!path) return "";
 		const file = fileAt(this.app, path);
 		if (!file) {
-			new Notice(`Atlas: theme file not found — ${path}`);
+			// Naming where the path came from is the whole message. A theme set
+			// in Settings looks correct there while a stale line on the canvas
+			// quietly wins, and the old notice named the path but never which of
+			// the two had asked for it.
+			const source = this.themeFromDeck ? "this canvas's #deck card" : "Settings";
+			new Notice(`Atlas: theme file not found — ${path}, asked for by ${source}.`, 9000);
 			return "";
 		}
 		const css = await this.app.vault.cachedRead(file);
@@ -483,19 +493,23 @@ export class Presentation extends Component {
 
 	private async buildStage(): Promise<void> {
 		// Groups first so they sit behind the cards they contain.
-		for (const g of this.scene.groups) {
-			this.nodeEls.set(
-				g.id,
-				await renderNode(
-					this.app,
-					this,
-					this.stage,
-					g,
-					this.file.path,
-					this.themeCss,
-					this.settings.allowScripts
-				)
+		for (const [i, g] of this.scene.groups.entries()) {
+			const el = await renderNode(
+				this.app,
+				this,
+				this.stage,
+				g,
+				this.file.path,
+				this.themeCss,
+				this.settings.allowScripts
 			);
+			// Which section this is, so a theme can give each one its own colour.
+			// CSS has no way to count siblings by section, and a deck of eight
+			// sections wants eight colours rather than one accent repeated.
+			// Cycles at six: a palette longer than that stops reading as a set.
+			el.style.setProperty("--group-i", String((i % 6) + 1));
+			el.style.setProperty("--section", `var(--section-${(i % 6) + 1}, var(--atl-accent))`);
+			this.nodeEls.set(g.id, el);
 		}
 		for (const n of this.scene.slides) {
 			const el = await renderNode(
@@ -508,6 +522,15 @@ export class Presentation extends Component {
 				this.settings.allowScripts,
 				this.scene.groupOf.get(n.id)?.label
 			);
+			// A card is positioned on the stage, not nested inside its group's
+			// box, so the section colour cannot be inherited — it is stamped on
+			// each card the same way.
+			const group = this.scene.groupOf.get(n.id);
+			const at = group ? this.scene.groups.findIndex((g) => g.id === group.id) : -1;
+			if (at >= 0) {
+				el.style.setProperty("--group-i", String((at % 6) + 1));
+				el.style.setProperty("--section", `var(--section-${(at % 6) + 1}, var(--atl-accent))`);
+			}
 			this.nodeEls.set(n.id, el);
 			const body = el.querySelector<HTMLElement>(".atl-body");
 			if (body) {

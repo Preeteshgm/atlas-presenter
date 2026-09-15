@@ -1,4 +1,13 @@
-import { App, Notice, Platform, PluginSettingTab, Setting, TFile } from "obsidian";
+import {
+	App,
+	DropdownComponent,
+	Notice,
+	Platform,
+	PluginSettingTab,
+	Setting,
+	TFile,
+	normalizePath,
+} from "obsidian";
 import type AtlasPlugin from "./main";
 import { IMAGE_EXT } from "./media";
 import { renderReference } from "./settings-reference";
@@ -30,11 +39,48 @@ export class AtlasSettingTab extends PluginSettingTab {
 	}
 
 	/** Every image in the vault, so a logo or backdrop is picked, not typed. */
+	/**
+	 * Images offered by the backdrop and logo pickers.
+	 *
+	 * Narrowed to the media folder when one is set. A folder that holds nothing
+	 * falls back to the whole vault rather than offering an empty list: the
+	 * setting is a convenience, and a convenience that can lock you out of your
+	 * own images is worse than no setting at all.
+	 */
 	private imageChoices(): Record<string, string> {
-		const out: Record<string, string> = { "": "— none —" };
+		const all: string[] = [];
 		for (const file of this.app.vault.getFiles()) {
-			if (file instanceof TFile && IMAGE_EXT.test(file.path)) out[file.path] = file.path;
+			if (file instanceof TFile && IMAGE_EXT.test(file.path)) all.push(file.path);
 		}
+
+		const folder = this.plugin.settings.mediaFolder.replace(/\/+$/, "");
+		const inFolder = folder
+			? all.filter((p) => p.toLowerCase().startsWith(`${folder.toLowerCase()}/`))
+			: all;
+		const use = inFolder.length > 0 ? inFolder : all;
+		use.sort();
+
+		const out: Record<string, string> = { "": "— none —" };
+		// Shown by filename once they all come from one folder — the path is the
+		// same on every row, so repeating it only makes them harder to tell apart.
+		for (const path of use) {
+			out[path] = folder && inFolder.length > 0 ? (path.split("/").pop() ?? path) : path;
+		}
+		return out;
+	}
+
+	/** Every folder in the vault, for the media-folder picker. */
+	private folderChoices(): Record<string, string> {
+		const out: Record<string, string> = { "": "— the whole vault —" };
+		const seen = new Set<string>();
+		for (const file of this.app.vault.getFiles()) {
+			if (!IMAGE_EXT.test(file.path)) continue;
+			const dir = file.path.split("/").slice(0, -1).join("/");
+			// Only folders that actually hold an image: a picker listing empty
+			// folders is a list of ways to get an empty picker.
+			if (dir && !seen.has(dir)) seen.add(dir);
+		}
+		for (const dir of [...seen].sort()) out[dir] = dir;
 		return out;
 	}
 
@@ -92,32 +138,55 @@ export class AtlasSettingTab extends PluginSettingTab {
 	}
 
 	/**
-	 * Stylesheets in the vault, with the ones that are actually Atlas themes
-	 * first.
+	 * The stylesheets in this vault that are actually Atlas themes.
 	 *
-	 * A vault that has ever exported a reveal.js deck contains a hundred and
-	 * thirty stylesheets, and the three that matter were lost among them.
+	 * Sorting them to the top was not enough. A vault that has ever exported a
+	 * reveal.js deck holds dozens of stylesheets, and picking one of those does
+	 * nothing whatsoever — it styles `.reveal`, which a deck has never had. The
+	 * list was the problem, so it now holds only files carrying Atlas's own
+	 * selectors: everything you can choose is a theme that works.
 	 */
-	private cssChoices(): Record<string, string> {
+	private async atlasThemes(): Promise<Record<string, string>> {
 		const NOISE = /(^|\/)(dist|plugin|plugins|node_modules|\.obsidian)\//i;
-		const themes: string[] = [];
-		const others: string[] = [];
+		const found: string[] = [];
 
 		for (const file of this.app.vault.getFiles()) {
 			if (file.extension !== "css") continue;
 			if (NOISE.test(file.path)) continue;
-			if (/(^|\/)Themes\//i.test(file.path)) themes.push(file.path);
-			else others.push(file.path);
+			try {
+				if ((await this.app.vault.cachedRead(file)).includes(".atl-")) {
+					found.push(file.path);
+				}
+			} catch {
+				// Unreadable is not a theme either.
+			}
 		}
-		themes.sort();
-		others.sort();
+		found.sort();
 
 		const out: Record<string, string> = { "": "— none —" };
-		for (const path of themes) {
-			out[path] = `Themes  ·  ${path.split("/").pop()?.replace(/\.css$/, "")}`;
+		for (const path of found) {
+			const name = path.split("/").pop()?.replace(/\.css$/, "") ?? path;
+			out[path] = /(^|\/)Themes\//i.test(path) ? `Themes  ·  ${name}` : path;
 		}
-		for (const path of others) out[path] = path;
 		return out;
+	}
+
+	/**
+	 * Fill the theme dropdown once the stylesheets have been read.
+	 *
+	 * Whatever is saved stays in the list even when it is not a theme, and says
+	 * why. A setting made before this filtering existed would otherwise vanish
+	 * from its own dropdown and appear to be something else.
+	 */
+	private async fillThemes(c: DropdownComponent, current: string): Promise<void> {
+		const choices = await this.atlasThemes();
+		if (current && !(current in choices)) {
+			const there = !!this.app.vault.getAbstractFileByPath(normalizePath(current));
+			choices[current] = `${current}  —  ${there ? "not an Atlas theme" : "missing"}`;
+		}
+		c.selectEl.empty();
+		c.addOptions(choices);
+		c.setValue(current);
 	}
 
 	display(): void {
@@ -243,10 +312,31 @@ export class AtlasSettingTab extends PluginSettingTab {
 				);
 		}
 
+		new Setting(containerEl)
+			.setName("Image folder")
+			.setDesc(
+				"Where the backdrop and logo pickers look. A vault of any age has " +
+					"thousands of images and only a handful are backdrops — keep those in " +
+					"one folder and both pickers become a shortlist. Atlas ships samples in " +
+					"Atlas/Backdrops. Leave it on the whole vault to list everything."
+			)
+			.addDropdown((c) =>
+				c
+					.addOptions(this.folderChoices())
+					.setValue(s.mediaFolder)
+					.onChange(async (v) => {
+						s.mediaFolder = v;
+						await this.save();
+						// Both pickers below are built from this, so they have to
+						// be rebuilt rather than left showing the old vault-wide list.
+						this.display();
+					})
+			);
+
 		if (s.background === "image") {
 			new Setting(containerEl)
 				.setName("Backdrop image")
-				.setDesc("Any image in the vault.")
+				.setDesc("A backdrop sits behind the cards, so choose something quiet.")
 				.addDropdown((c) =>
 					c
 						.addOptions(this.imageChoices())
@@ -273,19 +363,24 @@ export class AtlasSettingTab extends PluginSettingTab {
 		new Setting(containerEl)
 			.setName("Theme stylesheet")
 			.setDesc(
-				"A .css file in your vault, applied to every deck — the same idea as an " +
-					"Advanced Slides theme. It reaches markdown cards, the chrome, and inside " +
-					"HTML cards too, though a card that styles itself still wins."
+				"Applied to every deck — the same idea as an Advanced Slides theme. It " +
+					"reaches markdown cards, the chrome, and inside HTML cards too, though a " +
+					"card that styles itself still wins. Only Atlas themes are listed: an " +
+					"exported reveal.js stylesheet styles nothing here. A canvas whose #deck " +
+					"card carries a theme: line overrides this."
 			)
-			.addDropdown((c) =>
-				c
-					.addOptions(this.cssChoices())
-					.setValue(s.themeCss)
-					.onChange(async (v) => {
-						s.themeCss = v;
-						await this.save();
-					})
-			);
+			.addDropdown((c) => {
+				const current = s.themeCss;
+				c.addOptions({ "": "— none —" });
+				c.setValue(current);
+				c.onChange(async (v) => {
+					s.themeCss = v;
+					await this.save();
+				});
+				// Reading the stylesheets is the only way to know which are ours,
+				// so the real list arrives a moment after the panel does.
+				void this.fillThemes(c, current);
+			});
 
 		new Setting(containerEl)
 			.setName("Accent colour")

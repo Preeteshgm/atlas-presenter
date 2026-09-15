@@ -1,0 +1,54 @@
+/* Midnight — an Atlas Presenter theme.
+
+   Near-black with an accent glow, a vignette, and a colour per section.
+
+   Use it when: A dark room and a deck you want to look expensive.
+
+   Settings → Atlas → Theme stylesheet, or put
+   `theme: Atlas/Themes/Midnight.css` on a canvas's #deck card to use it for
+   that deck alone.
+
+   A theme is only the values below — the plugin's own stylesheet does the work
+   and reads every one of them with a fallback, so nothing here is required.
+   To make your own, copy _Template.css, which documents all of them. */
+
+.atl-overlay {
+	--backdrop: radial-gradient(120% 90% at 50% 0%, #1A2233 0%, #0A0D14 60%, #06080C 100%);
+	--paper: #121826;
+	--panel: #161E2E;
+	--ink: #EEF2FA;
+	--ink-soft: #98A6BE;
+	--ink-faint: rgb(238 242 250 / 0.24);
+	--rule: #263044;
+	--wash: rgb(255 255 255 / 0.06);
+	--accent: #9A7CFF;
+	--accent-soft: #C0ADFF;
+	--accent-ink: #0A0D14;
+	--highlight: #3A2E6B;
+	--highlight-ink: #EEF2FA;
+	--radius: 18px;
+	--card-border: 1px solid rgb(255 255 255 / 0.08);
+	--card-shadow: 0 0 0 1px rgb(154 124 255 / 0.35), 0 28px 80px rgb(0 0 0 / 0.70);
+	--atl-inactive: 0.14;
+	--group-border: 1px solid rgb(255 255 255 / 0.10);
+	--group-radius: 22px;
+	--group-opacity: 0.5;
+	--group-tracking: -0.02em;
+	--section-1: #9A7CFF;
+	--section-2: #5FD6C0;
+	--section-3: #FF9E7A;
+	--section-4: #7CC6FF;
+	--section-5: #F2C14E;
+	--section-6: #FF8FB8;
+	--section-bg: #080B12;
+	--section-ink: #EEF2FA;
+	--dark-bg: #080B12;
+	--dark-ink: #EEF2FA;
+	--stat-ink: var(--section, var(--accent));
+	--scale-stat: 7.2em;
+	--display-font: 'Archivo Narrow', 'Arial Narrow', var(--font-interface), sans-serif;
+	--body-font: 'IBM Plex Sans', var(--font-interface), sans-serif;
+	--mono-font: 'IBM Plex Mono', var(--font-monospace), monospace;
+	--body-size: 19px;
+	--code-bg: rgb(0 0 0 / 0.35);
+}

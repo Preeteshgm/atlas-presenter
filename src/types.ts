@@ -92,6 +92,16 @@ export interface AtlasSettings {
 	fit: FitMode;
 
 	// --- look ---
+	/**
+	 * Where the backdrop and logo pickers look for images.
+	 *
+	 * Empty means the whole vault, which is where this started and which is
+	 * unusable in a vault of any age: every screenshot, every pasted diagram,
+	 * every attachment, in one list. Pointing it at a folder makes the pickers
+	 * a shortlist somebody curates rather than everything that happens to be
+	 * an image.
+	 */
+	mediaFolder: string;
 	background: BackgroundMode;
 	backgroundColour: string;
 	/** Vault path to a background image. */
@@ -157,6 +167,7 @@ export const DEFAULT_SETTINGS: AtlasSettings = {
 	maxScale: 2.5,
 	fit: "contain",
 
+	mediaFolder: "",
 	background: "theme",
 	backgroundColour: "#0e1424",
 	backgroundImage: "",

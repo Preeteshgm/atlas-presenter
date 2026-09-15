@@ -73,14 +73,16 @@ settings:
 	position: fixed;
 	inset: 0;
 	z-index: var(--layer-modal, 100);
-	background: var(--background-primary);
+	/* The backdrop is what sits behind the cards. It falls back to the card
+	   colour, so a theme that says nothing about it still looks deliberate. */
+	background: var(--backdrop, var(--paper, var(--background-primary)));
 	overflow: hidden;
-	--atl-accent: var(--interactive-accent);
+	--atl-accent: var(--accent, var(--interactive-accent));
 	--atl-inactive: 0.45;
-	--atl-card-radius: 10px;
-	--atl-card-font: 16px;
-	--atl-section-size: 96px;
-	--atl-heading-font: var(--font-interface);
+	--atl-card-radius: var(--radius, 10px);
+	--atl-card-font: var(--body-size, 16px);
+	--atl-section-size: var(--group-size, 96px);
+	--atl-heading-font: var(--body-font, var(--font-interface));
 	--atl-dim: 0.45;
 	background-size: cover;
 	background-position: center;
@@ -132,8 +134,8 @@ settings:
 	   height rather than a fixed pixel figure that a flat card cannot afford. */
 	container-type: size;
 	border-radius: var(--atl-card-radius, 10px);
-	background: var(--background-secondary);
-	border: 1px solid var(--background-modifier-border);
+	background: var(--card, var(--panel, var(--background-secondary)));
+	border: var(--card-border, 1px solid var(--rule, var(--background-modifier-border)));
 	overflow: hidden;
 	opacity: var(--atl-inactive);
 	transition: opacity 320ms ease, box-shadow 320ms ease;
@@ -144,7 +146,11 @@ settings:
 .atl-node.is-active {
 	opacity: 1;
 	z-index: 1;
-	box-shadow: 0 8px 40px rgb(0 0 0 / 0.25);
+	box-shadow: var(--card-shadow, 0 8px 40px rgb(0 0 0 / 0.25));
+	/* Separate from the shadow so a theme can outline the live card without
+	   having to restate the shadow, or drop the outline without losing it. */
+	outline: var(--card-ring, none);
+	outline-offset: var(--card-ring-offset, 0);
 }
 
 /* Qualified: a group is also a .atl-node, so a theme styling cards would
@@ -152,14 +158,16 @@ settings:
 .atl-overlay .atl-node.atl-node-group {
 	/* The label hangs above the box, and a clipping group would swallow it. */
 	overflow: visible;
-	background: transparent;
-	border: 2px dashed var(--background-modifier-border);
-	border-radius: 16px;
-	opacity: 0.6;
+	background: var(--group-fill, transparent);
+	border: var(--group-border, 2px dashed var(--group-rule, var(--rule, var(--background-modifier-border))));
+	border-radius: var(--group-radius, 16px);
+	opacity: var(--group-opacity, 0.6);
 }
 
 .atl-node-group.is-active {
-	border-color: var(--atl-accent);
+	/* --section is stamped per group, so a theme that defines --section-1…6
+	   gets a colour per section; one that does not falls back to the accent. */
+	border-color: var(--section, var(--atl-accent));
 	box-shadow: none;
 }
 
@@ -171,17 +179,19 @@ settings:
 	left: 0;
 	transform: translateY(-124%);
 	font-size: var(--atl-section-size, 96px);
-	font-weight: 700;
-	letter-spacing: -0.015em;
+	font-family: var(--display-font, var(--atl-heading-font));
+	font-weight: var(--group-weight, 700);
+	letter-spacing: var(--group-tracking, -0.015em);
+	text-transform: var(--group-transform, none);
 	line-height: 1;
-	color: var(--text-faint);
+	color: var(--group-ink-faint, var(--ink-faint, var(--text-faint)));
 	white-space: nowrap;
 	transition: color 380ms ease, opacity 380ms ease;
 }
 
 .atl-node-group.is-current-section .atl-group-label,
 .atl-node-group.is-active .atl-group-label {
-	color: var(--text-normal);
+	color: var(--group-ink, var(--section, var(--ink, var(--text-normal))));
 }
 
 .atl-body {
@@ -194,7 +204,7 @@ settings:
 	padding: min(20px, 10cqh) min(24px, 3cqw);
 	font-size: var(--atl-card-font, 16px);
 	line-height: 1.5;
-	color: var(--text-normal);
+	color: var(--ink, var(--text-normal));
 	/* A card taller than its box scrolls in place, so one long thought stays
 	   one card instead of being chopped across five. */
 	overflow-y: auto;
@@ -203,6 +213,51 @@ settings:
 }
 
 .atl-body::-webkit-scrollbar { display: none; }
+
+/* ---- the content a card is made of -------------------------------------
+   These had no rules of their own, which meant a fenced code block, a
+   ==highlight== or a horizontal rule fell back to whatever the vault's
+   Obsidian theme happened to say — on a deck deliberately styled to look
+   like something else. Everything here is a token with a sane default, so a
+   theme that mentions none of them still looks like one thing. */
+
+.atl-body pre {
+	background: var(--code-bg, var(--wash, var(--background-modifier-hover)));
+	color: var(--code-ink, var(--ink, var(--text-normal)));
+	border: 1px solid var(--code-rule, var(--rule, var(--background-modifier-border)));
+	border-radius: calc(var(--atl-card-radius, 10px) * 0.6);
+	font-family: var(--mono-font, var(--font-monospace));
+	font-size: var(--code-size, 0.78em);
+	line-height: 1.45;
+	padding: 0.8em 1em;
+	/* A diagram wider than the card scrolls inside its own box rather than
+	   stretching the card or being clipped without warning. */
+	overflow-x: auto;
+}
+
+.atl-body pre code {
+	background: none;
+	color: inherit;
+	font-size: inherit;
+	padding: 0;
+}
+
+.atl-body mark {
+	background: var(--highlight, var(--accent-soft, var(--interactive-accent-hover)));
+	color: var(--highlight-ink, inherit);
+	padding: 0 0.2em;
+	border-radius: 3px;
+}
+
+.atl-body hr {
+	border: none;
+	border-top: 1px solid var(--rule, var(--background-modifier-border));
+	margin: 1.2em 0;
+}
+
+.atl-body img {
+	border-radius: var(--media-radius, calc(var(--atl-card-radius, 10px) * 0.6));
+}
 
 /* Fades the bottom edge while there is more to read. */
 .atl-node.is-active .atl-body.is-scrollable:not(.at-end)::after {
@@ -268,8 +323,175 @@ settings:
 
 .atl-body > :first-child { margin-top: 0; }
 .atl-body > :last-child { margin-bottom: 0; }
-.atl-body h1 { font-size: 2em; }
-.atl-body h2 { font-size: 1.5em; }
+
+/* ---- the card roles ----------------------------------------------------
+   These lived in each theme file, copied three times, which meant a deck with
+   no theme had no roles at all — #stat was a heading, #quote was a blockquote,
+   and the whole vocabulary only existed if you had picked a stylesheet. They
+   live here now, written against tokens with Obsidian fallbacks, so the roles
+   work with any theme and with none. A theme sets the tokens; it overrides a
+   rule only when it wants that role to behave differently. */
+
+.atl-body {
+	font-family: var(--body-font, var(--font-text));
+}
+
+.atl-body h1,
+.atl-body h2,
+.atl-body h3 {
+	font-family: var(--display-font, var(--atl-heading-font));
+	font-weight: var(--heading-weight, 700);
+	letter-spacing: var(--tracking, -0.012em);
+	text-transform: var(--heading-transform, none);
+	line-height: 1.06;
+	color: var(--ink, var(--text-normal));
+}
+
+.atl-body h1 { font-size: var(--scale-h1, 2.9em); margin: 0 0 0.3em; }
+.atl-body h2 { font-size: var(--scale-h2, 2.05em); margin: 0 0 0.35em; }
+.atl-body h3 { font-size: var(--scale-h3, 1.35em); margin: 0 0 0.4em; }
+/* A measure, not a width: past about 62 characters the eye loses the line. */
+.atl-body p { max-width: var(--measure, 62ch); }
+.atl-body strong { color: var(--ink, var(--text-normal)); font-weight: 600; }
+.atl-body a { color: var(--accent, var(--interactive-accent)); }
+
+.atl-body code {
+	font-family: var(--mono-font, var(--font-monospace));
+	font-size: 0.9em;
+	padding: 1px 5px;
+	border-radius: 4px;
+	background: var(--code-bg, var(--wash, var(--background-modifier-hover)));
+}
+
+.atl-body blockquote {
+	margin: 0;
+	padding-left: 1em;
+	border-left: 3px solid var(--accent, var(--interactive-accent));
+	color: var(--ink-soft, var(--text-muted));
+}
+
+/* #title — the opening card. */
+.atl-node.atl-tag-title .atl-body {
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
+	padding: 8% 9%;
+}
+.atl-node.atl-tag-title h1 { font-size: var(--scale-title, 4.1em); max-width: 18ch; }
+.atl-node.atl-tag-title p {
+	font-size: 1.15em;
+	color: var(--ink-soft, var(--text-muted));
+	max-width: 46ch;
+}
+
+/* #section — a divider carrying only the section's name. */
+.atl-node.atl-tag-section:not(.atl-node-group) {
+	background: var(--section-bg, var(--ink, var(--text-normal)));
+	border-color: var(--section-bg, var(--ink, var(--text-normal)));
+}
+.atl-node.atl-tag-section .atl-body {
+	display: flex;
+	flex-direction: column;
+	justify-content: flex-end;
+	padding: 8%;
+	color: var(--section-ink, var(--paper, var(--background-primary)));
+}
+.atl-node.atl-tag-section h2 {
+	color: var(--section-ink, var(--paper, var(--background-primary)));
+	font-size: var(--scale-section, 3.2em);
+	margin: 0;
+}
+/* The rule under a section name. --section is the per-section colour, so a
+   theme with a section palette gets a different one on each divider. */
+.atl-node.atl-tag-section h2::after {
+	content: "";
+	display: block;
+	width: 92px;
+	height: 5px;
+	margin-top: 0.38em;
+	background: var(--section, var(--accent, var(--interactive-accent)));
+}
+
+/* #quote — a pull quote. */
+.atl-node.atl-tag-quote .atl-body {
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
+	padding: 9% 11%;
+}
+.atl-node.atl-tag-quote blockquote {
+	margin: 0;
+	border: 0;
+	padding: 0;
+	font-family: var(--display-font, var(--atl-heading-font));
+	font-size: var(--scale-quote, 2.05em);
+	line-height: 1.3;
+	color: var(--ink, var(--text-normal));
+}
+.atl-node.atl-tag-quote blockquote::before {
+	content: "\201C";
+	display: block;
+	font-size: 2.4em;
+	line-height: 0.58;
+	color: var(--accent, var(--interactive-accent));
+}
+
+/* #stat — one large number and a line about it. */
+.atl-node.atl-tag-stat .atl-body {
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
+	align-items: center;
+	text-align: center;
+}
+.atl-node.atl-tag-stat h1 {
+	font-size: var(--scale-stat, 6.6em);
+	margin: 0;
+	color: var(--stat-ink, var(--accent, var(--interactive-accent)));
+	/* Lining, tabular figures: a number this size with old-style digits in it
+	   reads as a typo. */
+	font-variant-numeric: tabular-nums lining-nums;
+}
+.atl-node.atl-tag-stat p {
+	font-size: 1.1em;
+	color: var(--ink-soft, var(--text-muted));
+	max-width: 30ch;
+}
+
+/* #dark — the same card, inverted. */
+.atl-node.atl-tag-dark:not(.atl-node-group) {
+	background: var(--dark-bg, var(--ink, var(--text-normal)));
+	border-color: var(--dark-bg, var(--ink, var(--text-normal)));
+}
+.atl-node.atl-tag-dark .atl-body,
+.atl-node.atl-tag-dark h1,
+.atl-node.atl-tag-dark h2,
+.atl-node.atl-tag-dark h3 { color: var(--dark-ink, var(--paper, var(--background-primary))); }
+.atl-node.atl-tag-dark strong { color: var(--accent-soft, var(--interactive-accent-hover)); }
+.atl-node.atl-tag-dark code,
+.atl-node.atl-tag-dark pre {
+	background: rgb(255 255 255 / 0.12);
+	color: var(--accent-soft, var(--interactive-accent-hover));
+	border-color: rgb(255 255 255 / 0.18);
+}
+
+/* #split — two flowed columns, text spilling from one into the next. */
+.atl-node.atl-tag-split .atl-body {
+	column-count: 2;
+	column-gap: 3em;
+	column-rule: 1px solid var(--rule, var(--background-modifier-border));
+}
+.atl-node.atl-tag-split h1,
+.atl-node.atl-tag-split h2 { column-span: all; }
+
+/* #full — a picture with no margin. */
+.atl-node.atl-tag-full .atl-body { padding: 0; }
+.atl-node.atl-tag-full img {
+	width: 100%;
+	height: 100%;
+	object-fit: cover;
+	border-radius: var(--atl-card-radius, 10px);
+}
 
 .atl-media {
 	width: 100%;
@@ -290,7 +512,7 @@ settings:
 	align-items: center;
 	justify-content: center;
 	height: 100%;
-	color: var(--text-muted);
+	color: var(--ink-soft, var(--text-muted));
 	font-style: italic;
 }
 
@@ -305,7 +527,7 @@ settings:
 	gap: 16px;
 	padding: 10px 18px;
 	font-size: 13px;
-	color: var(--text-faint);
+	color: var(--ink-faint, var(--text-faint));
 	pointer-events: none;
 	background: linear-gradient(to top, var(--background-primary), transparent);
 }
@@ -328,9 +550,9 @@ settings:
 	cursor: pointer;
 	padding: 4px 12px;
 	border-radius: 999px;
-	border: 1px solid var(--background-modifier-border);
-	background: var(--background-secondary);
-	color: var(--text-muted);
+	border: 1px solid var(--rule, var(--background-modifier-border));
+	background: var(--panel, var(--background-secondary));
+	color: var(--ink-soft, var(--text-muted));
 	font-size: 12px;
 	line-height: 1.6;
 }
@@ -342,7 +564,7 @@ settings:
 }
 
 .atl-map-btn:hover {
-	color: var(--text-normal);
+	color: var(--ink, var(--text-normal));
 	border-color: var(--atl-accent);
 }
 
@@ -373,30 +595,30 @@ settings:
 
 .atl-minimap-hint {
 	font-size: 13px;
-	color: var(--text-faint);
+	color: var(--ink-faint, var(--text-faint));
 	flex: 0 0 auto;
 }
 
 .atl-mm-group {
 	fill: none;
-	stroke: var(--background-modifier-border);
+	stroke: var(--rule, var(--background-modifier-border));
 	stroke-dasharray: 8 6;
 }
 
 .atl-mm-edge {
-	stroke: var(--text-faint);
+	stroke: var(--ink-faint, var(--text-faint));
 	opacity: 0.5;
 }
 
 .atl-mm-node {
-	fill: var(--background-secondary);
-	stroke: var(--background-modifier-border);
+	fill: var(--panel, var(--background-secondary));
+	stroke: var(--rule, var(--background-modifier-border));
 	cursor: pointer;
 	transition: fill 140ms ease, stroke 140ms ease;
 }
 
 .atl-mm-node:hover {
-	fill: var(--background-modifier-hover);
+	fill: var(--wash, var(--background-modifier-hover));
 	stroke: var(--atl-accent);
 }
 
@@ -413,16 +635,16 @@ settings:
 .atl-mm-grouplabel,
 .atl-mm-badgetext {
 	pointer-events: none;
-	font-family: var(--font-interface);
+	font-family: var(--body-font, var(--font-interface));
 }
 
 .atl-mm-label {
-	fill: var(--text-normal);
+	fill: var(--ink, var(--text-normal));
 	font-weight: 500;
 }
 
 .atl-mm-grouplabel {
-	fill: var(--text-muted);
+	fill: var(--ink-soft, var(--text-muted));
 	font-weight: 600;
 }
 
@@ -434,19 +656,19 @@ settings:
 .atl-mm-card:hover .atl-mm-thumb { opacity: 1; }
 
 .atl-mm-badge {
-	fill: var(--background-primary);
-	stroke: var(--background-modifier-border);
+	fill: var(--paper, var(--background-primary));
+	stroke: var(--rule, var(--background-modifier-border));
 	stroke-width: 1;
 	pointer-events: none;
 }
 
 .atl-mm-badgetext {
-	fill: var(--text-muted);
+	fill: var(--ink-soft, var(--text-muted));
 	font-weight: 600;
 }
 
 .atl-mm-card:hover .atl-mm-badge { fill: var(--atl-accent); }
-.atl-mm-card:hover .atl-mm-badgetext { fill: var(--text-on-accent); }
+.atl-mm-card:hover .atl-mm-badgetext { fill: var(--accent-ink, var(--text-on-accent)); }
 
 /* --- Note peek ---------------------------------------------------------- */
 
@@ -469,8 +691,8 @@ settings:
 	width: min(860px, 100%);
 	max-height: 100%;
 	border-radius: 14px;
-	background: var(--background-primary);
-	border: 1px solid var(--background-modifier-border);
+	background: var(--paper, var(--background-primary));
+	border: 1px solid var(--rule, var(--background-modifier-border));
 	box-shadow: 0 24px 80px rgb(0 0 0 / 0.45);
 	overflow: hidden;
 }
@@ -480,7 +702,7 @@ settings:
 	align-items: center;
 	gap: 12px;
 	padding: 14px 18px;
-	border-bottom: 1px solid var(--background-modifier-border);
+	border-bottom: 1px solid var(--rule, var(--background-modifier-border));
 }
 
 .atl-peek-title {
@@ -494,16 +716,16 @@ settings:
 
 .atl-peek-crumb {
 	font-size: 12px;
-	color: var(--text-faint);
+	color: var(--ink-faint, var(--text-faint));
 }
 
 .atl-peek-close {
 	cursor: pointer;
 	padding: 3px 10px;
 	border-radius: 6px;
-	border: 1px solid var(--background-modifier-border);
-	background: var(--background-secondary);
-	color: var(--text-muted);
+	border: 1px solid var(--rule, var(--background-modifier-border));
+	background: var(--panel, var(--background-secondary));
+	color: var(--ink-soft, var(--text-muted));
 	font-size: 12px;
 }
 
@@ -553,7 +775,7 @@ settings:
 	margin-top: 12px;
 	overflow: hidden;
 	border-radius: 10px;
-	background: var(--background-primary);
+	background: var(--paper, var(--background-primary));
 }
 
 .atl-frame-item {
@@ -564,7 +786,7 @@ settings:
 	justify-content: center;
 	/* Opaque, so a frame in motion never blends with the one beneath it — that
 	   double exposure is what read as a flicker. */
-	background: var(--background-secondary);
+	background: var(--panel, var(--background-secondary));
 	transition: transform 520ms cubic-bezier(0.22, 0.7, 0.24, 1), opacity 380ms ease;
 	backface-visibility: hidden;
 }
@@ -634,11 +856,11 @@ settings:
 	border: 0;
 	background: none;
 	box-shadow: none;
-	color: var(--text-normal);
+	color: var(--ink, var(--text-normal));
 	font-size: 30px;
 	line-height: 1;
 	opacity: 0.45;
-	text-shadow: 0 1px 6px var(--background-primary);
+	text-shadow: 0 1px 6px var(--paper, var(--background-primary));
 	transition: opacity 180ms ease;
 }
 
@@ -693,8 +915,8 @@ settings:
 	width: min(1400px, 100%);
 	height: 100%;
 	border-radius: 14px;
-	background: var(--background-primary);
-	border: 1px solid var(--background-modifier-border);
+	background: var(--paper, var(--background-primary));
+	border: 1px solid var(--rule, var(--background-modifier-border));
 	box-shadow: 0 24px 80px rgb(0 0 0 / 0.45);
 	overflow: hidden;
 }
@@ -704,7 +926,7 @@ settings:
 	align-items: center;
 	gap: 14px;
 	padding: 14px 18px;
-	border-bottom: 1px solid var(--background-modifier-border);
+	border-bottom: 1px solid var(--rule, var(--background-modifier-border));
 }
 
 .atl-browse-input {
@@ -712,14 +934,14 @@ settings:
 	font-size: 17px;
 	padding: 8px 12px;
 	border-radius: 8px;
-	border: 1px solid var(--background-modifier-border);
-	background: var(--background-secondary);
-	color: var(--text-normal);
+	border: 1px solid var(--rule, var(--background-modifier-border));
+	background: var(--panel, var(--background-secondary));
+	color: var(--ink, var(--text-normal));
 }
 
 .atl-browse-count {
 	font-size: 12px;
-	color: var(--text-faint);
+	color: var(--ink-faint, var(--text-faint));
 	font-variant-numeric: tabular-nums;
 }
 
@@ -736,7 +958,7 @@ settings:
 	min-height: 0;
 	overflow-y: auto;
 	padding: 8px 0;
-	border-right: 1px solid var(--background-modifier-border);
+	border-right: 1px solid var(--rule, var(--background-modifier-border));
 }
 
 .atl-browse-row {
@@ -745,16 +967,16 @@ settings:
 	border-left: 3px solid transparent;
 }
 
-.atl-browse-row:hover { background: var(--background-modifier-hover); }
+.atl-browse-row:hover { background: var(--wash, var(--background-modifier-hover)); }
 
 .atl-browse-row.is-cursor {
-	background: var(--background-modifier-hover);
+	background: var(--wash, var(--background-modifier-hover));
 	border-left-color: var(--atl-accent);
 }
 
 .atl-browse-name { font-size: 15px; font-weight: 500; }
-.atl-browse-path { font-size: 12px; color: var(--text-faint); margin-top: 1px; }
-.atl-browse-empty { padding: 20px 18px; color: var(--text-faint); font-style: italic; }
+.atl-browse-path { font-size: 12px; color: var(--ink-faint, var(--text-faint)); margin-top: 1px; }
+.atl-browse-empty { padding: 20px 18px; color: var(--ink-faint, var(--text-faint)); font-style: italic; }
 
 .atl-browse-stage {
 	position: relative;
@@ -777,21 +999,21 @@ settings:
 	cursor: pointer;
 	padding: 5px 14px;
 	border-radius: 8px;
-	border: 1px solid var(--background-modifier-border);
-	background: var(--background-secondary);
-	color: var(--text-muted);
+	border: 1px solid var(--rule, var(--background-modifier-border));
+	background: var(--panel, var(--background-secondary));
+	color: var(--ink-soft, var(--text-muted));
 	font-size: 12px;
 }
 
-.atl-browse-fit:hover { color: var(--text-normal); border-color: var(--atl-accent); }
+.atl-browse-fit:hover { color: var(--ink, var(--text-normal)); border-color: var(--atl-accent); }
 
-.atl-browse-row.is-linked .atl-browse-name { color: var(--text-muted); font-weight: 400; }
+.atl-browse-row.is-linked .atl-browse-name { color: var(--ink-soft, var(--text-muted)); font-weight: 400; }
 
 .atl-browse-hint {
 	padding: 10px 18px;
 	font-size: 12px;
-	color: var(--text-faint);
-	border-top: 1px solid var(--background-modifier-border);
+	color: var(--ink-faint, var(--text-faint));
+	border-top: 1px solid var(--rule, var(--background-modifier-border));
 }
 
 
@@ -810,27 +1032,27 @@ settings:
 	gap: 10px;
 	padding: 8px 14px;
 	border-radius: 999px;
-	background: var(--background-secondary);
-	border: 1px solid var(--background-modifier-border);
+	background: var(--panel, var(--background-secondary));
+	border: 1px solid var(--rule, var(--background-modifier-border));
 	box-shadow: 0 8px 30px rgb(0 0 0 / 0.3);
 	font-size: 13px;
-	color: var(--text-muted);
+	color: var(--ink-soft, var(--text-muted));
 }
 
 .atl-return button {
 	cursor: pointer;
 	padding: 4px 12px;
 	border-radius: 999px;
-	border: 1px solid var(--interactive-accent);
-	background: var(--interactive-accent);
-	color: var(--text-on-accent);
+	border: 1px solid var(--accent, var(--interactive-accent));
+	background: var(--accent, var(--interactive-accent));
+	color: var(--accent-ink, var(--text-on-accent));
 	font-size: 13px;
 }
 
 .atl-return-key {
 	padding: 2px 7px;
 	border-radius: 5px;
-	border: 1px solid var(--background-modifier-border);
+	border: 1px solid var(--rule, var(--background-modifier-border));
 	font-size: 11px;
 }
 
@@ -858,7 +1080,7 @@ settings:
 	transition: opacity 420ms ease;
 	font-size: clamp(15px, 1.5vh, 22px);
 	line-height: 1.35;
-	color: var(--text-muted);
+	color: var(--ink-soft, var(--text-muted));
 	font-family: var(--atl-heading-font, var(--font-interface));
 }
 
@@ -876,7 +1098,7 @@ settings:
 	margin: 0;
 	line-height: 1.04;
 	letter-spacing: -0.015em;
-	color: var(--text-normal);
+	color: var(--ink, var(--text-normal));
 	font-weight: 700;
 }
 
@@ -890,8 +1112,8 @@ settings:
 	font-size: 1em;
 }
 
-.atl-header strong { color: var(--text-normal); font-weight: 600; }
-.atl-header em { font-style: normal; color: var(--text-faint); }
+.atl-header strong { color: var(--ink, var(--text-normal)); font-weight: 600; }
+.atl-header em { font-style: normal; color: var(--ink-faint, var(--text-faint)); }
 
 /* A logo or a mark in the deck card, rather than only in the corner. */
 .atl-header img {
@@ -929,7 +1151,7 @@ settings:
 	top: 0;
 	width: 2px;
 	height: 100%;
-	background: var(--background-primary);
+	background: var(--paper, var(--background-primary));
 }
 
 /* --- The band under the card ------------------------------------------- */
@@ -951,7 +1173,7 @@ settings:
 .atl-next {
 	font-size: 13px;
 	letter-spacing: 0.03em;
-	color: var(--text-faint);
+	color: var(--ink-faint, var(--text-faint));
 }
 
 .atl-timer {
@@ -1048,7 +1270,7 @@ settings:
 
 .atl-ref-lead {
 	margin: 4px 0 18px;
-	color: var(--text-muted);
+	color: var(--ink-soft, var(--text-muted));
 	font-size: 13px;
 	line-height: 1.5;
 	max-width: 70ch;
@@ -1061,9 +1283,9 @@ settings:
 .atl-ref-section h4 {
 	margin: 0 0 10px;
 	font-size: 15px;
-	color: var(--text-normal);
+	color: var(--ink, var(--text-normal));
 	padding-bottom: 6px;
-	border-bottom: 1px solid var(--background-modifier-border);
+	border-bottom: 1px solid var(--rule, var(--background-modifier-border));
 }
 
 .atl-ref {
@@ -1071,20 +1293,20 @@ settings:
 	grid-template-columns: minmax(140px, 210px) minmax(0, 1fr);
 	gap: 4px 18px;
 	padding: 11px 0;
-	border-bottom: 1px solid var(--background-modifier-border);
+	border-bottom: 1px solid var(--rule, var(--background-modifier-border));
 	align-items: start;
 }
 
 .atl-ref-name {
 	font-weight: 600;
 	font-size: 13.5px;
-	color: var(--text-normal);
+	color: var(--ink, var(--text-normal));
 }
 
 .atl-ref-desc {
 	font-size: 13px;
 	line-height: 1.5;
-	color: var(--text-muted);
+	color: var(--ink-soft, var(--text-muted));
 	max-width: 68ch;
 }
 
@@ -1099,8 +1321,8 @@ settings:
 	margin: 0;
 	padding: 10px 74px 10px 14px;
 	border-radius: 8px;
-	border: 1px solid var(--background-modifier-border);
-	background: var(--background-secondary);
+	border: 1px solid var(--rule, var(--background-modifier-border));
+	background: var(--panel, var(--background-secondary));
 	font-family: var(--font-monospace);
 	font-size: 12.5px;
 	line-height: 1.55;
@@ -1114,16 +1336,16 @@ settings:
 	right: 8px;
 	padding: 3px 10px;
 	border-radius: 6px;
-	border: 1px solid var(--background-modifier-border);
-	background: var(--background-primary);
-	color: var(--text-muted);
+	border: 1px solid var(--rule, var(--background-modifier-border));
+	background: var(--paper, var(--background-primary));
+	color: var(--ink-soft, var(--text-muted));
 	font-size: 11.5px;
 	cursor: pointer;
 }
 
 .atl-ref-copy:hover {
-	color: var(--text-normal);
-	border-color: var(--interactive-accent);
+	color: var(--ink, var(--text-normal));
+	border-color: var(--accent, var(--interactive-accent));
 }
 
 /* The key list needs no snippet column. */
@@ -1143,9 +1365,9 @@ settings:
 	margin: 0 0 12px;
 	padding: 10px 14px;
 	border-radius: 8px;
-	border: 1px dashed var(--background-modifier-border);
-	background: var(--background-secondary);
-	color: var(--text-muted);
+	border: 1px dashed var(--rule, var(--background-modifier-border));
+	background: var(--panel, var(--background-secondary));
+	color: var(--ink-soft, var(--text-muted));
 	font-size: 13px;
 	line-height: 1.5;
 }
@@ -1165,7 +1387,7 @@ settings:
 
 /* The variant picker */
 .atl-pick-name { font-weight: 600; }
-.atl-pick-detail { font-size: 12px; color: var(--text-faint); margin-top: 1px; }
+.atl-pick-detail { font-size: 12px; color: var(--ink-faint, var(--text-faint)); margin-top: 1px; }
 
 /* --- The presenter window ---------------------------------------------- */
 
@@ -1181,7 +1403,7 @@ settings:
 
 .atl-presenter-empty {
 	margin: auto;
-	color: var(--text-faint);
+	color: var(--ink-faint, var(--text-faint));
 	font-style: italic;
 }
 
@@ -1199,12 +1421,12 @@ settings:
 	align-items: baseline;
 	gap: 16px;
 	padding-bottom: 10px;
-	border-bottom: 1px solid var(--background-modifier-border);
+	border-bottom: 1px solid var(--rule, var(--background-modifier-border));
 }
 
 .atl-presenter-section {
 	font-size: 14px;
-	color: var(--text-muted);
+	color: var(--ink-soft, var(--text-muted));
 	font-weight: 500;
 }
 
@@ -1212,7 +1434,7 @@ settings:
 	font-variant-numeric: tabular-nums;
 	font-size: 20px;
 	font-weight: 600;
-	color: var(--text-normal);
+	color: var(--ink, var(--text-normal));
 }
 
 .atl-presenter-card {
@@ -1229,14 +1451,14 @@ settings:
 	overflow-y: auto;
 	padding: 16px 18px;
 	border-radius: 10px;
-	background: var(--background-secondary);
+	background: var(--panel, var(--background-secondary));
 	font-size: 18px;
 	line-height: 1.6;
 	white-space: pre-wrap;
 }
 
 .atl-presenter-notes.is-empty {
-	color: var(--text-faint);
+	color: var(--ink-faint, var(--text-faint));
 	font-style: italic;
 	font-size: 15px;
 }
@@ -1247,7 +1469,7 @@ settings:
 	align-items: baseline;
 	gap: 16px;
 	font-size: 14px;
-	color: var(--text-muted);
+	color: var(--ink-soft, var(--text-muted));
 }
 
 .atl-presenter-count { font-variant-numeric: tabular-nums; }
@@ -1297,7 +1519,7 @@ settings:
 .atl-subdeck-name {
 	font-size: 22px;
 	font-weight: 600;
-	color: var(--text-normal);
+	color: var(--ink, var(--text-normal));
 }
 
 .atl-subdeck-map {
@@ -1309,21 +1531,21 @@ settings:
 
 .atl-subdeck-hint {
 	font-size: 13px;
-	color: var(--text-faint);
+	color: var(--ink-faint, var(--text-faint));
 }
 
 .atl-sub-card {
-	fill: var(--background-primary);
-	stroke: var(--background-modifier-border);
+	fill: var(--paper, var(--background-primary));
+	stroke: var(--rule, var(--background-modifier-border));
 }
 
 .atl-sub-group {
 	fill: none;
-	stroke: var(--background-modifier-border);
+	stroke: var(--rule, var(--background-modifier-border));
 	stroke-dasharray: 10 8;
 }
 
-.atl-sub-edge { stroke: var(--text-faint); opacity: 0.5; }
+.atl-sub-edge { stroke: var(--ink-faint, var(--text-faint)); opacity: 0.5; }
 
 /* The parent stays put behind a sub-deck, just out of the way. */
 .atl-overlay.is-behind { display: none; }
@@ -1331,7 +1553,7 @@ settings:
 /* The presenter window's "what's next" line. */
 .atl-presenter-next {
 	font-size: 15px;
-	color: var(--text-muted);
+	color: var(--ink-soft, var(--text-muted));
 	overflow: hidden;
 	text-overflow: ellipsis;
 	white-space: nowrap;
@@ -1346,7 +1568,7 @@ settings:
 
 /* The Remark button, when this card already carries a note. */
 .atl-map-btn.has-note {
-	color: var(--text-normal);
+	color: var(--ink, var(--text-normal));
 	border-color: var(--atl-accent);
 }
 
@@ -1365,9 +1587,9 @@ settings:
 
 .atl-review-sub {
 	font-size: 13px;
-	color: var(--text-faint);
+	color: var(--ink-faint, var(--text-faint));
 	padding-bottom: 12px;
-	border-bottom: 1px solid var(--background-modifier-border);
+	border-bottom: 1px solid var(--rule, var(--background-modifier-border));
 }
 
 .atl-review-list {
@@ -1382,12 +1604,12 @@ settings:
 	font-size: 12px;
 	letter-spacing: 0.08em;
 	text-transform: uppercase;
-	color: var(--text-faint);
+	color: var(--ink-faint, var(--text-faint));
 }
 
 .atl-review-entry {
 	padding: 12px 0 14px;
-	border-bottom: 1px solid var(--background-modifier-border);
+	border-bottom: 1px solid var(--rule, var(--background-modifier-border));
 }
 
 .atl-review-card {
@@ -1401,8 +1623,8 @@ settings:
 .atl-review-prepared {
 	margin: 0 0 8px;
 	padding: 8px 12px;
-	border-left: 2px solid var(--background-modifier-border);
-	color: var(--text-muted);
+	border-left: 2px solid var(--rule, var(--background-modifier-border));
+	color: var(--ink-soft, var(--text-muted));
 	font-size: 13px;
 	line-height: 1.5;
 	white-space: pre-wrap;
@@ -1418,7 +1640,7 @@ settings:
 
 .atl-review-empty {
 	padding: 26px 0;
-	color: var(--text-faint);
+	color: var(--ink-faint, var(--text-faint));
 	font-style: italic;
 	text-align: center;
 }
@@ -1429,12 +1651,12 @@ settings:
 	align-items: center;
 	gap: 16px;
 	padding-top: 14px;
-	border-top: 1px solid var(--background-modifier-border);
+	border-top: 1px solid var(--rule, var(--background-modifier-border));
 }
 
 .atl-review-actions {
 	font-size: 13px;
-	color: var(--text-muted);
+	color: var(--ink-soft, var(--text-muted));
 }
 
 .atl-review-buttons {
@@ -1710,7 +1932,7 @@ settings:
 .atl-notice-sub {
 	margin-top: 4px;
 	font-size: 0.85em;
-	color: var(--text-muted);
+	color: var(--ink-soft, var(--text-muted));
 }
 
 .atl-notice-btn {
@@ -1718,13 +1940,13 @@ settings:
 	padding: 4px 12px;
 	font-size: 0.88em;
 	cursor: pointer;
-	color: var(--text-on-accent);
-	background: var(--interactive-accent);
+	color: var(--accent-ink, var(--text-on-accent));
+	background: var(--accent, var(--interactive-accent));
 	border: 0;
 	border-radius: var(--radius-s, 4px);
 }
 
-.atl-notice-btn:hover { background: var(--interactive-accent-hover); }
+.atl-notice-btn:hover { background: var(--accent-soft, var(--interactive-accent-hover)); }
 
 /* ---- the export preview -------------------------------------------------- */
 
@@ -1735,17 +1957,17 @@ settings:
 	align-items: center;
 	gap: 12px;
 	padding: 8px 12px;
-	border-bottom: 1px solid var(--background-modifier-border);
+	border-bottom: 1px solid var(--rule, var(--background-modifier-border));
 	flex: 0 0 auto;
 }
 
-.atl-preview-status { font-size: 0.85em; color: var(--text-muted); }
+.atl-preview-status { font-size: 0.85em; color: var(--ink-soft, var(--text-muted)); }
 
 .atl-preview-frame {
 	flex: 1 1 auto;
 	width: 100%;
 	border: 0;
-	background: var(--background-primary);
+	background: var(--paper, var(--background-primary));
 }
 
 /* Laid out at a real size, off the screen. The cards measure themselves with
@@ -1820,9 +2042,9 @@ settings:
 	padding: 7px 15px;
 	border-radius: 999px;
 	font-size: 13px;
-	color: var(--text-muted);
-	background: var(--background-primary);
-	border: 1px solid var(--background-modifier-border);
+	color: var(--ink-soft, var(--text-muted));
+	background: var(--paper, var(--background-primary));
+	border: 1px solid var(--rule, var(--background-modifier-border));
 	box-shadow: 0 4px 18px rgb(0 0 0 / 0.18);
 	pointer-events: none;
 	z-index: 6;
@@ -1840,7 +2062,7 @@ settings:
 	font-size: 0.78em;
 	letter-spacing: 0.06em;
 	text-transform: uppercase;
-	color: var(--text-faint);
+	color: var(--ink-faint, var(--text-faint));
 }
 
 .atl-presenter-input {
@@ -1851,22 +2073,22 @@ settings:
 	font-family: var(--font-text);
 	font-size: 0.95em;
 	line-height: 1.5;
-	color: var(--text-normal);
-	background: var(--background-primary);
-	border: 1px solid var(--background-modifier-border);
+	color: var(--ink, var(--text-normal));
+	background: var(--paper, var(--background-primary));
+	border: 1px solid var(--rule, var(--background-modifier-border));
 	border-radius: 8px;
 }
 
 .atl-presenter-input:focus {
 	outline: none;
-	border-color: var(--interactive-accent);
+	border-color: var(--accent, var(--interactive-accent));
 }
 
 /* Something written here goes into the write-up, so it should look different
    from an empty box you have not touched. */
 .atl-presenter-input.has-text {
-	border-left: 3px solid var(--interactive-accent);
-	background: var(--background-primary-alt);
+	border-left: 3px solid var(--accent, var(--interactive-accent));
+	background: var(--paper-alt, var(--background-primary-alt));
 }
 
 /* The preview's action bar wraps rather than clipping: it lives in a side pane
@@ -1889,8 +2111,8 @@ settings:
 	width: min(720px, 82vw);
 	padding: 16px 18px 14px;
 	border-radius: 14px;
-	background: var(--background-primary);
-	border: 1px solid var(--background-modifier-border);
+	background: var(--paper, var(--background-primary));
+	border: 1px solid var(--rule, var(--background-modifier-border));
 	box-shadow: 0 18px 60px rgb(0 0 0 / 0.4);
 }
 
@@ -1898,7 +2120,7 @@ settings:
 	margin-bottom: 9px;
 	font-size: 0.95em;
 	font-weight: 600;
-	color: var(--text-normal);
+	color: var(--ink, var(--text-normal));
 }
 
 .atl-note-box {
@@ -1908,18 +2130,18 @@ settings:
 	font-family: var(--font-text);
 	font-size: 1em;
 	line-height: 1.5;
-	color: var(--text-normal);
-	background: var(--background-primary-alt);
-	border: 1px solid var(--background-modifier-border);
+	color: var(--ink, var(--text-normal));
+	background: var(--paper-alt, var(--background-primary-alt));
+	border: 1px solid var(--rule, var(--background-modifier-border));
 	border-radius: 9px;
 }
 
-.atl-note-box:focus { outline: none; border-color: var(--interactive-accent); }
+.atl-note-box:focus { outline: none; border-color: var(--accent, var(--interactive-accent)); }
 
 .atl-note-hint {
 	margin-top: 8px;
 	font-size: 0.8em;
-	color: var(--text-faint);
+	color: var(--ink-faint, var(--text-faint));
 }
 
 /* ---- the session review, and a page from the web ------------------------- */
@@ -1935,8 +2157,8 @@ settings:
 	flex-direction: column;
 	border-radius: 14px;
 	overflow: hidden;
-	background: var(--background-primary);
-	border: 1px solid var(--background-modifier-border);
+	background: var(--paper, var(--background-primary));
+	border: 1px solid var(--rule, var(--background-modifier-border));
 	box-shadow: 0 24px 80px rgb(0 0 0 / 0.45);
 }
 
@@ -1947,7 +2169,7 @@ settings:
 .atl-review-title {
 	font-size: 1.2em;
 	font-weight: 600;
-	color: var(--text-normal);
+	color: var(--ink, var(--text-normal));
 }
 
 .atl-review-panel .atl-review-list {
@@ -1964,7 +2186,7 @@ settings:
 	gap: 10px;
 	flex: 0 0 auto;
 	padding: 9px 12px;
-	border-bottom: 1px solid var(--background-modifier-border);
+	border-bottom: 1px solid var(--rule, var(--background-modifier-border));
 }
 
 .atl-site-url {
@@ -1973,7 +2195,7 @@ settings:
 	white-space: nowrap;
 	text-overflow: ellipsis;
 	font-size: 0.85em;
-	color: var(--text-muted);
+	color: var(--ink-soft, var(--text-muted));
 }
 
 .atl-site-frame {

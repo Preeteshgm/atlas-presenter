@@ -55,7 +55,14 @@ runtime = "".join(read(p) for p in walk(os.path.join(ROOT, "src", "present"), {"
 runtime += read(ROOT, "src", "main.ts")
 ui = read(ROOT, "src", "settings.ts")
 
-dead = [k for k in keys if not re.search(r"\b(settings|s)\.%s\b" % k, runtime)]
+# Settings that shape the settings panel itself and never reach the deck. The
+# check deliberately ignores settings.ts, so these would read as dead forever.
+# Keep this list short: anything on it is exempt from the rule that a setting
+# nobody reads is a setting that should not exist.
+UI_ONLY = {"mediaFolder"}
+
+dead = [k for k in keys
+        if k not in UI_ONLY and not re.search(r"\b(settings|s)\.%s\b" % k, runtime)]
 missing_ui = [k for k in keys if not re.search(r"\bs\.%s\b" % k, ui)]
 (ok if not dead else bad).append(
     "settings: %d, all consumed" % len(keys) if not dead

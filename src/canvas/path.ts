@@ -77,7 +77,12 @@ function readDeckMeta(nodes: CanvasNode[]): Record<string, string> {
 		const m = line.match(/^[ \t]*([A-Za-z][\w -]*)[ \t]*:[ \t]*(.+?)[ \t]*$/);
 		if (m) {
 			// Keys are matched loosely, so `logo corner:` and `logo-corner:` agree.
-			meta[m[1].trim().toLowerCase().replace(/[ -]/g, "")] = m[2];
+			// The value is trimmed because `theme: ` — the key emptied but the
+			// space left behind — captured that space and became a setting one
+			// character long. Every consumer treats an empty value as "not set"
+			// and falls back to Settings; a single space is not empty, so it
+			// overrode Settings with a path no file could ever have.
+			meta[m[1].trim().toLowerCase().replace(/[ -]/g, "")] = m[2].trim();
 			continue;
 		}
 		body.push(line);

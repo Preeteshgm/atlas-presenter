@@ -1,0 +1,56 @@
+/* Blueprint — an Atlas Presenter theme.
+
+   Drafting paper: a faint grid behind the cards, mono headings, cyan accent.
+
+   Use it when: Anything engineering — it looks like the drawings the work came from.
+
+   Settings → Atlas → Theme stylesheet, or put
+   `theme: Atlas/Themes/Blueprint.css` on a canvas's #deck card to use it for
+   that deck alone.
+
+   A theme is only the values below — the plugin's own stylesheet does the work
+   and reads every one of them with a fallback, so nothing here is required.
+   To make your own, copy _Template.css, which documents all of them. */
+
+.atl-overlay {
+	--backdrop: repeating-linear-gradient(0deg, #0B2B3C 0 39px, #12405A 39px 40px), repeating-linear-gradient(90deg, #0B2B3C 0 39px, #12405A 39px 40px);
+	--paper: #0E3346;
+	--panel: #123D54;
+	--ink: #E6F3FA;
+	--ink-soft: #9EC4D8;
+	--ink-faint: rgb(230 243 250 / 0.28);
+	--rule: #2A6A8C;
+	--wash: rgb(255 255 255 / 0.06);
+	--accent: #5FE3D0;
+	--accent-soft: #9BF0E4;
+	--accent-ink: #08222E;
+	--highlight: #1D5A6E;
+	--highlight-ink: #E6F3FA;
+	--radius: 2px;
+	--card-border: 1px solid #2A6A8C;
+	--card-shadow: 0 0 0 1px #5FE3D0, 0 18px 50px rgb(0 0 0 / 0.5);
+	--atl-inactive: 0.22;
+	--group-border: 1px dashed #5FE3D0;
+	--group-radius: 2px;
+	--group-transform: uppercase;
+	--group-tracking: 0.06em;
+	--group-size: 72px;
+	--heading-transform: uppercase;
+	--tracking: 0.01em;
+	--section-1: #5FE3D0;
+	--section-2: #F0C674;
+	--section-3: #8FD6A6;
+	--section-4: #E39BC4;
+	--section-5: #9FB6F0;
+	--section-6: #F09A6A;
+	--section-bg: #08222E;
+	--section-ink: #E6F3FA;
+	--dark-bg: #08222E;
+	--dark-ink: #E6F3FA;
+	--display-font: 'IBM Plex Mono', var(--font-monospace), monospace;
+	--body-font: 'IBM Plex Sans', var(--font-interface), sans-serif;
+	--mono-font: 'IBM Plex Mono', var(--font-monospace), monospace;
+	--body-size: 18px;
+	--code-bg: rgb(0 0 0 / 0.30);
+	--media-radius: 2px;
+}

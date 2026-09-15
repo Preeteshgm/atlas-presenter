@@ -78,8 +78,12 @@ block = types[types.index("export interface AtlasSettings") if "AtlasSettings" i
 keys = re.findall(r"^\t([a-zA-Z]+):", block[: block.index("\n}")], re.M)
 runtime = "".join(v for k, v in src.items() if "settings.ts" not in k)
 ui = src["src\\settings.ts"]
+# Settings that shape the settings panel and never reach the deck — see the
+# same list in audit.py. Short on purpose.
+UI_ONLY = {"mediaFolder"}
+
 for k in keys:
-    if not re.search(r"\b(settings|s)\.%s\b" % k, runtime):
+    if k not in UI_ONLY and not re.search(r"\b(settings|s)\.%s\b" % k, runtime):
         findings.append("settings: %s is never read at runtime" % k)
     if not re.search(r"\bs\.%s\b" % k, ui):
         findings.append("settings: %s has no control in the UI" % k)
