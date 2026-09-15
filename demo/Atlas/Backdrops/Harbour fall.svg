@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Harbour fall — an Atlas Presenter backdrop.
+
+     White falling to harbour blue.
+     A linear gradient running top to bottom.
+
+     TO USE   Settings > Atlas > Backdrop > An image, then pick this file.
+              Or put  image: Atlas/Backdrops/Harbour fall.svg  on a #deck card.
+
+     TO EDIT  Change the stop-color values below. That is the whole file.
+              Keep the two tones close: a backdrop with real contrast in it
+              competes with the cards, and the cards always lose.
+
+     A gradient does not have to be a file at all. A theme can say
+     --backdrop: linear-gradient(180deg, #FBFCFA, #E4EAEC);
+     and skip this entirely. See Themes/Backdrops.css for all of these
+     as one-liners you can paste into any theme. -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1920 1080"
+     width="1920" height="1080" preserveAspectRatio="xMidYMid slice">
+  <defs>
+    <linearGradient id="g" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#F7FAFB"/>
+      <stop offset="1" stop-color="#CEDEE6"/>
+    </linearGradient>
+  </defs>
+  <rect width="1920" height="1080" fill="url(#g)"/>
+</svg>

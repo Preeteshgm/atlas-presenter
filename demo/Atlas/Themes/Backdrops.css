@@ -1,0 +1,90 @@
+/* Backdrops — the same twenty-four, as one line each.
+
+   This is NOT a theme. It is a list to copy from: take one --backdrop line,
+   paste it into your theme's .atl-overlay block, and change the two hex
+   values to whatever you want. No image file, nothing to resolve, nothing to
+   embed when the deck is exported.
+
+   Atlas/Backdrops/ holds the same set as .svg files, for when you would
+   rather pick one in Settings than edit a theme.
+
+   Direction is the first value: 180deg top to bottom, 90deg left to right,
+   135deg corner to corner. A radial-gradient puts the light at a point.
+
+   Keep the two tones close together. A backdrop with real contrast in it
+   competes with the cards, and the cards always lose. */
+
+/* Paste ONE of these into a theme — they all set the same token, so a file
+   with twenty-four of them uses the last. This block is deliberately not a
+   valid theme on its own. */
+	/* 01  Dawn — Cool white to pale steel. */
+	--backdrop: linear-gradient(180deg, #FBFCFA, #E4EAEC);
+
+	/* 02  Sandstone — Warm paper to dry sand. */
+	--backdrop: linear-gradient(180deg, #FAF6EF, #E7DAC4);
+
+	/* 03  Harbour fall — White falling to harbour blue. */
+	--backdrop: linear-gradient(180deg, #F7FAFB, #CEDEE6);
+
+	/* 04  Deep water — Teal sinking to near-black. */
+	--backdrop: linear-gradient(180deg, #17384A, #07161E);
+
+	/* 05  Graphite — Warm charcoal to cold black. */
+	--backdrop: linear-gradient(180deg, #2B2F36, #0F1115);
+
+	/* 06  Drift — Barely there, cool neutral. */
+	--backdrop: linear-gradient(90deg, #F6F8F7, #E0E7E8);
+
+	/* 07  Tide — Pale blue clearing to white. */
+	--backdrop: linear-gradient(90deg, #E6F0F5, #FDFEFE);
+
+	/* 08  Night drift — Black opening into slate. */
+	--backdrop: linear-gradient(90deg, #0C1118, #1E2837);
+
+	/* 09  Rust drift — Dark oxide to near-black. */
+	--backdrop: linear-gradient(90deg, #2E1E18, #12100F);
+
+	/* 10  Pale sweep — Bone to a faint green-grey. */
+	--backdrop: linear-gradient(90deg, #F7F7F2, #E2E8E0);
+
+	/* 11  Slant paper — Off-white to pale steel. */
+	--backdrop: linear-gradient(135deg, #FBFCF9, #DBE4E7);
+
+	/* 12  Slant slate — Slate to deep navy. */
+	--backdrop: linear-gradient(135deg, #1C2431, #090C12);
+
+	/* 13  Slant teal — Drafting blue, lit from one corner. */
+	--backdrop: linear-gradient(135deg, #0E3346, #051C28);
+
+	/* 14  Slant plum — Violet ink to black. */
+	--backdrop: linear-gradient(135deg, #201B36, #0A0810);
+
+	/* 15  Slant sand — Cream to clay. */
+	--backdrop: linear-gradient(135deg, #FAF5EC, #E2D2BA);
+
+	/* 16  Stage light — White centre, grey at the edges. */
+	--backdrop: radial-gradient(120% 95% at 50% 0%, #FFFFFF, #DCE3E5);
+
+	/* 17  Slate stage — Lit slate falling to black. */
+	--backdrop: radial-gradient(120% 95% at 50% 0%, #212B3C, #06090D);
+
+	/* 18  Violet stage — A single violet light in a dark room. */
+	--backdrop: radial-gradient(120% 95% at 50% 0%, #2A2246, #07080D);
+
+	/* 19  Amber stage — A warm wash with a deep brown edge. */
+	--backdrop: radial-gradient(120% 95% at 50% 0%, #3A2A18, #0D0A07);
+
+	/* 20  Mist — Soft white with cool corners. */
+	--backdrop: radial-gradient(120% 95% at 50% 0%, #FAFCFC, #E1E9EC);
+
+	/* 21  Boardroom — White to the Office light grey. */
+	--backdrop: linear-gradient(180deg, #FFFFFF, #E8E8E8);
+
+	/* 22  Boardroom navy — Office dark navy, deepening. */
+	--backdrop: linear-gradient(180deg, #0E2841, #061320);
+
+	/* 23  Boardroom teal — Accent teal into navy. */
+	--backdrop: linear-gradient(135deg, #156082, #0B3448);
+
+	/* 24  Boardroom mist — Light grey with a teal cast. */
+	--backdrop: linear-gradient(180deg, #F2F5F6, #D6E0E4);

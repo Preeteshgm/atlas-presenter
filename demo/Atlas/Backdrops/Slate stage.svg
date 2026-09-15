@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Slate stage — an Atlas Presenter backdrop.
+
+     Lit slate falling to black.
+     A radial wash from the top edge — the light sits at cx/cy.
+
+     TO USE   Settings > Atlas > Backdrop > An image, then pick this file.
+              Or put  image: Atlas/Backdrops/Slate stage.svg  on a #deck card.
+
+     TO EDIT  Change the stop-color values below. That is the whole file.
+              Keep the two tones close: a backdrop with real contrast in it
+              competes with the cards, and the cards always lose.
+
+     A gradient does not have to be a file at all. A theme can say
+     --backdrop: linear-gradient(180deg, #FBFCFA, #E4EAEC);
+     and skip this entirely. See Themes/Backdrops.css for all of these
+     as one-liners you can paste into any theme. -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1920 1080"
+     width="1920" height="1080" preserveAspectRatio="xMidYMid slice">
+  <defs>
+    <radialGradient id="g" cx="0.5" cy="0" r="1.15">
+      <stop offset="0" stop-color="#212B3C"/>
+      <stop offset="1" stop-color="#06090D"/>
+    </radialGradient>
+  </defs>
+  <rect width="1920" height="1080" fill="#06090D"/>
+  <rect width="1920" height="1080" fill="url(#g)"/>
+</svg>
