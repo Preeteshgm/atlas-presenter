@@ -27,10 +27,18 @@
 .atl-overlay {
 
 	/* ---- the backdrop --------------------------------------------------
-	   What sits behind the cards. Falls back to --paper, so a theme that
-	   says nothing here still looks deliberate. Any CSS background works:
-	   a colour, a gradient, or a repeating pattern. */
-	--backdrop: #EDEEE8;
+	   What sits behind the cards, and part of the theme like everything
+	   else here — pick a theme and its backdrop comes with it. There is
+	   nothing else to set.
+
+	   Any CSS background works: a colour, a gradient, a repeating pattern.
+	   Atlas/Themes/Backdrops.css has two dozen ready to paste.
+
+	   Overridden, in this order, by: a `backdrop:` line on a canvas's
+	   #deck card, then Settings > Backdrop if it is set to a colour or an
+	   image. Each is a deliberate deviation from the theme; none is
+	   needed for the theme to look finished. */
+	--backdrop: linear-gradient(180deg, #F0F1EB, #DFE4DE);
 
 	/* ---- paper and ink -------------------------------------------------
 	   The two that matter most. Everything else is a shade between them. */
@@ -53,9 +61,17 @@
 	--highlight: #FCE9A0;
 	--highlight-ink: #14232A;
 
-	/* ---- cards ---------------------------------------------------------- */
+	/* ---- cards ----------------------------------------------------------
+	   --card takes any CSS background, not just a colour, so a gradient is
+	   a one-line change:
+
+	     --card: linear-gradient(165deg, #FFFFFF, #EDF1F3);
+
+	   Keep it subtle. A card is the thing being read; a gradient inside one
+	   competes with its own text, and the further the two stops are apart
+	   the more it wins. Two or three percent of tone is plenty. */
 	--radius: 14px;
-	--card: var(--paper);               /* override to tint cards only  */
+	--card: var(--paper);               /* a colour, or a gradient      */
 	--card-border: 1px solid var(--rule);
 	--card-shadow: 0 10px 44px rgb(0 0 0 / 0.22);   /* the live card    */
 	--card-ring: none;                  /* e.g. 3px solid var(--accent) */
@@ -111,11 +127,21 @@
 	--code-rule: var(--rule);
 	--code-size: 0.78em;                /* fenced blocks, not inline     */
 
-	/* ---- roles that invert ---------------------------------------------- */
+	/* ---- roles that invert ----------------------------------------------
+	   These take gradients too, and a #section divider is the one card in the
+	   deck where a strong one is welcome — nobody reads a divider, they just
+	   register it:
+
+	     --section-bg: linear-gradient(135deg, #14232A, #1D5A78);
+
+	   The matching --*-border is transparent by default, which shows the
+	   background through it. Set one only if you want a visible edge. */
 	--section-bg: var(--ink);           /* the #section card's background */
 	--section-ink: var(--paper);
+	--section-border: transparent;
 	--dark-bg: var(--ink);              /* #dark                          */
 	--dark-ink: var(--paper);
+	--dark-border: transparent;
 	--stat-ink: var(--accent);          /* the big number                 */
 
 	/* ---- pictures -------------------------------------------------------- */

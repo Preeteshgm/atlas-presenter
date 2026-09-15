@@ -13,7 +13,7 @@
    To make your own, copy _Template.css, which documents all of them. */
 
 .atl-overlay {
-	--backdrop: #EDEEE8;
+	--backdrop: linear-gradient(180deg, #F0F1EB, #DFE4DE);
 	--paper: #F4F5F0;
 	--panel: #FFFFFF;
 	--ink: #14232A;

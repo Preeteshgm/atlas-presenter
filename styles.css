@@ -387,7 +387,11 @@ settings:
 /* #section — a divider carrying only the section's name. */
 .atl-node.atl-tag-section:not(.atl-node-group) {
 	background: var(--section-bg, var(--ink, var(--text-normal)));
-	border-color: var(--section-bg, var(--ink, var(--text-normal)));
+	/* Transparent rather than repeating --section-bg: the background is painted
+	   under the border, so this looks identical for a colour — and survives
+	   --section-bg being a gradient, which as a border-color is invalid and
+	   would drop the border entirely. */
+	border-color: var(--section-border, transparent);
 }
 .atl-node.atl-tag-section .atl-body {
 	display: flex;
@@ -461,7 +465,7 @@ settings:
 /* #dark — the same card, inverted. */
 .atl-node.atl-tag-dark:not(.atl-node-group) {
 	background: var(--dark-bg, var(--ink, var(--text-normal)));
-	border-color: var(--dark-bg, var(--ink, var(--text-normal)));
+	border-color: var(--dark-border, transparent);
 }
 .atl-node.atl-tag-dark .atl-body,
 .atl-node.atl-tag-dark h1,
