@@ -24,7 +24,7 @@ export class Slideshow {
 		// so it filled the width and lost its bottom half.
 		this.frames = (Array.from(root.children) as HTMLElement[]).map((child) => {
 			if (child.tagName !== "IMG" && child.tagName !== "VIDEO") return child;
-			const wrapper = createEl("div");
+			const wrapper = createDiv();
 			child.replaceWith(wrapper);
 			wrapper.appendChild(child);
 			return wrapper;

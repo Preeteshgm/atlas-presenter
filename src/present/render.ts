@@ -273,7 +273,7 @@ async function resolveEmbeds(app: App, root: HTMLElement, sourcePath: string): P
 		if (!dest) continue;
 
 		if (isExcalidraw(app, dest)) {
-			const holder = createEl("div");
+			const holder = createDiv();
 			holder.addClass("atl-embed");
 			span.replaceWith(holder);
 			if (!(await renderExcalidraw(app, holder, dest))) {
@@ -340,7 +340,7 @@ function markAudioOnly(media: HTMLVideoElement): void {
  * vault — but the reader of this code can now see which decision was made.
  */
 function parseCardHtml(doc: Document, html: string): HTMLElement {
-	const wrap = doc.createEl("div");
+	const wrap = doc.createDiv();
 	const parsed = new DOMParser().parseFromString(html, "text/html");
 	for (const node of Array.from(parsed.body.childNodes)) {
 		wrap.appendChild(doc.importNode(node, true));
@@ -443,7 +443,7 @@ function renderRawHtml(
 	// until someone turns it on.
 	if (!allowScripts) {
 		if (wrap.querySelector("script")) {
-			const note = createEl("div");
+			const note = createDiv();
 			note.addClass("atl-scripts-off");
 			note.setText(
 				"This card contains a script. Turn on Settings → Atlas Presenter → " +
@@ -487,7 +487,7 @@ function runCardScripts(shadow: ShadowRoot, host: HTMLElement, wrap: HTMLElement
 			run(shadow, host);
 		} catch (e) {
 			const message = e instanceof Error ? e.message : String(e);
-			const note = createEl("div");
+			const note = createDiv();
 			note.addClass("atl-script-error");
 			note.setText(`This card's script failed: ${message}`);
 			shadow.appendChild(note);
@@ -785,6 +785,10 @@ function layOutPanes(card: HTMLElement, body: HTMLElement): void {
 	for (const block of blocks) {
 		const pane = body.createDiv({ cls: "atl-pane" });
 		for (const el of block) pane.appendChild(el);
+		// Said here rather than asked in CSS. `:has(img)` did the same job and
+		// makes the browser re-check the selector whenever anything inside a
+		// pane changes; we already know which block held the picture.
+		if (pane.querySelector("img, video")) pane.addClass("has-picture");
 	}
 	body.dataset.panes = String(blocks.length);
 }
