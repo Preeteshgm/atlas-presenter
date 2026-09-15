@@ -300,9 +300,20 @@ Every key becomes a token — `{title}`, plus built-in `{deck}` `{section}` `{n}
 These keys override the plugin settings **for this canvas alone**, so a client
 deck and an internal deck can differ entirely with nothing in settings:
 
-`theme:` `logo:` `logo corner:` `logo height:` `accent:` `colour:` `image:`
-`dim:` `align:` `fit:` `transition:` `header on:` `header position:`
+`theme:` `backdrop:` `logo:` `logo corner:` `logo height:` `accent:` `colour:`
+`image:` `dim:` `align:` `fit:` `transition:` `header on:` `header position:`
 `variant:` `advance:`
+
+`backdrop:` takes any CSS background — a colour, or a gradient, which is what
+sits behind the cards:
+
+```
+backdrop: linear-gradient(180deg, #FBFCFA, #E4EAEC)
+```
+
+`Atlas/Themes/Backdrops.css` lists two dozen of them to copy, and the same set
+is in `Atlas/Backdrops/` as SVG files for `image:` instead. A theme carries the
+default; this line overrides it for one canvas, exactly as `theme:` does.
 
 `advance: 8s` runs the deck by itself for an unattended screen — a lobby,
 a stand. Any keypress stops it, because someone has arrived.

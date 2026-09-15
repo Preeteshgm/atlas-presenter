@@ -115,6 +115,14 @@ export class Presentation extends Component {
 	private themeCss = "";
 	/** Whether the theme came from this canvas's #deck card or from Settings. */
 	private themeFromDeck = false;
+	/**
+	 * A backdrop written on the #deck card, as raw CSS.
+	 *
+	 * Not a setting, because it is per-canvas the way `theme:` is: the theme
+	 * carries the default and one line on the card overrides it. Anything CSS
+	 * accepts as a background works — a colour, a gradient, a stack of them.
+	 */
+	private deckBackdrop = "";
 
 	constructor(
 		private app: App,
@@ -218,6 +226,7 @@ export class Presentation extends Component {
 			next.themeCss = m.theme;
 			this.themeFromDeck = true;
 		}
+		if (m.backdrop) this.deckBackdrop = m.backdrop;
 		if (m.logo) next.logo = m.logo;
 		if (m.logocorner) next.logoCorner = m.logocorner as AtlasSettings["logoCorner"];
 		if (m.logoheight) next.logoHeight = num(m.logoheight, base.logoHeight);
@@ -319,6 +328,11 @@ export class Presentation extends Component {
 		// group itself, so this is what the setting governs.
 		this.overlay.toggleClass("hide-sections", !s.sectionTitles);
 		if (s.accent) this.overlay.style.setProperty("--atl-accent", s.accent);
+
+		// The token the stylesheet already reads, set inline so it beats the
+		// theme's own value. An explicit colour or image below still wins, since
+		// choosing one of those is a more specific thing to have asked for.
+		if (this.deckBackdrop) this.overlay.style.setProperty("--backdrop", this.deckBackdrop);
 
 		if (s.background === "colour") {
 			this.overlay.style.background = s.backgroundColour;
@@ -1173,8 +1187,12 @@ ${this.themeCss}`,
 			allowScripts: this.settings.allowScripts,
 			look: {
 				accent: this.settings.accent,
+				// lookAttrs writes this straight into `background:`, so a gradient
+				// from the deck card travels into the exported file as itself.
 				background:
-					this.settings.background === "colour" ? this.settings.backgroundColour : "",
+					this.settings.background === "colour"
+						? this.settings.backgroundColour
+						: this.deckBackdrop,
 				backgroundImage:
 					this.settings.background === "image" && this.settings.backgroundImage
 						? resourcePath(this.app, this.settings.backgroundImage)
