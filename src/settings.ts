@@ -281,15 +281,44 @@ export class AtlasSettingTab extends PluginSettingTab {
 			);
 
 		// ----------------------------------------------------------- look
-		new Setting(containerEl).setName("Background").setHeading();
+		new Setting(containerEl).setName("Theme and background").setHeading();
+
+		// The theme comes first because it is the only choice most decks need:
+		// it carries the colours, the type, the card roles and the backdrop.
+		// Everything under it is a deliberate deviation from what it says.
+		new Setting(containerEl)
+			.setName("Theme stylesheet")
+			.setDesc(
+				"The one setting that decides how a deck looks — colours, type, the card " +
+					"roles, and the backdrop behind them. The same idea as an Advanced Slides " +
+					"theme, but it also reaches the chrome and inside HTML cards, though a card " +
+					"that styles itself still wins. Only Atlas themes are listed: an exported " +
+					"reveal.js stylesheet styles nothing here. A canvas whose #deck card carries " +
+					"a theme: line overrides this."
+			)
+			.addDropdown((c) => {
+				const current = s.themeCss;
+				c.addOptions({ "": "— none —" });
+				c.setValue(current);
+				c.onChange(async (v) => {
+					s.themeCss = v;
+					await this.save();
+				});
+				// Reading the stylesheets is the only way to know which are ours,
+				// so the real list arrives a moment after the panel does.
+				void this.fillThemes(c, current);
+			});
 
 		new Setting(containerEl)
 			.setName("Backdrop")
-			.setDesc("What sits behind the cards.")
+			.setDesc(
+				"What sits behind the cards. The theme already sets this, so leave it alone " +
+					"unless you want to override what the theme chose."
+			)
 			.addDropdown((c) =>
 				c
 					.addOptions({
-						theme: "Follow the Obsidian theme",
+						theme: "Whatever the theme says",
 						colour: "A solid colour",
 						image: "An image from the vault",
 					})
@@ -359,28 +388,6 @@ export class AtlasSettingTab extends PluginSettingTab {
 					)
 				);
 		}
-
-		new Setting(containerEl)
-			.setName("Theme stylesheet")
-			.setDesc(
-				"Applied to every deck — the same idea as an Advanced Slides theme. It " +
-					"reaches markdown cards, the chrome, and inside HTML cards too, though a " +
-					"card that styles itself still wins. Only Atlas themes are listed: an " +
-					"exported reveal.js stylesheet styles nothing here. A canvas whose #deck " +
-					"card carries a theme: line overrides this."
-			)
-			.addDropdown((c) => {
-				const current = s.themeCss;
-				c.addOptions({ "": "— none —" });
-				c.setValue(current);
-				c.onChange(async (v) => {
-					s.themeCss = v;
-					await this.save();
-				});
-				// Reading the stylesheets is the only way to know which are ours,
-				// so the real list arrives a moment after the panel does.
-				void this.fillThemes(c, current);
-			});
 
 		new Setting(containerEl)
 			.setName("Accent colour")
