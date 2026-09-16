@@ -43,9 +43,11 @@ import { Journal } from "./journal";
 import {
 	askBest,
 	chooseNotes,
+	Passage,
 	findPassages,
 	hasModel,
 	isLocal,
+	scopeOf,
 	searchTerms,
 	verify,
 } from "../ask";
@@ -1825,6 +1827,80 @@ ${this.themeCss}`,
 	 */
 	private askPanel: HTMLElement | null = null;
 
+	/**
+	 * The deck itself, as something the question can be answered from.
+	 *
+	 * Asked to summarise the canvas being presented, the panel searched
+	 * markdown notes — which is everything except the one document on screen —
+	 * and answered from two unrelated plans. The deck was never a candidate,
+	 * because a `.canvas` is not a note and nothing read it.
+	 *
+	 * It is offered as its outline: the sections and the card titles, which is
+	 * what "what is this deck about" actually wants, plus the text of any cards
+	 * carrying the question's words. Whether it is the right source is then
+	 * decided the same way as for every other candidate — by the model, looking
+	 * at the extract.
+	 */
+	private deckAsPassage(question: string): Passage {
+		const words = question
+			.toLowerCase()
+			.split(/[^a-z0-9]+/)
+			.filter((w) => w.length > 3);
+
+		const lines: string[] = [];
+		let section = "";
+		for (const stop of this.scene.stops) {
+			if (stop.kind !== "node") continue;
+			const group = stop.group?.label ?? "";
+			if (group && group !== section) {
+				section = group;
+				lines.push(`## ${section}`);
+			}
+			lines.push(`- ${titleOf(stop.node)}`);
+		}
+
+		// The cards that mention what was asked about, in full, after the outline.
+		const hits: string[] = [];
+		for (const node of this.scene.slides) {
+			const text = (node.text ?? "").replace(/%%[\s\S]*?%%/g, "").trim();
+			if (!text) continue;
+			const low = text.toLowerCase();
+			if (words.some((w) => low.includes(w))) hits.push(text.slice(0, 400));
+			if (hits.length >= 3) break;
+		}
+
+		const outline = [
+			`The deck "${this.file.basename}" has ${this.cardTotal} cards:`,
+			...lines,
+			...(hits.length > 0 ? ["", "Cards mentioning what was asked:", ...hits] : []),
+		].join("\n");
+
+		return {
+			file: this.file,
+			label: `this deck — ${this.file.basename}`,
+			text: outline.slice(0, 2400),
+			score: Number.MAX_SAFE_INTEGER,
+		};
+	}
+
+	/**
+	 * The card on screen, as a passage.
+	 *
+	 * "What is on this slide" has one right answer and it is already rendered;
+	 * searching the vault for it can only go wrong.
+	 */
+	private slideAsPassage(): Passage {
+		const stop = this.stopAt(this.index);
+		const body = (stop.node.text ?? "").replace(/%%[\s\S]*?%%/g, "").trim();
+		const section = stop.group?.label ? `Section: ${stop.group.label}\n` : "";
+		return {
+			file: this.file,
+			label: `the slide on screen — ${titleOf(stop.node)}`,
+			text: `${section}${body || titleOf(stop.node)}`.slice(0, 2400),
+			score: Number.MAX_SAFE_INTEGER,
+		};
+	}
+
 	private askNotes(): void {
 		if (this.askPanel) {
 			this.askPanel.querySelector<HTMLInputElement>(".atl-ask-input")?.focus();
@@ -1842,7 +1918,9 @@ ${this.themeCss}`,
 		this.askPanel = panel;
 		panel.createDiv({
 			cls: "atl-note-title",
-			text: `Ask your notes — ${this.settings.askFolder || "the whole vault"}`,
+			text: `Ask this deck, or your notes — ${
+				this.settings.askFolder || "the whole vault"
+			}`,
 		});
 
 		const row = panel.createDiv({ cls: "atl-ask-row" });
@@ -1890,6 +1968,89 @@ ${this.themeCss}`,
 			};
 			out.scrollTop = out.scrollHeight;
 
+			const answerFrom = async (passages: Passage[]): Promise<void> => {
+				const writing = step("Writing the answer…");
+				const answer = await askBest(
+					{
+						where: this.settings.askWhere,
+						url: this.settings.askUrl,
+						model: this.settings.askModel,
+						cloudKey: this.settings.cloudKey,
+						cloudModel: this.settings.cloudModel,
+					},
+					question,
+					passages,
+					turns
+				);
+				if (!this.askPanel) return;
+				done(writing);
+
+				out.createDiv({
+					cls: answer ? "atl-ask-answer" : "atl-ask-status",
+					text: answer ? answer.text : "The model did not answer. The notes below mention it.",
+				});
+				if (answer) {
+					turns.push({ q: question, a: answer.text });
+					// Read back against the passages it came from. A claim that is
+					// fluent, plausible and absent from the notes is the one failure
+					// every other rule here lets through — so the answer is shown
+					// with a caution rather than quietly deleted, because a verifier
+					// that hides good answers would be worse than none.
+					const checking = step("Checking it against the notes…");
+					const sound = await verify(
+						this.settings.askUrl,
+						this.settings.askModel,
+						answer.text,
+						passages
+					);
+					if (!this.askPanel) return;
+					done(checking, sound ? "Every part of it is in the notes" : "Some of it is not in the notes");
+					if (!sound) {
+						out.createDiv({
+							cls: "atl-ask-caution",
+							text: "Not all of this is in the notes — check the sources below.",
+						});
+					}
+				}
+
+				// The deck itself is not a source to go and open: it is already on
+				// screen, and peek cannot show a canvas anyway.
+				const sources = passages.filter((p) => p.file !== this.file);
+				if (sources.length > 0) {
+					const list = out.createDiv({ cls: "atl-ask-sources" });
+					list.createDiv({ cls: "atl-ask-label", text: "From" });
+					for (const p of sources) {
+						// Two notes really can be called the same thing, and a chip
+						// that names neither is worse than a long one.
+						const twin = sources.some(
+							(o) => o !== p && o.file.basename === p.file.basename
+						);
+						const name = twin ? p.file.path.replace(/\.md$/, "") : p.file.basename;
+						const chip = list.createDiv({ cls: "atl-ask-source", text: name });
+						// Over the deck, like a wikilink — leaving the talk to read a note
+						// is the thing peek exists to avoid.
+						chip.addEventListener("click", () => void this.peek.showFile(p.file));
+					}
+				}
+				working = false;
+				out.scrollTop = out.scrollHeight;
+				input.focus();
+			};
+
+			// What the question points at, decided here rather than by the model.
+			// A question naming the deck, the canvas or the slide on screen has
+			// its answer in front of us; searching for it can only find notes
+			// that happen to share a word. Judgement in code, generation in the
+			// model — the same division that fixed every other wrong answer.
+			const scope = scopeOf(question);
+			if (scope !== "vault") {
+				const here = scope === "slide" ? this.slideAsPassage() : this.deckAsPassage(question);
+				const reading = step(`Reading ${here.label}…`);
+				done(reading);
+				await answerFrom([here]);
+				return;
+			}
+
 			// What to search for is its own question, and the model answers it
 			// better than a stop list can: it drops "can you brief me on", and
 			// it knows "dept" is worth looking for when you typed "department".
@@ -1906,12 +2067,12 @@ ${this.themeCss}`,
 			const searching = step("Searching your notes…");
 			const found = await findPassages(this.app, this.settings.askFolder, search, 10);
 			if (!this.askPanel) return;
-			if (found.length === 0) {
-				working = false;
-				done(searching, "No note mentions any of that.");
-				return;
-			}
-			done(searching, `${found.length} notes mention it`);
+
+			// The deck is always a candidate when one is running: the question
+			// may well be about what is on screen.
+			const deck = this.deckAsPassage(question);
+			found.unshift(deck);
+			done(searching, `${found.length - 1} notes mention it, plus this deck`);
 
 			// The model reads the extracts and says which are worth opening —
 			// or that none of them are, which is the honest answer no amount of
@@ -1933,61 +2094,7 @@ ${this.themeCss}`,
 			}
 			done(choosing, `Reading ${passages.map((p) => p.file.basename).join(", ")}`);
 
-			const writing = step("Writing the answer…");
-			const answer = await askBest(
-				{
-					where: this.settings.askWhere,
-					url: this.settings.askUrl,
-					model: this.settings.askModel,
-					cloudKey: this.settings.cloudKey,
-					cloudModel: this.settings.cloudModel,
-				},
-				question,
-				passages,
-				turns
-			);
-			if (!this.askPanel) return;
-			done(writing);
-
-			out.createDiv({
-				cls: answer ? "atl-ask-answer" : "atl-ask-status",
-				text: answer ? answer.text : "The model did not answer. The notes below mention it.",
-			});
-			if (answer) {
-				turns.push({ q: question, a: answer.text });
-				// Read back against the passages it came from. A claim that is
-				// fluent, plausible and absent from the notes is the one failure
-				// every other rule here lets through — so the answer is shown
-				// with a caution rather than quietly deleted, because a verifier
-				// that hides good answers would be worse than none.
-				const checking = step("Checking it against the notes…");
-				const sound = await verify(
-					this.settings.askUrl,
-					this.settings.askModel,
-					answer.text,
-					passages
-				);
-				if (!this.askPanel) return;
-				done(checking, sound ? "Every part of it is in the notes" : "Some of it is not in the notes");
-				if (!sound) {
-					out.createDiv({
-						cls: "atl-ask-caution",
-						text: "Not all of this is in the notes — check the sources below.",
-					});
-				}
-			}
-
-			const list = out.createDiv({ cls: "atl-ask-sources" });
-			list.createDiv({ cls: "atl-ask-label", text: "From" });
-			for (const p of passages) {
-				const chip = list.createDiv({ cls: "atl-ask-source", text: p.file.basename });
-				// Over the deck, like a wikilink — leaving the talk to read a note
-				// is the thing peek exists to avoid.
-				chip.addEventListener("click", () => void this.peek.showFile(p.file));
-			}
-			working = false;
-			out.scrollTop = out.scrollHeight;
-			input.focus();
+			await answerFrom(passages);
 		};
 
 		go.addEventListener("click", () => void run());

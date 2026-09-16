@@ -25,6 +25,14 @@ export interface Passage {
 	/** The lines that matched, with a little either side. */
 	text: string;
 	score: number;
+	/**
+	 * What to call this when offering it to the model, if not its filename.
+	 *
+	 * The deck being presented is a candidate like any other, but "ECC Digital
+	 * Initiatives" in a list of notes does not read as "the thing on screen" —
+	 * so it says so.
+	 */
+	label?: string;
 }
 
 export interface Answer {
@@ -81,6 +89,89 @@ const STOP = new Set([
 	"more", "also", "some", "thing", "things", "let", "make", "help",
 	"question", "answer", "note", "notes", "say", "said", "says", "get",
 ]);
+
+/**
+ * What a question is pointing at.
+ *
+ * "Summarise the canvas I am presenting now" is not a search. Nothing in the
+ * vault is *about* the open deck, so a search returns whichever notes happen
+ * to share a word — which is exactly how that question got answered out of two
+ * unrelated site plans. No amount of better ranking fixes it, because the
+ * right source was never a candidate: it is the thing on screen.
+ *
+ * So the question is read for what it names before anything is searched.
+ * Obsidian has a small, stable vocabulary for the thing in front of you, and
+ * presenting has another; people type whichever is in their head. Both are
+ * listed here, in one place, so there is somewhere to add the next word.
+ */
+export type Scope = "slide" | "deck" | "note" | "vault";
+
+/**
+ * Words that mean "the one in front of me" rather than "one somewhere in my
+ * vault". Without one of these, "what did the depot note say" is an ordinary
+ * search and must stay one.
+ */
+const HERE = [
+	"this", "these", "that", "current", "currently", "active", "open", "opened",
+	"present", "presenting", "presented", "showing", "shown", "onscreen",
+	"here", "now", "front", "looking", "am", "im", "are", "were", "re", "we",
+	"i", "my",
+];
+
+/**
+ * The nouns, most specific first: a slide is on a deck, a deck is a file.
+ *
+ * `always` marks the words that only ever mean the one in front of you. Nobody
+ * writes a note *about* "the deck" or "the canvas", so "summarise the deck"
+ * needs no pointing word — where "the depot note" plainly does, or every
+ * question mentioning a note would stop being a search.
+ */
+const THINGS: { scope: Scope; words: string[]; always?: boolean }[] = [
+	{ scope: "slide", words: ["slide", "card", "screen"] },
+	{
+		scope: "deck",
+		words: ["deck", "canvas", "presentation", "slideshow", "slides", "board"],
+		always: true,
+	},
+	{
+		scope: "note",
+		words: ["note", "notes", "document", "doc", "file", "page", "writeup", "minutes"],
+	},
+];
+
+/** Asked with no noun at all — "what am I presenting", "what is on screen". */
+const BARE =
+	/\b(on|to|at) ?(screen|the screen)\b|\b(what'?s?|which)\b.{0,24}\b(presenting|onscreen|in front of (me|us)|looking at)\b/;
+
+/**
+ * Which thing the question is about, or `vault` if it is an ordinary search.
+ *
+ * A noun only counts when a pointing word sits within three words of it, on
+ * either side. That proximity is the whole guard: "the current tender in the
+ * depot note" keeps "current" attached to the tender, where it belongs, and
+ * stays a search — while "the note I have open" and "this note" do not.
+ */
+export function scopeOf(question: string): Scope {
+	const q = question.toLowerCase();
+	if (BARE.test(q)) return "deck";
+	// "what is on slide 4" points at the deck as surely as "this slide" does,
+	// without a pointing word anywhere in it.
+	if (/\b(slide|card|page)s?\s*(number\s*|no\.?\s*|#)?\d+/.test(q)) return "deck";
+
+	const words = q.split(/[^a-z0-9]+/).filter(Boolean);
+	const pointing = words.map((w) => HERE.includes(w));
+
+	for (const { scope, words: nouns, always } of THINGS) {
+		for (let i = 0; i < words.length; i++) {
+			if (!nouns.includes(words[i])) continue;
+			if (always) return scope;
+			for (let j = Math.max(0, i - 3); j <= Math.min(words.length - 1, i + 3); j++) {
+				if (j !== i && pointing[j]) return scope;
+			}
+		}
+	}
+	return "vault";
+}
 
 function terms(question: string): string[] {
 	return [
@@ -431,7 +522,8 @@ function buildUser(question: string, passages: Passage[]): string {
 	// `--- name ---` read as a heading to reproduce, and the model echoed the
 	// whole block back instead of answering. A plain `Note:` line does not.
 	const context = passages
-		.map((p) => `Note: ${p.file.basename}\n${p.text}`)
+		.map((p) => `Note: ${p.label ?? p.file.basename}
+${p.text}`)
 		.join("\n\n");
 	return `${context}\n\nQuestion: ${question}`;
 }
@@ -563,7 +655,8 @@ export async function chooseNotes(
 	if (!isLocal(url) || candidates.length <= 1) return candidates;
 
 	const list = candidates
-		.map((p, i) => `${i + 1}. ${p.file.basename}\n   ${p.text.replace(/\s+/g, " ").slice(0, 220)}`)
+		.map((p, i) => `${i + 1}. ${p.label ?? p.file.basename}
+   ${p.text.replace(/s+/g, " ").slice(0, 220)}`)
 		.join("\n");
 
 	const data = await post(`${url.replace(/\/+$/, "")}/v1/chat/completions`, {
@@ -619,7 +712,9 @@ export async function verify(
 		return true;
 	}
 
-	const notes = passages.map((p) => `${p.file.basename}\n${p.text}`).join("\n\n");
+	const notes = passages
+		.map((p) => `${p.label ?? p.file.basename}\n${p.text}`)
+		.join("\n\n");
 	const data = await post(`${url.replace(/\/+$/, "")}/v1/chat/completions`, {
 		model,
 		temperature: 0,
