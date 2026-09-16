@@ -344,10 +344,29 @@ function markAudioOnly(media: HTMLVideoElement): void {
  * vault — but the reader of this code can now see which decision was made.
  */
 function parseCardHtml(doc: Document, html: string): HTMLElement {
-	const wrap = doc.createDiv();
+	// createElement, not Obsidian's createDiv or createEl.
+	//
+	// Those two create an element *and append it to the node they were called
+	// on*, which is exactly what you want on an element and catastrophic on a
+	// Document: a document already has an <html>, so appending a <div> to it
+	// throws HierarchyRequestError. This line threw on every HTML card, the
+	// shadow root had already been attached, and a shadow root hides its host's
+	// light-DOM children — so the error message was invisible too and every
+	// HTML card simply went blank.
+	const wrap = doc.createElement("div");
 	const parsed = new DOMParser().parseFromString(html, "text/html");
-	for (const node of Array.from(parsed.body.childNodes)) {
-		wrap.appendChild(doc.importNode(node, true));
+	// Head first, then body.
+	//
+	// A card is written as a fragment, but it is parsed as a document — and the
+	// HTML parser moves any leading <style> or <link> into <head>. Copying only
+	// the body therefore dropped the card's entire stylesheet, which is most of
+	// what an HTML card is. Both halves belong in the shadow root: a <style>
+	// there is scoped to the card, which is the whole reason the shadow root
+	// exists.
+	for (const part of [parsed.head, parsed.body]) {
+		for (const node of Array.from(part.childNodes)) {
+			wrap.appendChild(doc.importNode(node, true));
+		}
 	}
 	return wrap;
 }
@@ -434,7 +453,13 @@ function renderRawHtml(
 			// not rendering.
 		}
 	}
-	shadow.adoptedStyleSheets = sheets;
+	try {
+		shadow.adoptedStyleSheets = sheets;
+	} catch {
+		// Sheets built in one realm cannot always be adopted in another. The
+		// card's own <style> travels inside it, so losing these costs the
+		// plugin's reset and the vault theme — not the card.
+	}
 
 	const wrap = parseCardHtml(host.ownerDocument, html);
 	shadow.append(wrap);
@@ -989,7 +1014,19 @@ export async function renderNode(
 			frame.src = node.url ?? "";
 		}
 	} catch (e) {
-		body.createDiv({ cls: "atl-missing", text: `Could not render this card: ${String(e)}` });
+		// Into the shadow root when the card has one.
+		//
+		// An HTML card attaches a shadow root before it does anything that can
+		// fail, and a shadow root hides its host's light-DOM children — so this
+		// message, written the obvious way, was invisible for exactly the cards
+		// most likely to need it. A failed HTML card looked like an empty one,
+		// which is the hardest kind of bug to report and the hardest to find.
+		const note = createDiv({
+			cls: "atl-missing",
+			text: `Could not render this card: ${String(e)}`,
+		});
+		if (body.shadowRoot) body.shadowRoot.append(note);
+		else body.appendChild(note);
 	}
 	// Pictures first: a card is one or the other, and a paned card splits on a
 	// rule rather than gathering its images.

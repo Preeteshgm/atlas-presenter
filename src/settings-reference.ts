@@ -53,13 +53,65 @@ export function renderReference(containerEl: HTMLElement): void {
 	});
 
 	for (const [tag, what] of [
-		["#deck", "This card is the deck's title block. It is never presented and never appears on the map. Its key: value lines set the header, the theme, the logo and more."],
+		[
+			"#deck",
+			"This card is the deck's title block. It is never presented and never " +
+				"appears on the map. Its key: value lines set options for this canvas " +
+				"alone; anything that is not a key becomes the band drawn over a section " +
+				"overview, and every key is also a {token} you can use in it.",
+		],
 		["#start", "Begin the deck here, whatever the arrows say."],
 		["#skip-short", "Leave this card out of the talk called \u201cshort\u201d. It stays in every other one."],
 		["#only-short", "Show this card in the \u201cshort\u201d talk and nowhere else."],
 	] as [string, string][]) {
 		entry(hashes, tag, what, tag);
 	}
+
+	// The keys themselves, because "and more" is not a reference. These are the
+	// only place a canvas can overrule a setting, and none of them is guessable.
+	const deckKeys = section("Keys on the #deck card");
+
+	deckKeys.createDiv({
+		cls: "atl-ref-lead",
+		text:
+			"Each of these changes this canvas alone, leaving your settings as they " +
+			"are — so a client deck and an internal one can differ entirely.",
+	});
+
+	for (const [key, what] of [
+		["theme:", "A .css file in the vault, by its full path: Atlas/Themes/Slate.css. The theme brings its own backdrop, so this is usually the only line you need."],
+		["backdrop:", "Any CSS background, behind the cards: a colour, or a gradient. Atlas/Themes/Backdrops.css lists two dozen to copy."],
+		["image:", "A picture behind the cards instead, by vault path. dim: darkens it, 0 to 1, so slide text stays readable."],
+		["colour:", "A flat colour behind the cards."],
+		["logo:", "A vault image on every slide. Several, separated by commas, sit in a row — a joint venture, or a client mark beside your own. logo corner:, logo height: place it."],
+		["accent:", "Overrides the theme's accent for this deck. Usually better left to the theme, which chose one that goes with the rest."],
+		["header:", "The standing line above the deck. {deck} {section} {n} {total} {date} are filled in, as is any key of your own."],
+		["variant:", "Present this talk by default — the one its #only- and #skip- tags name."],
+		["advance:", "Run the deck by itself, a card every so often: advance: 8s. Any keypress stops it, because someone has arrived."],
+		["fit:", "contain shows the whole card; cover fills the screen and crops."],
+		["align:", "centre or top, for a card that does not fill the height."],
+		["transition:", "How one picture gives way to the next inside a card."],
+	] as [string, string][]) {
+		entry(deckKeys, key, what);
+	}
+
+	entry(
+		deckKeys,
+		"All together",
+		"Lines above the blank line are settings; everything below is the title " +
+			"block, and it is markdown.",
+		[
+			"#deck",
+			"",
+			"theme: Atlas/Themes/Slate.css",
+			"backdrop: linear-gradient(180deg, #151B26, #07090E)",
+			"logo: Assets/ours.png, Assets/client.png",
+			"header: {deck}  ·  {section}  ·  {n}/{total}",
+			"",
+			"# Northwind Depot",
+			"The controls upgrade · **Sam Avery**",
+		].join("\n")
+	);
 
 	const roles = section("The card roles");
 

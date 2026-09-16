@@ -672,8 +672,30 @@ Controls plan, rev A · **Sam Avery**</code></pre>
 	<code>key: value</code> lines set options. Anything else is the deck's title
 	block, rendered into the band above a section overview. In the header,
 	<code>{deck}</code>, <code>{section}</code>, <code>{n}</code>,
-	<code>{total}</code> and <code>{date}</code> are filled in as you go.
+	<code>{total}</code> and <code>{date}</code> are filled in as you go — as is
+	any key of your own.
 </p>
+
+<p>
+	Each key changes <b>this canvas alone</b> and leaves your settings untouched,
+	so a client deck and an internal one can differ entirely.
+</p>
+
+<table>
+	<thead><tr><th>Key</th><th></th></tr></thead>
+	<tbody>
+		<tr><td><code>theme:</code></td><td>A <code>.css</code> file by its full vault path. The theme brings its own backdrop, so this is usually the only line you need</td></tr>
+		<tr><td><code>backdrop:</code></td><td>Any CSS background behind the cards — a colour, or a gradient. <code>Atlas/Themes/Backdrops.css</code> lists two dozen to copy</td></tr>
+		<tr><td><code>image:</code> <code>dim:</code></td><td>A picture behind the cards instead, and how far to darken it so slide text stays readable</td></tr>
+		<tr><td><code>colour:</code></td><td>A flat colour behind the cards</td></tr>
+		<tr><td><code>logo:</code></td><td>A vault image on every slide. <b>Several, comma-separated, sit in a row</b> — a joint venture, or a client mark beside your own. <code>logo corner:</code> and <code>logo height:</code> place it</td></tr>
+		<tr><td><code>accent:</code></td><td>Overrides the theme's accent. Usually better left to the theme, which picked one that goes with the rest</td></tr>
+		<tr><td><code>header:</code></td><td>The standing line above the deck</td></tr>
+		<tr><td><code>variant:</code></td><td>Present this talk by default — the one its <code>#only-</code> and <code>#skip-</code> tags name</td></tr>
+		<tr><td><code>advance:</code></td><td><code>advance: 8s</code> runs the deck by itself for an unattended screen. Any keypress stops it, because someone has arrived</td></tr>
+		<tr><td><code>fit:</code> <code>align:</code> <code>transition:</code></td><td>Framing, vertical placement, and how one picture gives way to the next</td></tr>
+	</tbody>
+</table>
 
 <h2 id="themes">Themes</h2>
 

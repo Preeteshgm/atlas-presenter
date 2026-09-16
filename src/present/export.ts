@@ -246,7 +246,11 @@ function wrapShadows(clone: HTMLElement): string {
 	if (hosts.length === 0) return "";
 
 	for (const host of hosts) {
-		const tpl = host.ownerDocument.createEl("template");
+		// createElement, not Obsidian's createEl: called on a Document, createEl
+		// appends what it makes — and a document already has its one element, so
+		// it throws. The same line in the card renderer is what made every HTML
+		// card blank; this one would have made every exported one blank too.
+		const tpl = host.ownerDocument.createElement("template");
 		tpl.className = "card-shadow";
 		while (host.firstChild) tpl.content.appendChild(host.firstChild);
 		host.appendChild(tpl);
