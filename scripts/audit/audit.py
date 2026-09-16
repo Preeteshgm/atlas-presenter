@@ -51,7 +51,15 @@ block = types[types.index("export interface AtlasSettings")
 block = block[: block.index("\n}")]
 keys = re.findall(r"^\t([a-zA-Z]+):", block, re.M)
 
-runtime = "".join(read(p) for p in walk(os.path.join(ROOT, "src", "present"), {".ts"}))
+# Everything the plugin runs, which is all of src except the settings panel —
+# a setting that only the panel touches is a setting that does nothing. It used
+# to read src/present alone, so a setting consumed from anywhere else in src
+# looked dead when it was being used perfectly well.
+runtime = "".join(
+    read(p)
+    for p in walk(os.path.join(ROOT, "src"), {".ts"})
+    if not p.endswith("settings.ts")
+)
 runtime += read(ROOT, "src", "main.ts")
 ui = read(ROOT, "src", "settings.ts")
 

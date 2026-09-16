@@ -76,6 +76,8 @@ export type HeaderScope = "sections" | "always" | "first";
 /** Where a framed card sits when it does not fill the height. */
 export type VerticalAlign = "centre" | "top";
 export type TimerMode = "off" | "elapsed" | "clock" | "both";
+/** Where a question may be answered — and whether notes may leave this machine. */
+export type AskWhere = "local" | "local-first" | "cloud-first";
 export type Corner = "top-left" | "top-right" | "bottom-left" | "bottom-right";
 
 export interface AtlasSettings {
@@ -143,8 +145,48 @@ export interface AtlasSettings {
 	/** A rail across the top showing progress, ticked at each section. */
 	showProgress: boolean;
 	timer: TimerMode;
-	/** Where a written-up session is filed. */
+	/** Where a written-up session is filed. Recordings go in a folder under it. */
 	minutesFolder: string;
+	/**
+	 * A speech server on this machine, which turns a recording into text.
+	 *
+	 * Empty by default, and it stays empty unless someone sets it. Audio is the
+	 * most sensitive thing a deck produces — a meeting nobody agreed to send
+	 * anywhere — so recording works entirely offline, and posting it to
+	 * something is a decision made on purpose rather than a default. Only a
+	 * local address is accepted, for the same reason.
+	 */
+	transcribeUrl: string;
+	/**
+	 * A model server on this machine — Ollama, or anything speaking its API.
+	 *
+	 * Empty by default. Same reasoning as the speech server: notes are the most
+	 * private thing in a vault, and only a local address is accepted.
+	 */
+	askUrl: string;
+	/** Which model answers. Cheap to change, so it is a setting rather than a choice. */
+	askModel: string;
+	/** Where questions are answered from. Empty means the whole vault. */
+	askFolder: string;
+	/**
+	 * Which model answers, and whether notes may leave the machine.
+	 *
+	 * Three states rather than a fallback flag, because "use the cloud when the
+	 * local one is unavailable" can quietly mean "your meeting notes went to a
+	 * third party because a server was not running" — and that is not something
+	 * anyone should discover afterwards. `local` is the default and never sends
+	 * anything anywhere.
+	 */
+	askWhere: AskWhere;
+	/**
+	 * An OpenAI key, if you have chosen to use one.
+	 *
+	 * Stored in this plugin's data file, which lives inside the vault — so it
+	 * travels with any sync, backup or repository the vault is part of. The
+	 * settings panel says so where the field is.
+	 */
+	cloudKey: string;
+	cloudModel: string;
 	/** Write the minutes on leaving a deck, when anything was noted. */
 	minutesOnExit: boolean;
 	/** Put the cards' own %%notes%% into the write-up. Off: they are private. */
@@ -194,6 +236,13 @@ export const DEFAULT_SETTINGS: AtlasSettings = {
 	showProgress: true,
 	timer: "off",
 	minutesFolder: "Meetings",
+	transcribeUrl: "",
+	askUrl: "",
+	askModel: "qwen2.5:3b",
+	askFolder: "Meetings",
+	askWhere: "local",
+	cloudKey: "",
+	cloudModel: "gpt-4o-mini",
 	minutesOnExit: true,
 	minutesIncludeNotes: false,
 	openExport: true,

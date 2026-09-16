@@ -40,6 +40,24 @@ export interface Session {
 	captures: Capture[];
 	/** Prepared `%%notes%%`, by card. */
 	prepared: Map<string, string>;
+	/**
+	 * The session recording, if one was made.
+	 *
+	 * Held with the moment it started, because that is what turns the visit
+	 * timeline into an index: the deck knows which card was on screen at every
+	 * point, so one long file becomes a list of chapters nobody had to mark up.
+	 */
+	audio?: { path: string; startedAt: number; ms: number };
+}
+
+/** `4:07`, from milliseconds. Chapter offsets, not clock times. */
+function offset(ms: number): string {
+	const total = Math.max(0, Math.round(ms / 1000));
+	const h = Math.floor(total / 3600);
+	const m = Math.floor((total % 3600) / 60);
+	const s = total % 60;
+	const pad = (n: number) => String(n).padStart(2, "0");
+	return h > 0 ? `${h}:${pad(m)}:${pad(s)}` : `${m}:${pad(s)}`;
 }
 
 interface ReviewEntry {
@@ -238,6 +256,38 @@ function minutesFor(session: Session, options: MinutesOptions): string {
 
 	lines.push("## Attendees", "", "- ", "");
 	lines.push("## Decisions", "", "- ", "");
+
+	// ------------------------------------------------------------- recording
+	if (session.audio) {
+		const audio = session.audio;
+		lines.push(
+			"## Recording",
+			"",
+			`This session was recorded, ${hhmm(audio.startedAt)}–${hhmm(
+				audio.startedAt + audio.ms
+			)} (${offset(audio.ms)}).`,
+			"",
+			`![[${audio.path}]]`,
+			""
+		);
+
+		// One row per card, in the order they were reached, with the offset into
+		// the recording. The deck knew what was on screen at every moment; this
+		// is that knowledge written down, so a question six weeks later is a
+		// scrub rather than a search.
+		const chapters: string[] = [];
+		let last = "";
+		for (const visit of session.visits) {
+			if (visit.at < audio.startedAt) continue;
+			if (visit.nodeId === last) continue;
+			last = visit.nodeId;
+			const where = visit.section ? `${visit.section} · ${visit.title}` : visit.title;
+			chapters.push(`| ${offset(visit.at - audio.startedAt)} | ${where} |`);
+		}
+		if (chapters.length > 0) {
+			lines.push("| At | Card |", "|---|---|", ...chapters, "");
+		}
+	}
 
 	// ---------------------------------------------------------------- actions
 	lines.push("## Actions", "");

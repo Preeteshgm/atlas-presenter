@@ -1,4 +1,5 @@
-import { App, Component, MarkdownRenderer, TFile } from "obsidian";
+import { App, Component, TFile } from "obsidian";
+import { renderLinkedFile } from "./render";
 import { isElement } from "../dom";
 
 /**
@@ -81,12 +82,15 @@ export class Peek {
 		this.crumbEl.setText(this.trail.length > 1 ? `${this.trail.length} deep · Backspace` : "");
 		this.bodyEl.empty();
 		this.bodyEl.scrollTop = 0;
-		await MarkdownRenderer.render(
+		// The same renderer a card uses, so a drawing, a picture, a recording or
+		// a sub-canvas opens as itself rather than as its source.
+		const hash = linktext.indexOf("#");
+		await renderLinkedFile(
 			this.app,
-			await this.app.vault.cachedRead(file),
+			this.owner,
 			this.bodyEl,
-			file.path,
-			this.owner
+			file,
+			hash >= 0 ? linktext.slice(hash) : ""
 		);
 		this.reveal();
 		return true;

@@ -241,6 +241,7 @@
 
 		<div class="grp">Reference</div>
 		<a href="#hashes">Every # line</a>
+		<a href="#ask">Asking your notes</a>
 		<a href="#settings">Settings</a>
 		<a href="#trouble">If something is wrong</a>
 	</div>
@@ -366,6 +367,9 @@
 		<tr><td><kbd>Enter</kbd></td><td>Dive into the <a href="#subdecks">sub-deck</a> on this card</td></tr>
 		<tr><td><kbd>B</kbd></td><td>Blank the screen — attention on the room, not the slide</td></tr>
 		<tr><td><kbd>N</kbd></td><td>Note against the card on screen — the cursor goes to the presenter panel's box</td></tr>
+		<tr><td><kbd>R</kbd></td><td>Speak that note instead. Press again to stop; it lands on the same card</td></tr>
+		<tr><td><kbd>A</kbd></td><td>Ask your notes a question, over the deck</td></tr>
+		<tr><td><kbd>Shift</kbd>+<kbd>R</kbd></td><td>Record the whole meeting. The write-up indexes it by card</td></tr>
 		<tr><td><kbd>W</kbd></td><td>Read the session and write it up — opens over the deck, so it works fullscreen</td></tr>
 		<tr><td><kbd>P</kbd></td><td>Open the presenter panel — notes, the clock, what is next, and a box to write a remark in</td></tr>
 		<tr><td><kbd>E</kbd></td><td>Export the deck to one standalone HTML file</td></tr>
@@ -682,13 +686,36 @@ Controls plan, rev A · **Sam Avery**</code></pre>
 	<div><h4>Paper</h4><p>Editorial light — warm paper, near-black ink, deep blue accent.</p></div>
 	<div><h4>Slate</h4><p>For a dim room — deep slate cards, pale text, a cool accent.</p></div>
 	<div><h4>Plain</h4><p>Follows your Obsidian theme. Nothing imposed but the roles.</p></div>
+	<div><h4>Mono</h4><p>Black on white, oversized, one red accent. For a bad projector.</p></div>
+	<div><h4>Blueprint</h4><p>A drafting grid behind the cards, mono headings, cyan.</p></div>
+	<div><h4>Harbour</h4><p>Deep blue on warm white, with a colour for every section.</p></div>
+	<div><h4>Midnight</h4><p>Near-black with a vignette and an accent glow.</p></div>
 </div>
 
 <p>
-	To make your own, copy one and change the tokens at the top —
-	<code>--paper</code>, <code>--ink</code>, <code>--accent</code>,
-	<code>--rule</code> and the fonts. Everything below them is the same in every
-	Atlas theme, so a deck re-skins without a card changing.
+	The picker lists only stylesheets that are actually Atlas themes — a vault that
+	has ever exported a reveal.js deck holds dozens that would do nothing here.
+</p>
+
+<p>
+	<b>A theme carries its backdrop too</b>, so picking one is the only choice most
+	decks need. A <code>backdrop:</code> line on a <code>#deck</code> card overrides
+	it for that canvas and takes any CSS background:
+</p>
+
+<pre><code>backdrop: linear-gradient(180deg, #FBFCFA, #E4EAEC)</code></pre>
+
+<p>
+	<code>Atlas/Themes/Backdrops.css</code> lists two dozen ready to paste, and
+	<code>Atlas/Backdrops/</code> holds the same set as image files if you would
+	rather pick one in settings.
+</p>
+
+<p>
+	To make your own, copy <code>Atlas/Themes/_Template.css</code> — it documents
+	every token with what it touches — and change the block at the top. A theme is
+	only a list of values: the card roles live in the plugin, so they work with any
+	theme and with none.
 </p>
 
 <h2 id="variants">One map, several talks</h2>
@@ -768,6 +795,45 @@ Controls plan, rev A · **Sam Avery**</code></pre>
 </p>
 
 <p>
+	<kbd>R</kbd> speaks it instead. Say the thing, press <kbd>R</kbd> again, and the
+	clip is attached to the same card as if you had typed it. A pip appears in the
+	corner with a live level meter — a recorder that captured nothing is discovered
+	after the meeting, when the thing it was recording cannot be repeated.
+</p>
+
+<p>
+	<kbd>Shift</kbd>+<kbd>R</kbd> records the <b>whole meeting</b>, and the write-up
+	indexes it by card:
+</p>
+
+<table>
+	<thead><tr><th>At</th><th>Card</th></tr></thead>
+	<tbody>
+		<tr><td>0:00</td><td>Opening · Northwind Depot</td></tr>
+		<tr><td>2:14</td><td>The evidence · What the survey found</td></tr>
+		<tr><td>8:41</td><td>The decision</td></tr>
+	</tbody>
+</table>
+
+<p>
+	That table is the reason to have this. The deck knows which card was on screen at
+	every moment, so one long recording chapters itself — something no recorder can
+	do, because none of them know what you were talking about. It is all local:
+	<code>MediaRecorder</code> is built into the app Obsidian runs on, so there is no
+	plugin, no key and no network.
+</p>
+
+<div class="note">
+	<p>
+		<b>Nothing is lost.</b> Every note and card visit is written the instant it
+		happens, and a running recording is flushed to disk every two minutes. If
+		Obsidian crashes you are told next time it opens — <i>“a session from Tuesday
+		14:02 was never written up”</i> — with a button to write it up. The journal is
+		deleted only once the minutes exist.
+	</p>
+</div>
+
+<p>
 	<kbd>W</kbd> opens the whole session — every card that carries anything, in the
 	order you visited it, each editable in place. A line written as
 	<code>- [ ] something</code> is counted as an action. Create the note when it
@@ -814,6 +880,81 @@ Controls plan, rev A · **Sam Avery**</code></pre>
 	own theme. A tag shown inside a code block is documentation, not a hook.
 </p>
 
+<h2 id="ask">Asking your notes</h2>
+
+<p>
+	Minutes accumulate. Six months of them is where the answer to <i>“what did we
+	decide about the field app?”</i> actually lives, and by then you have forgotten
+	which meeting it was. The <b>magnifier in the ribbon</b> — or the command
+	<b>Ask your notes</b> — puts a question to them.
+</p>
+
+<p>
+	It is off until you point it at a model, and everything about it is built so it
+	cannot quietly become something else.
+</p>
+
+<p>
+	<b>It runs on your machine.</b> <i>Where questions may go</i> defaults to
+	<b>On this machine only</b>, which never contacts anything but a local server
+	whatever else is configured. Two other settings allow OpenAI as a first or
+	second choice; both need a key you enter yourself, and every answer says which
+	model produced it — including that the notes were sent. A key lives in the
+	plugin's data file, which is inside your vault, so it travels with any sync or
+	backup. The panel says so where the field is.
+</p>
+
+<p>
+	<b>It works the way you would, and shows you.</b> Your question becomes search
+	terms; the search returns candidates; the model reads their extracts and says
+	which are worth opening — or that none are; it answers from those; then it reads
+	its own answer back against them. Each step appears as it happens, so you can
+	see which note it decided to read.
+</p>
+
+<pre><code>● Looking for: intake survey findings
+● 9 notes mention it
+● Reading Northwind Depot 14 September, Intake survey 2026
+● Every part of it is in the notes</code></pre>
+
+<p>
+	<b>Refusing is decided on evidence, not on word counts.</b> Asked for the budget
+	for a swimming pool, every scoring rule tried here surfaced a schedule line about
+	a pool and courtyard, because the word was there. Shown the extract and asked
+	whether it bears on the question, the model says none of them do — and you get
+	<i>“No note found on that topic”</i> without an answer ever being written. Every
+	answer carries its sources as chips you can click, because a claim about what a
+	meeting decided gets repeated in another meeting.
+</p>
+
+<div class="note">
+	<p>
+		Telling a 3B model <i>“reply NOT FOUND if the notes do not contain the
+		answer”</i> made it reply NOT FOUND to a question the notes answered in one
+		line — measured, twice. Letting it invent better search terms was worse: it
+		turned PPC into <i>pay-per-click</i>. Recognising is a small model's strength
+		and generating is not, so it is only ever asked to recognise.
+	</p>
+</div>
+
+<h3>Running a model</h3>
+
+<p>
+	Any server speaking the OpenAI chat API works — Ollama on <code>11434</code>, or
+	llama.cpp's <code>llama-server</code>, which points straight at a
+	<code>.gguf</code> with nothing to download:
+</p>
+
+<pre><code>llama-server -m path\to\model.gguf --host 127.0.0.1 --port 8080 -c 4096</code></pre>
+
+<p>
+	Then <b>Settings → Atlas → Asking your notes</b>, paste the address, and press
+	<b>Test</b>. It says what is wrong rather than failing silently: server not
+	answering, no models pulled, or connected with the list.
+	<code>qwen2.5:3b</code> is a good starting point at about 2&nbsp;GB, and changing
+	the model is one field.
+</p>
+
 <h2 id="settings">Settings</h2>
 
 <p>
@@ -827,11 +968,12 @@ Controls plan, rev A · **Sam Avery**</code></pre>
 	<tbody>
 		<tr><td>Starting a presentation</td><td>The handbook, your shortcut, and a button to Obsidian's hotkey pane</td></tr>
 		<tr><td>Camera</td><td>Flight duration, section overviews, framing padding, contain/cover, maximum zoom</td></tr>
-		<tr><td>Background</td><td>Backdrop colour or image with dimming, theme stylesheet, accent, off-camera card opacity</td></tr>
-		<tr><td>Logo</td><td>Any vault image, corner, height, opacity</td></tr>
+		<tr><td>Theme and background</td><td>The theme first, since it decides everything including the backdrop; then the backdrop if you want to override it, the folder both image pickers draw from, accent, off-camera card opacity</td></tr>
+		<tr><td>Logo</td><td>Any vault image, corner, height, opacity. Several, comma-separated, sit in a row</td></tr>
 		<tr><td>Pictures and media</td><td>Slide show transition, how pictures fit, video autoplay</td></tr>
 		<tr><td>On screen</td><td>Bottom bar and counter, header line and where it shows, section titles, card alignment, next-card title, progress rail, timer</td></tr>
-		<tr><td>Notes and minutes</td><td>Where minutes are filed, write-up on leaving, what goes in an action</td></tr>
+		<tr><td>Notes and minutes</td><td>Where minutes are filed, a local speech server if you have one, write-up on leaving, what goes in an action</td></tr>
+		<tr><td>Asking your notes</td><td>A local model server and which model, where to look, and whether questions may leave the machine</td></tr>
 		<tr><td>Browsing the vault</td><td>What G opens — Obsidian's own graph view, or the one inside the deck</td></tr>
 		<tr><td>HTML cards</td><td>Whether a card's &lt;script&gt; may run. Off by default</td></tr>
 		<tr><td>Reference</td><td>The full authoring reference, with copyable snippets</td></tr>

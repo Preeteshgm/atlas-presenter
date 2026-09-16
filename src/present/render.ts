@@ -82,7 +82,7 @@ function frontmatterClasses(app: App, file: TFile): string[] {
  * so the extension alone does not identify one. The plugin always writes an
  * `excalidraw-plugin` key into the frontmatter.
  */
-function isExcalidraw(app: App, file: TFile): boolean {
+export function isExcalidraw(app: App, file: TFile): boolean {
 	if (/\.excalidraw$/i.test(file.path)) return true;
 	const fm = app.metadataCache.getFileCache(file)?.frontmatter;
 	return !!fm && "excalidraw-plugin" in fm;
@@ -115,7 +115,11 @@ function excalidrawApi(app: App): ExcalidrawAutomate | null {
  * Hand the drawing to Excalidraw and put the SVG it returns on the card.
  * Returns false when there is nothing we can do, so the caller can say why.
  */
-async function renderExcalidraw(app: App, body: HTMLElement, file: TFile): Promise<boolean> {
+export async function renderExcalidraw(
+	app: App,
+	body: HTMLElement,
+	file: TFile
+): Promise<boolean> {
 	const ea = excalidrawApi(app);
 	if (!ea?.createSVG) return false;
 	try {
@@ -624,6 +628,35 @@ async function renderFileNode(
 		body.parentElement?.addClass(cls);
 	}
 	await renderMarkdown(app, owner, body, md, file.path, themeCss, allowScripts);
+}
+
+/**
+ * Draw a linked file the way a card would.
+ *
+ * Peek used to render whatever it opened as markdown, which is right for a
+ * note and wrong for everything else: an Excalidraw drawing came out as its
+ * container ("Switch to EXCALIDRAW VIEW…", then the compressed data), and an
+ * image, a video or a sub-canvas behind a wikilink fared no better. The card
+ * path already knows how to draw all of them, so it is the one that runs —
+ * rather than a second copy of the same decisions, drifting.
+ */
+export async function renderLinkedFile(
+	app: App,
+	owner: Component,
+	body: HTMLElement,
+	file: TFile,
+	subpath = "",
+	themeCss = "",
+	allowScripts = false
+): Promise<void> {
+	await renderFileNode(
+		app,
+		owner,
+		body,
+		{ id: file.path, type: "file", x: 0, y: 0, width: 0, height: 0, file: file.path, subpath },
+		themeCss,
+		allowScripts
+	);
 }
 
 /** Support `note.md#Heading` cards: present just that section. */

@@ -9,6 +9,10 @@ import { PRESENTER_VIEW, PresenterView } from "./present/presenter";
 import { DECK_VIEW, DeckView } from "./present/deck-window";
 import { PREVIEW_VIEW, PreviewView, openPreview } from "./present/preview";
 import { AtlasSettingTab } from "./settings";
+import { Orphan, orphans } from "./present/journal";
+import { writeMinutes } from "./present/capture";
+import { offer } from "./notice";
+import { AskModal } from "./ask-modal";
 
 export default class AtlasPlugin extends Plugin {
 	settings: AtlasSettings = { ...DEFAULT_SETTINGS };
@@ -119,6 +123,12 @@ export default class AtlasPlugin extends Plugin {
 			else new Notice("Atlas: open a canvas first.");
 		});
 
+		// Its own icon rather than a button folded into the graph bar: asking
+		// your notes is its own job, and it is useful when no deck is running.
+		this.addRibbonIcon("search", "Atlas: ask your notes", () => {
+			new AskModal(this.app, this.settings).open();
+		});
+
 		this.registerEvent(
 			this.app.workspace.on("file-menu", (menu, file) => {
 				if (!(file instanceof TFile) || file.extension !== "canvas") return;
@@ -144,6 +154,142 @@ export default class AtlasPlugin extends Plugin {
 		);
 
 		this.addSettingTab(new AtlasSettingTab(this.app, this));
+
+		this.addCommand({
+			id: "ask-notes",
+			name: "Ask your notes",
+			callback: () => new AskModal(this.app, this.settings).open(),
+		});
+
+		this.addCommand({
+			id: "write-up-session",
+			name: "Write up an unfinished session",
+			callback: () => void this.recoverSessions(),
+		});
+
+		// After layout, so a vault still indexing does not report no sessions.
+		this.app.workspace.onLayoutReady(() => {
+			this.closeStaleViews();
+			void this.offerRecovery();
+		});
+	}
+
+	/**
+	 * Views left over from last time.
+	 *
+	 * Ending a talk closes its presenter panel and its deck tab. Obsidian then
+	 * restores whatever was open when it last quit — so a session that ended
+	 * with the app still running came back to a panel reading "No deck is
+	 * running" and an empty deck tab, both of which had to be closed by hand.
+	 *
+	 * Neither means anything without a deck, and a deck cannot survive a
+	 * restart, so on load there is never a reason to keep one.
+	 */
+	private closeStaleViews(): void {
+		for (const type of [PRESENTER_VIEW, DECK_VIEW]) {
+			for (const leaf of this.app.workspace.getLeavesOfType(type)) {
+				try {
+					leaf.detach();
+				} catch {
+					// Already gone; nothing to tidy.
+				}
+			}
+		}
+	}
+
+	/**
+	 * A talk that ended without being written up.
+	 *
+	 * Offered once, on load, because the one time this matters is the one time
+	 * nobody thinks to go looking in a folder for it.
+	 */
+	private async offerRecovery(): Promise<void> {
+		const left = await orphans(this.app, this.settings.minutesFolder || "Meetings");
+		if (left.length === 0) return;
+		const when = new Date(left[0].data.startedAt).toLocaleString(undefined, {
+			weekday: "long",
+			hour: "2-digit",
+			minute: "2-digit",
+		});
+		const more = left.length > 1 ? ` (and ${left.length - 1} more)` : "";
+		offer((el, close) => {
+			el.createDiv({
+				text: `Atlas: a session from ${when} was never written up${more}.`,
+			});
+			el.createDiv({
+				cls: "atl-notice-sub",
+				text:
+					`${left[0].data.captures.length} notes · ` +
+					`${left[0].data.visits.length} cards`,
+			});
+			const btn = el.createEl("button", { cls: "atl-notice-btn", text: "Write it up" });
+			btn.addEventListener("click", () => {
+				close();
+				void this.recoverSessions();
+			});
+		});
+	}
+
+	/** Pick an unfinished session and turn it into minutes. */
+	private async recoverSessions(): Promise<void> {
+		const folder = this.settings.minutesFolder || "Meetings";
+		const left = await orphans(this.app, folder);
+		if (left.length === 0) {
+			new Notice("Atlas: no unfinished sessions.");
+			return;
+		}
+
+		const choices = left.map((o) => {
+			const d = new Date(o.data.startedAt);
+			return {
+				id: o.path,
+				label: `${o.data.deck} — ${d.toLocaleString()}`,
+				detail:
+					`${o.data.captures.length} notes · ${o.data.visits.length} cards` +
+					(o.data.audio || o.data.recording ? " · recorded" : ""),
+			};
+		});
+
+		new VariantPicker(this.app, choices, (path) => {
+			const chosen = left.find((o) => o.path === path);
+			if (chosen) void this.writeRecovered(chosen, folder);
+		}).open();
+	}
+
+	private async writeRecovered(orphan: Orphan, folder: string): Promise<void> {
+		const d = orphan.data;
+		const file = await writeMinutes(
+			this.app,
+			{
+				deck: d.deck,
+				deckPath: d.deckPath,
+				variant: d.variant,
+				startedAt: d.startedAt,
+				endedAt: d.updatedAt,
+				visits: d.visits ?? [],
+				captures: d.captures ?? [],
+				prepared: new Map(Object.entries(d.prepared ?? {})),
+				audio: d.audio,
+			},
+			folder,
+			{
+				actionSuffix: this.settings.actionSuffix,
+				linkBack: this.settings.actionsLinkBack,
+				includePrepared: this.settings.minutesIncludeNotes,
+			}
+		);
+		if (!file) return;
+		// Only once the minutes exist. A journal deleted before that would take
+		// the meeting with it, which is the exact thing it was there to prevent.
+		const journal = this.app.vault.getAbstractFileByPath(orphan.path);
+		if (journal instanceof TFile) {
+			try {
+				await this.app.fileManager.trashFile(journal);
+			} catch {
+				// Left behind, and it will be offered again. Harmless.
+			}
+		}
+		await this.app.workspace.getLeaf(true).openFile(file);
 	}
 
 	onunload(): void {

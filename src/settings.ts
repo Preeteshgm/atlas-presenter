@@ -11,7 +11,9 @@ import {
 import type AtlasPlugin from "./main";
 import { IMAGE_EXT } from "./media";
 import { renderReference } from "./settings-reference";
+import { isLocal, models } from "./ask";
 import {
+	AskWhere,
 	BackgroundMode,
 	BrowserMode,
 	Corner,
@@ -54,18 +56,23 @@ export class AtlasSettingTab extends PluginSettingTab {
 		}
 
 		const folder = this.plugin.settings.mediaFolder.replace(/\/+$/, "");
-		const inFolder = folder
-			? all.filter((p) => p.toLowerCase().startsWith(`${folder.toLowerCase()}/`))
-			: all;
-		const use = inFolder.length > 0 ? inFolder : all;
-		use.sort();
-
-		const out: Record<string, string> = { "": "— none —" };
-		// Shown by filename once they all come from one folder — the path is the
-		// same on every row, so repeating it only makes them harder to tell apart.
-		for (const path of use) {
-			out[path] = folder && inFolder.length > 0 ? (path.split("/").pop() ?? path) : path;
+		const near: string[] = [];
+		const rest: string[] = [];
+		for (const path of all.sort()) {
+			if (folder && path.toLowerCase().startsWith(`${folder.toLowerCase()}/`)) near.push(path);
+			else rest.push(path);
 		}
+
+		// The folder sorts to the top; it never hides the rest. Filtering them
+		// away meant pointing this at a folder of backdrops also emptied the
+		// logo picker, which is a strange thing for a convenience to do — the
+		// logo lives somewhere else and had no way back.
+		const out: Record<string, string> = { "": "— none —" };
+		// Folder items by filename, everything else by full path — which is the
+		// only separator worth having, since a divider row in a dropdown is a
+		// selectable option that sets a path no file has.
+		for (const path of near) out[path] = path.split("/").pop() ?? path;
+		for (const path of rest) out[path] = path;
 		return out;
 	}
 
@@ -154,7 +161,12 @@ export class AtlasSettingTab extends PluginSettingTab {
 			if (file.extension !== "css") continue;
 			if (NOISE.test(file.path)) continue;
 			try {
-				if ((await this.app.vault.cachedRead(file)).includes(".atl-")) {
+				const css = await this.app.vault.cachedRead(file);
+				// `.atl-` alone was too loose: Backdrops.css is a list to copy
+				// --backdrop lines out of, not a theme, and choosing it gave you
+				// one gradient and no palette. A theme is a thing that sets the
+				// paper and the ink; nothing else in the deck depends on more.
+				if (css.includes(".atl-") && (css.includes("--paper") || css.includes("--ink"))) {
 					found.push(file.path);
 				}
 			} catch {
@@ -419,7 +431,12 @@ export class AtlasSettingTab extends PluginSettingTab {
 
 		new Setting(containerEl)
 			.setName("Logo image")
-			.setDesc("Shown on every slide, above the cards.")
+			.setDesc(
+				"Shown on every slide, above the cards. For more than one — a joint " +
+					"venture, a client mark beside your own — put several vault paths " +
+					"separated by commas on a #deck card's logo: line, and they sit in a " +
+					"row on one baseline."
+			)
 			.addDropdown((c) =>
 				c
 					.addOptions(this.imageChoices())
@@ -664,8 +681,9 @@ export class AtlasSettingTab extends PluginSettingTab {
 		new Setting(containerEl)
 			.setName("Where minutes are filed")
 			.setDesc(
-				"Press N while presenting to note something against the card on screen. "
-					+ "The write-up lands here, one note per session."
+				"Press N while presenting to note something against the card on screen, or "
+					+ "R to speak it. The write-up lands here, one note per session, and "
+					+ "recordings in a Recordings folder beside it."
 			)
 			.addText((c) =>
 				c
@@ -676,6 +694,192 @@ export class AtlasSettingTab extends PluginSettingTab {
 						await this.save();
 					})
 			);
+
+		new Setting(containerEl)
+			.setName("Local speech server")
+			.setDesc(
+				"Optional, and empty by default. Recording works entirely offline: R speaks a " +
+					"note against a card, Shift+R records the whole meeting, and the write-up " +
+					"indexes it by card. Give an address here and Atlas will also post the audio " +
+					"to it for a transcript — whisper.cpp, faster-whisper and whisper-asr-" +
+					"webservice all fit. Only an address on this machine is accepted: a meeting " +
+					"recording is not something to send anywhere by default."
+			)
+			.addText((c) =>
+				c
+					.setPlaceholder("http://127.0.0.1:9000/asr")
+					.setValue(s.transcribeUrl)
+					.onChange(async (v) => {
+						const url = v.trim();
+						// Refusing anything but localhost is the whole promise. A
+						// setting that quietly accepts a cloud endpoint is not a
+						// local-only feature, whatever the description says.
+						const local = /^https?:\/\/(127\.0\.0\.1|localhost|\[::1\])(:\d+)?(\/|$)/i;
+						if (url && !local.test(url)) {
+							new Notice(
+								"Atlas: only a local address is accepted here — " +
+									"127.0.0.1 or localhost.",
+								8000
+							);
+							return;
+						}
+						s.transcribeUrl = url;
+						await this.save();
+					})
+			);
+
+		new Setting(containerEl).setName("Asking your notes").setHeading();
+
+		new Setting(containerEl)
+			.setName("Local model server")
+			.setDesc(
+				"Optional, and empty by default. With a model server running on this " +
+					"machine, the command “Ask your notes” answers a question from your own " +
+					"notes and cites which ones — and says so plainly when none of them do. " +
+					"Ollama (port 11434) and llama.cpp's llama-server (usually 8080) both " +
+					"work; if you already have a .gguf on disk, llama-server points straight " +
+					"at it with nothing to download. Only a local address is accepted: notes " +
+					"are the most private thing in a vault."
+			)
+			.addText((c) =>
+				c
+					.setPlaceholder("http://127.0.0.1:11434")
+					.setValue(s.askUrl)
+					.onChange(async (v) => {
+						const url = v.trim();
+						if (url && !isLocal(url)) {
+							new Notice(
+								"Atlas: only a local address is accepted here — " +
+									"127.0.0.1 or localhost.",
+								8000
+							);
+							return;
+						}
+						s.askUrl = url;
+						await this.save();
+					})
+			)
+			.addButton((c) =>
+				c.setButtonText("Test").onClick(async () => {
+					if (!s.askUrl) {
+						new Notice("Atlas: set an address first.");
+						return;
+					}
+					const found = await models(s.askUrl);
+					if (!found) {
+						new Notice(
+							`Atlas: nothing answered at ${s.askUrl}. Is Ollama running?`,
+							8000
+						);
+						return;
+					}
+					if (found.length === 0) {
+						new Notice(
+							"Atlas: the server is up but has no models. " +
+								"Try: ollama pull qwen2.5:3b",
+							9000
+						);
+						return;
+					}
+					const has = found.includes(s.askModel);
+					new Notice(
+						`Atlas: connected — ${found.join(", ")}.` +
+							(has ? "" : `\n“${s.askModel}” is not among them.`),
+						9000
+					);
+				})
+			);
+
+		new Setting(containerEl)
+			.setName("Model")
+			.setDesc(
+				"Any model the server has. qwen2.5:3b is a good starting point at about " +
+					"2 GB; move to qwen2.5:7b if the answers feel thin. Changing this is one " +
+					"line, so it is worth trying another before concluding it cannot be done."
+			)
+			.addText((c) =>
+				c
+					.setPlaceholder("qwen2.5:3b")
+					.setValue(s.askModel)
+					.onChange(async (v) => {
+						s.askModel = v.trim();
+						await this.save();
+					})
+			);
+
+		new Setting(containerEl)
+			.setName("Where to look")
+			.setDesc(
+				"The folder questions are answered from. Your minutes folder is the useful " +
+					"default — that is where decisions accumulate. Leave it blank to search " +
+					"the whole vault, which is slower on a large one."
+			)
+			.addText((c) =>
+				c
+					.setPlaceholder("Meetings")
+					.setValue(s.askFolder)
+					.onChange(async (v) => {
+						s.askFolder = v.trim();
+						await this.save();
+					})
+			);
+
+		new Setting(containerEl)
+			.setName("Where questions may go")
+			.setDesc(
+				"“On this machine only” never contacts anything but the local server, " +
+					"whatever else is set below — a setting that says local has to mean it. " +
+					"The other two send the matching passages of your notes to OpenAI, and " +
+					"every answer says which model produced it."
+			)
+			.addDropdown((c) =>
+				c
+					.addOptions({
+						local: "On this machine only",
+						"local-first": "Local, and OpenAI if it is not running",
+						"cloud-first": "OpenAI, and local if it is unreachable",
+					})
+					.setValue(s.askWhere)
+					.onChange(async (v) => {
+						s.askWhere = v as AskWhere;
+						await this.save();
+						this.display();
+					})
+			);
+
+		if (s.askWhere !== "local") {
+			new Setting(containerEl)
+				.setName("OpenAI key")
+				.setDesc(
+					"Kept in this plugin's data file, which lives inside your vault — so it " +
+						"travels with any sync, backup or repository the vault is part of. " +
+						"Worth knowing before you paste one in."
+				)
+				.addText((c) => {
+					c.setPlaceholder("sk-…")
+						.setValue(s.cloudKey)
+						.onChange(async (v) => {
+							s.cloudKey = v.trim();
+							await this.save();
+						});
+					// A key read over a shoulder is a key leaked, and this panel
+					// gets opened while screen-sharing.
+					c.inputEl.type = "password";
+					c.inputEl.autocomplete = "off";
+				});
+
+			new Setting(containerEl)
+				.setName("OpenAI model")
+				.addText((c) =>
+					c
+						.setPlaceholder("gpt-4o-mini")
+						.setValue(s.cloudModel)
+						.onChange(async (v) => {
+							s.cloudModel = v.trim();
+							await this.save();
+						})
+				);
+		}
 
 		new Setting(containerEl)
 			.setName("Write up on leaving")

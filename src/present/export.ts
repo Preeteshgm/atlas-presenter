@@ -56,7 +56,7 @@ export interface ExportInput {
 	 * it behind — a branded deck exported unbranded, which is the one context
 	 * where the branding was the point.
 	 */
-	logo?: { src: string; corner: string; height: number; opacity: number };
+	logo?: { srcs: string[]; corner: string; height: number; opacity: number };
 	/**
 	 * The rest of the deck's branding.
 	 *
@@ -111,10 +111,15 @@ function lookAttrs(input: ExportInput): string {
 /** The logo markup, with its source inlined along with everything else. */
 function logoTag(input: ExportInput): string {
 	const logo = input.logo;
-	if (!logo?.src) return "";
+	if (!logo || logo.srcs.length === 0) return "";
+	// The row carries the corner and the opacity, exactly as the deck does, so
+	// several marks sit on one baseline here too.
+	const imgs = logo.srcs
+		.map((src) => `<img class="atl-logo" src="${src}" style="height:${logo.height}px">`)
+		.join("");
 	return (
-		`<img class="atl-logo" data-corner="${logo.corner}" src="${logo.src}" ` +
-		`style="height:${logo.height}px;opacity:${logo.opacity}">`
+		`<div class="atl-logos" data-corner="${logo.corner}" ` +
+		`style="opacity:${logo.opacity}">${imgs}</div>`
 	);
 }
 
@@ -895,9 +900,11 @@ export async function buildDeckHtml(
 
 	// The logo is written into the template rather than cloned, so it misses
 	// the pass above and has to be inlined on its own.
-	if (input.logo?.src) {
-		const uri = await dataUri(app, input.logo.src);
-		input = { ...input, logo: uri ? { ...input.logo, src: uri } : undefined };
+	if (input.logo && input.logo.srcs.length > 0) {
+		const uris = (await Promise.all(input.logo.srcs.map((src) => dataUri(app, src)))).filter(
+			(u): u is string => !!u
+		);
+		input = { ...input, logo: uris.length > 0 ? { ...input.logo, srcs: uris } : undefined };
 	}
 	if (input.look.backgroundImage) {
 		const uri = await dataUri(app, input.look.backgroundImage);
@@ -974,7 +981,7 @@ export async function buildDeckHtml(
        print one page and swallow the rest. */
     #print.atl-overlay { position: static !important; inset: auto !important;
       overflow: visible !important; height: auto !important; background: none !important; }
-    .atl-logo { display: none !important; }
+    .atl-logos { display: none !important; }
     /* Stacked frames have to be un-stacked, or every picture but one prints
        underneath the others. */
     .print-all { position: static !important; height: auto !important;

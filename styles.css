@@ -98,17 +98,97 @@ settings:
 	z-index: 0;
 }
 
-.atl-logo {
+/* The corner holds however many logos there are, in a row. A joint venture
+   puts three marks on a title slide and they have to sit on one baseline with
+   even air between them, which is a job for the row rather than for each
+   image guessing its own offset. */
+.atl-logos {
 	position: absolute;
 	z-index: 4;
 	pointer-events: none;
-	width: auto;
+	display: flex;
+	align-items: center;
+	gap: var(--logo-gap, 22px);
 }
 
-.atl-logo[data-corner="top-left"] { top: 22px; left: 26px; }
-.atl-logo[data-corner="top-right"] { top: 22px; right: 26px; }
-.atl-logo[data-corner="bottom-left"] { bottom: 58px; left: 26px; }
-.atl-logo[data-corner="bottom-right"] { bottom: 58px; right: 26px; }
+.atl-logos[data-corner="top-left"] { top: 22px; left: 26px; }
+.atl-logos[data-corner="top-right"] { top: 22px; right: 26px; }
+.atl-logos[data-corner="bottom-left"] { bottom: 58px; left: 26px; }
+.atl-logos[data-corner="bottom-right"] { bottom: 58px; right: 26px; }
+
+.atl-logo { width: auto; display: block; }
+
+/* ---- the recording light ------------------------------------------------
+   Deliberately hard to miss. A recorder that captured nothing is discovered
+   after the meeting, when the thing it recorded cannot be repeated — and
+   everyone in the room is entitled to see that the room is being recorded. */
+.atl-rec {
+	position: absolute;
+	top: 22px;
+	left: 26px;
+	z-index: 6;
+	display: flex;
+	align-items: center;
+	gap: 9px;
+	padding: 7px 13px 7px 11px;
+	border-radius: 999px;
+	background: var(--panel, var(--background-secondary));
+	border: 1px solid var(--rule, var(--background-modifier-border));
+	box-shadow: 0 4px 18px rgb(0 0 0 / 0.28);
+	font-size: 13px;
+	color: var(--ink, var(--text-normal));
+	pointer-events: none;
+}
+
+.atl-rec-dot {
+	width: 10px;
+	height: 10px;
+	border-radius: 50%;
+	background: #E5484D;
+	animation: atl-rec-pulse 1.6s ease-in-out infinite;
+}
+
+@keyframes atl-rec-pulse {
+	0%, 100% { opacity: 1; }
+	50% { opacity: 0.35; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.atl-rec-dot { animation: none; }
+}
+
+.atl-rec-label {
+	font-family: var(--display-font, var(--atl-heading-font));
+	font-weight: 600;
+	letter-spacing: 0.01em;
+	white-space: nowrap;
+}
+
+.atl-rec-time {
+	font-variant-numeric: tabular-nums;
+	color: var(--ink-soft, var(--text-muted));
+	min-width: 3.4em;
+}
+
+/* The level meter. Without it, a muted microphone looks exactly like a
+   working one for the whole hour. */
+.atl-rec-level {
+	width: 46px;
+	height: 5px;
+	border-radius: 3px;
+	background: var(--wash, var(--background-modifier-hover));
+	overflow: hidden;
+}
+
+.atl-rec-fill {
+	height: 100%;
+	width: 0;
+	background: var(--accent, var(--interactive-accent));
+	transition: width 120ms linear;
+}
+
+/* A blanked screen still shows it: the microphone is still open. */
+.atl-overlay.is-blank .atl-rec { opacity: 1; }
 
 .atl-viewport {
 	position: absolute;
@@ -541,10 +621,20 @@ settings:
 .atl-crumbs { font-weight: 500; }
 .atl-counter { font-variant-numeric: tabular-nums; }
 
+/* Six controls is enough that a single row of them reads as clutter. They are
+   grouped by what they are for — look at the deck, put something into it,
+   finish with it — with the gap between groups doing the separating, which is
+   quieter than a rule and survives the labels being dropped at small widths. */
 .atl-hud-right {
 	display: flex;
 	align-items: center;
-	gap: 14px;
+	gap: 18px;
+}
+
+.atl-btns {
+	display: flex;
+	align-items: center;
+	gap: 5px;
 }
 
 /* The HUD ignores clicks so it never eats a click-to-advance; the one control
@@ -552,24 +642,187 @@ settings:
 .atl-map-btn {
 	pointer-events: auto;
 	cursor: pointer;
-	padding: 4px 12px;
+	display: flex;
+	align-items: center;
+	gap: 6px;
+	padding: 3px 10px 3px 5px;
 	border-radius: 999px;
 	border: 1px solid var(--rule, var(--background-modifier-border));
 	background: var(--panel, var(--background-secondary));
 	color: var(--ink-soft, var(--text-muted));
 	font-size: 12px;
 	line-height: 1.6;
+	white-space: nowrap;
 }
 
-.atl-map-btn::after {
-	content: " " attr(data-key);
-	opacity: 0.5;
+/* The key leads, because in a talk it is the key you use — the word is there
+   the first few times and then stops being read. */
+.atl-btn-key {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	min-width: 20px;
+	padding: 0 4px;
+	border-radius: 999px;
+	background: var(--wash, var(--background-modifier-hover));
+	color: var(--ink, var(--text-normal));
+	font-size: 10.5px;
+	font-weight: 600;
 	font-variant-numeric: tabular-nums;
 }
 
 .atl-map-btn:hover {
 	color: var(--ink, var(--text-normal));
 	border-color: var(--atl-accent);
+}
+
+/* Recording. The bar says so as well as the pip: one of them can be missed. */
+.atl-map-btn.is-live {
+	color: var(--ink, var(--text-normal));
+	border-color: #E5484D;
+}
+
+.atl-map-btn.is-live .atl-btn-key {
+	background: #E5484D;
+	color: #fff;
+}
+
+/* A narrow screen keeps the keys and drops the words, which is the half that
+   still works: by then you know what N does. */
+@media (max-width: 1100px) {
+	.atl-btn-text { display: none; }
+	.atl-map-btn { padding: 3px 5px; }
+	.atl-hud-right { gap: 12px; }
+}
+
+/* --- Ask your notes ------------------------------------------------------
+   A question answered from your own notes. The sources are part of the
+   answer, not a footnote: a claim about what a meeting decided gets repeated
+   in another meeting, and it has to be checkable in one click. */
+
+.atl-ask .atl-ask-row { margin-top: 2px; }
+
+/* The in-deck panel is the note box's shape: same place, same weight, so
+   the three things you can open mid-talk look like one family. Wider, because
+   an answer with its sources needs more room than a remark. */
+.atl-ask-panel { width: min(820px, 88vw); }
+/* The transcript scrolls; the question box stays put at the bottom, so a long
+   conversation never pushes the thing you type into off the screen. */
+.atl-ask-panel .atl-ask-out { margin-top: 12px; max-height: 46vh; overflow-y: auto; }
+
+.atl-ask-q {
+	margin-top: 14px;
+	font-weight: 600;
+	color: var(--ink, var(--text-normal));
+}
+.atl-ask-out > .atl-ask-q:first-child { margin-top: 0; }
+
+.atl-ask-where {
+	color: var(--ink-faint, var(--text-faint));
+	font-size: 12px;
+	margin-bottom: 12px;
+}
+
+.atl-ask-row {
+	display: flex;
+	gap: 8px;
+}
+
+.atl-ask-input {
+	flex: 1;
+	min-width: 0;
+}
+
+.atl-ask-out {
+	margin-top: 16px;
+	display: flex;
+	flex-direction: column;
+	gap: 12px;
+}
+
+.atl-ask-status {
+	color: var(--ink-soft, var(--text-muted));
+	font-size: 13px;
+}
+
+.atl-ask-answer {
+	white-space: pre-wrap;
+	line-height: 1.55;
+	padding: 12px 14px;
+	border-radius: 6px;
+	border-left: 3px solid var(--accent, var(--interactive-accent));
+	background: var(--wash, var(--background-modifier-hover));
+}
+
+/* The working-out, shown as it happens. A row is dim with a hollow mark while
+   it runs and settles to a tick, so the panel reads as steps taken rather than
+   a pause of unknown length. */
+.atl-ask-steps { display: flex; flex-direction: column; gap: 3px; margin: 8px 0 4px; }
+
+.atl-ask-step {
+	display: flex;
+	align-items: baseline;
+	gap: 8px;
+	font-size: 12.5px;
+	color: var(--ink-soft, var(--text-muted));
+}
+
+.atl-ask-tick {
+	flex: 0 0 auto;
+	width: 11px;
+	height: 11px;
+	border-radius: 50%;
+	border: 1.5px solid var(--accent, var(--interactive-accent));
+	background: var(--accent, var(--interactive-accent));
+	transform: translateY(1px);
+}
+
+.atl-ask-step-text { min-width: 0; overflow-wrap: anywhere; }
+
+.atl-ask-step.is-doing { color: var(--ink-faint, var(--text-faint)); }
+.atl-ask-step.is-doing .atl-ask-tick {
+	background: none;
+	animation: atl-ask-pulse 1.1s ease-in-out infinite;
+}
+
+@keyframes atl-ask-pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.25; } }
+@media (prefers-reduced-motion: reduce) { .atl-ask-step.is-doing .atl-ask-tick { animation: none; } }
+
+.atl-ask-caution {
+	font-size: 12.5px;
+	padding: 7px 11px;
+	border-radius: 5px;
+	border-left: 3px solid #E5A23D;
+	background: rgb(229 162 61 / 0.12);
+	color: var(--ink, var(--text-normal));
+}
+
+.atl-ask-sources {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 6px;
+}
+
+.atl-ask-label {
+	color: var(--ink-faint, var(--text-faint));
+	font-size: 11px;
+	letter-spacing: 0.08em;
+	text-transform: uppercase;
+}
+
+.atl-ask-source {
+	cursor: pointer;
+	font-size: 12px;
+	padding: 3px 10px;
+	border-radius: 999px;
+	border: 1px solid var(--rule, var(--background-modifier-border));
+	color: var(--ink-soft, var(--text-muted));
+}
+
+.atl-ask-source:hover {
+	color: var(--accent, var(--interactive-accent));
+	border-color: var(--accent, var(--interactive-accent));
 }
 
 /* --- Minimap ------------------------------------------------------------ */
@@ -684,7 +937,10 @@ settings:
 	justify-content: center;
 	padding: 6vh 4vw;
 	background: rgb(0 0 0 / 0.45);
-	z-index: 3;
+	/* Above the note box, the ask panel and the web frame. Peeking is always
+	   the most recent thing you asked for — opening a note behind the panel you
+	   clicked it from reads as nothing having happened. */
+	z-index: 9;
 }
 
 .atl-peek.is-open { display: flex; }
@@ -1500,7 +1756,7 @@ settings:
 .atl-overlay.is-blank .atl-hud,
 .atl-overlay.is-blank .atl-header,
 .atl-overlay.is-blank .atl-band,
-.atl-overlay.is-blank .atl-logo {
+.atl-overlay.is-blank .atl-logos {
 	opacity: 0;
 	transition: opacity 220ms ease;
 }

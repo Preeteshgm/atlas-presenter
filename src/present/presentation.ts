@@ -1,7 +1,15 @@
-import { App, Component, Notice, TFile, WorkspaceLeaf } from "obsidian";
+import {
+	App,
+	Component,
+	Notice,
+	TFile,
+	TFolder,
+	WorkspaceLeaf,
+	normalizePath,
+} from "obsidian";
 import { isElement } from "../dom";
 import { AtlasSettings, Scene, Stop } from "../types";
-import { hhmm, mmss } from "../format";
+import { hhmm, mmss, safeFileName } from "../format";
 import { fileAt, readFileAt } from "../vault";
 import { parseCanvas, rectOf } from "../canvas/parse";
 import { buildScene, readDeckVariant } from "../canvas/path";
@@ -30,6 +38,17 @@ import {
 	Visit,
 	writeMinutes,
 } from "./capture";
+import { Clip, Recorder, transcribe } from "./recorder";
+import { Journal } from "./journal";
+import {
+	askBest,
+	chooseNotes,
+	findPassages,
+	isLocal,
+	searchTerms,
+	verify,
+} from "../ask";
+import { fail, say } from "../notice";
 
 /**
  * Anything that handles its own clicks must not also advance the slide.
@@ -185,6 +204,18 @@ export class Presentation extends Component {
 			this.goTo(this.startIndex(), { animate: false });
 			return;
 		}
+		// From here on, nothing typed or recorded is only in memory.
+		this.journal = new Journal(this.app, this.settings.minutesFolder || "Meetings", {
+			deck: this.file.basename,
+			deckPath: this.file.path,
+			variant: this.variant,
+			startedAt: this.began,
+			updatedAt: this.began,
+			visits: [],
+			captures: [],
+			prepared: {},
+		});
+
 		setDeck(this);
 		await this.openPresenterPanel();
 		this.startAutoAdvance();
@@ -202,7 +233,8 @@ export class Presentation extends Component {
 		new Notice(
 			`Atlas · ${where}\n` +
 				"Drag this tab to another screen if you want it there · F fullscreen\n" +
-				"→ advances · O the overview · M the map · Esc leaves",
+				"→ advances · O the overview · M the map · Esc leaves\n" +
+				"N notes · R speaks one · Shift+R records the meeting · W writes it up",
 			8000
 		);
 	}
@@ -344,12 +376,21 @@ export class Presentation extends Component {
 			this.overlay.style.setProperty("--atl-dim", String(s.backgroundDim));
 		}
 
-		if (s.logo) {
-			const logo = this.overlay.createEl("img", { cls: "atl-logo" });
-			logo.src = resourcePath(this.app, s.logo);
-			logo.dataset.corner = s.logoCorner;
-			logo.style.height = `${s.logoHeight}px`;
-			logo.style.opacity = String(s.logoOpacity);
+		// Several, separated by commas: a joint venture, a client mark beside
+		// your own, a funder. One is by far the common case and reads as one.
+		const logos = s.logo
+			.split(",")
+			.map((p) => p.trim())
+			.filter(Boolean);
+		if (logos.length > 0) {
+			const row = this.overlay.createDiv({ cls: "atl-logos" });
+			row.dataset.corner = s.logoCorner;
+			row.style.opacity = String(s.logoOpacity);
+			for (const path of logos) {
+				const logo = row.createEl("img", { cls: "atl-logo" });
+				logo.src = resourcePath(this.app, path);
+				logo.style.height = `${s.logoHeight}px`;
+			}
 		}
 	}
 
@@ -404,25 +445,60 @@ export class Presentation extends Component {
 		this.hud.createDiv({ cls: "atl-crumbs" });
 
 		const right = this.hud.createDiv({ cls: "atl-hud-right" });
-		// The map is the whole point of the plugin, so it needs a control on
-		// screen. A bare keyboard shortcut is invisible to anyone who has not
-		// read the README.
-		const mapBtn = right.createEl("button", { cls: "atl-map-btn", text: "Map" });
-		mapBtn.setAttribute("aria-label", "Open the map (M)");
-		mapBtn.dataset.key = "M";
-		mapBtn.addEventListener("click", (e) => {
-			e.stopPropagation();
-			this.minimap.toggle();
-		});
 
-		const browseBtn = right.createEl("button", { cls: "atl-map-btn", text: "Notes" });
-		browseBtn.setAttribute("aria-label", "Browse every note in the vault (G)");
-		browseBtn.dataset.key = "G";
-		browseBtn.addEventListener("click", (e) => {
-			e.stopPropagation();
+		/**
+		 * One button on the bar.
+		 *
+		 * A key nobody can guess needs a control they can see, and there are now
+		 * six of them — so they are grouped by what they are for rather than
+		 * lined up as one undifferentiated row: look at the deck, put something
+		 * into it, finish with it.
+		 */
+		const button = (
+			into: HTMLElement,
+			text: string,
+			key: string,
+			label: string,
+			onClick: () => void
+		): HTMLButtonElement => {
+			const btn = into.createEl("button", { cls: "atl-map-btn" });
+			btn.createSpan({ cls: "atl-btn-key", text: key });
+			btn.createSpan({ cls: "atl-btn-text", text });
+			btn.setAttribute("aria-label", `${label} (${key})`);
+			btn.addEventListener("click", (e) => {
+				e.stopPropagation();
+				onClick();
+			});
+			return btn;
+		};
+
+		// Looking at the deck.
+		const look = right.createDiv({ cls: "atl-btns" });
+		button(look, "Map", "M", "Open the map", () => this.minimap.toggle());
+		button(look, "Notes", "G", "Browse every note in the vault", () => {
 			if (this.settings.browser === "obsidian") void this.openVaultGraph();
 			else this.browser.toggle();
 		});
+
+		// Putting something into it. Grouped because in a meeting these three
+		// are the ones you reach for without looking.
+		const take = right.createDiv({ cls: "atl-btns" });
+		button(take, "Remark", "N", "Note something against this card", () =>
+			this.captureNote()
+		);
+		button(take, "Speak", "R", "Speak a note against this card", () =>
+			void this.dictateNote()
+		);
+		this.recordBtn = button(take, "Record", "⇧R", "Record the whole meeting", () =>
+			void this.toggleSessionRecording()
+		);
+
+		// Finishing.
+		const end = right.createDiv({ cls: "atl-btns" });
+		button(end, "Ask", "A", "Ask your notes a question", () => this.askNotes());
+		button(end, "Write up", "W", "Write the session up as a note", () =>
+			this.reviewSession()
+		);
 
 		if (this.settings.timer !== "off") {
 			this.timerEl = right.createDiv({ cls: "atl-timer" });
@@ -430,24 +506,6 @@ export class Presentation extends Component {
 			this.tickClock();
 			this.ticker = window.setInterval(() => this.tickClock(), 1000);
 		}
-
-		// The same treatment as Map and Notes: a key nobody can guess needs a
-		// control they can see.
-		const remarkBtn = right.createEl("button", { cls: "atl-map-btn", text: "Remark" });
-		remarkBtn.setAttribute("aria-label", "Note something against this card (N)");
-		remarkBtn.dataset.key = "N";
-		remarkBtn.addEventListener("click", (e) => {
-			e.stopPropagation();
-			this.captureNote();
-		});
-
-		const writeBtn = right.createEl("button", { cls: "atl-map-btn", text: "Write up" });
-		writeBtn.setAttribute("aria-label", "Write the session up as a note (W)");
-		writeBtn.dataset.key = "W";
-		writeBtn.addEventListener("click", (e) => {
-			e.stopPropagation();
-			this.reviewSession();
-		});
 
 		const counter = right.createDiv({ cls: "atl-counter" });
 		counter.toggleClass("is-hidden", !this.settings.showCounter);
@@ -614,6 +672,13 @@ export class Presentation extends Component {
 			// was until you choose one or give up.
 			const ZOOM = new Set(["+", "=", "-", "_", "0"]);
 			// Whatever is open over the deck closes first, innermost last opened.
+			if (key === "Escape" && this.askPanel && !this.peek.isOpen) {
+				handled();
+				this.askPanel.remove();
+				this.askPanel = null;
+				this.stage.focus();
+				return;
+			}
 			if (key === "Escape" && (this.siteEl || this.review?.isOpen || this.noteBox)) {
 				handled();
 				if (this.siteEl) this.closeSite();
@@ -773,6 +838,15 @@ export class Presentation extends Component {
 			} else if (key === "n" || key === "N") {
 				handled();
 				this.captureNote();
+			} else if (key === "a" || key === "A") {
+				handled();
+				this.askNotes();
+			} else if (key === "r" && !e.shiftKey) {
+				handled();
+				void this.dictateNote();
+			} else if (key === "R" || (key === "r" && e.shiftKey)) {
+				handled();
+				void this.toggleSessionRecording();
 			} else if (key === "w" || key === "W") {
 				handled();
 				this.reviewSession();
@@ -922,6 +996,7 @@ export class Presentation extends Component {
 				section: stop.group?.label ?? "",
 				at: Date.now(),
 			});
+			this.journalSave();
 		}
 		for (const listener of this.listeners) listener();
 	}
@@ -1070,6 +1145,7 @@ export class Presentation extends Component {
 		const btn = bar.createEl("button", { text: "Back to the deck" });
 		btn.addEventListener("click", () => this.closeVaultGraph());
 		bar.createSpan({ cls: "atl-return-key", text: "Esc" });
+
 		this.returnBar = bar;
 	}
 
@@ -1204,7 +1280,11 @@ ${this.themeCss}`,
 			openAfter: this.settings.openExport,
 			logo: this.settings.logo
 				? {
-						src: resourcePath(this.app, this.settings.logo),
+						srcs: this.settings.logo
+							.split(",")
+							.map((p) => p.trim())
+							.filter(Boolean)
+							.map((p) => resourcePath(this.app, p)),
 						corner: this.settings.logoCorner,
 						height: this.settings.logoHeight,
 						opacity: this.settings.logoOpacity,
@@ -1463,6 +1543,7 @@ ${this.themeCss}`,
 
 		this.captures = this.captures.filter((c) => c.nodeId !== stop.node.id);
 		if (body) this.captures.push({ nodeId: stop.node.id, title, text: body, at: firstAt });
+		this.journalSave();
 		this.updateHud(stop, 0);
 		for (const listener of this.listeners) listener();
 	}
@@ -1480,6 +1561,444 @@ ${this.themeCss}`,
 	 * there whatever state the deck is in. The keyboard is safe because the deck
 	 * lets anything aimed at a text box through untouched.
 	 */
+	// --------------------------------------------------------------- journal
+	private journal: Journal | null = null;
+
+	/**
+	 * Put the session on disk.
+	 *
+	 * Called after anything that would be a loss — a note, a visit, a recording
+	 * landing. Never awaited: a note is saved the instant it is typed and
+	 * nothing on screen waits for the disk.
+	 */
+	private journalSave(): void {
+		this.journal?.save({
+			visits: this.visits,
+			captures: this.captures,
+			prepared: Object.fromEntries(this.notes),
+			audio: this.sessionAudio ?? undefined,
+		});
+	}
+
+	// ------------------------------------------------------------- recording
+	private recorder: Recorder | null = null;
+	/** The Record button, so it can show that it is on. */
+	private recordBtn: HTMLButtonElement | null = null;
+	/** The pip in the corner, present only while something is recording. */
+	private recEl: HTMLElement | null = null;
+	private recTimer = 0;
+	/** Set while the running recording is the whole session, not one card. */
+	private recordingSession = false;
+	/** The session recording, once it has been written. */
+	private sessionAudio: { path: string; startedAt: number; ms: number } | null = null;
+
+	private get recordings(): string {
+		const dir = this.settings.minutesFolder || "Meetings";
+		return `${dir}/Recordings`;
+	}
+
+	/**
+	 * The recording light.
+	 *
+	 * Deliberately impossible to miss, and it carries a live level meter: a
+	 * recorder that silently captured nothing is only discovered after the
+	 * meeting, when the thing it was recording cannot be repeated. It also
+	 * means everyone in the room can see that the room is being recorded,
+	 * which is the least a recording feature owes them.
+	 */
+	private showRecordingPip(what: string): void {
+		this.hideRecordingPip();
+		const pip = this.overlay.createDiv({ cls: "atl-rec" });
+		pip.createDiv({ cls: "atl-rec-dot" });
+		const label = pip.createDiv({ cls: "atl-rec-label", text: what });
+		const time = pip.createDiv({ cls: "atl-rec-time", text: "0:00" });
+		const bar = pip.createDiv({ cls: "atl-rec-level" });
+		const fill = bar.createDiv({ cls: "atl-rec-fill" });
+		this.recEl = pip;
+
+		this.recTimer = this.win.setInterval(() => {
+			const r = this.recorder;
+			if (!r?.isRecording) return;
+			time.setText(mmss(Math.floor(r.elapsed / 1000)));
+			fill.style.width = `${Math.round(r.level() * 100)}%`;
+			label.setText(what);
+		}, 200);
+		this.register(() => this.win.clearInterval(this.recTimer));
+	}
+
+	private hideRecordingPip(): void {
+		if (this.recTimer) this.win.clearInterval(this.recTimer);
+		this.recTimer = 0;
+		this.recEl?.remove();
+		this.recEl = null;
+	}
+
+	/**
+	 * Overwrite the in-progress recording.
+	 *
+	 * One file that keeps growing rather than a pile of fragments: each write is
+	 * a complete, playable recording of everything so far, so whatever is on
+	 * disk when the power goes is something you can actually listen to.
+	 */
+	private async writePart(path: string, data: ArrayBuffer): Promise<void> {
+		try {
+			await this.app.vault.adapter.writeBinary(normalizePath(path), data);
+		} catch {
+			// The safety net failing must not stop the recording it protects.
+		}
+	}
+
+	/** Write a clip into the vault and hand back its path. */
+	private async saveClip(clip: Clip, label: string): Promise<string | null> {
+		const dir = normalizePath(this.recordings);
+		try {
+			if (!(this.app.vault.getAbstractFileByPath(dir) instanceof TFolder)) {
+				await this.app.vault.createFolder(dir);
+			}
+		} catch {
+			// Already there, or the name is taken; the write below will say.
+		}
+		const stamp = new Date().toISOString().slice(0, 16).replace(/[:T]/g, "-");
+		let path = normalizePath(
+			`${dir}/${safeFileName(this.file.basename)} ${stamp} ${safeFileName(label)}.${clip.ext}`
+		);
+		let n = 2;
+		while (this.app.vault.getAbstractFileByPath(path)) {
+			path = path.replace(/(\.\w+)$/, ` (${n++})$1`);
+		}
+		try {
+			await this.app.vault.createBinary(path, clip.data);
+			return path;
+		} catch (e) {
+			fail("could not save the recording", e);
+			return null;
+		}
+	}
+
+	/**
+	 * Speak a note against this card.
+	 *
+	 * The same result as pressing N and typing: it becomes a capture on this
+	 * card and flows into the write-up. The audio is embedded alongside
+	 * whatever a speech server made of it, so a transcript you disagree with
+	 * can always be checked against what was actually said.
+	 */
+	private async dictateNote(): Promise<void> {
+		if (this.recorder?.isRecording) {
+			if (this.recordingSession) {
+				say("the session is recording — Shift+R stops it");
+				return;
+			}
+			await this.finishDictation();
+			return;
+		}
+
+		const recorder = new Recorder(this.win);
+		if (!(await recorder.start())) {
+			fail("could not reach a microphone. Check Obsidian has permission to use it");
+			return;
+		}
+		this.recorder = recorder;
+		this.recordingSession = false;
+		this.showRecordingPip("Note — R to stop");
+	}
+
+	private async finishDictation(): Promise<void> {
+		const recorder = this.recorder;
+		if (!recorder) return;
+		const stop = this.stopAt(this.index);
+		const title = titleOf(stop.node);
+
+		this.hideRecordingPip();
+		const clip = await recorder.stop();
+		this.recorder = null;
+		if (!clip) {
+			fail("nothing was recorded");
+			return;
+		}
+
+		const path = await this.saveClip(clip, title);
+		if (!path) return;
+
+		const name = path.split("/").pop() ?? path;
+		const spoken = await transcribe(this.settings.transcribeUrl, clip, name);
+		// The embed always goes in. A transcript is an opinion about the audio;
+		// the audio is the record.
+		const parts = [spoken, `![[${path}]]`].filter(Boolean) as string[];
+
+		const existing = this.captures.filter((c) => c.nodeId === stop.node.id);
+		const firstAt = existing.length > 0 ? existing[0].at : Date.now();
+		const text = [...existing.map((c) => c.text), parts.join("\n\n")].join("\n\n").trim();
+		this.captures = this.captures.filter((c) => c.nodeId !== stop.node.id);
+		this.captures.push({ nodeId: stop.node.id, title, text, at: firstAt });
+
+		this.journalSave();
+		this.updateHud(this.stopAt(this.index), 0);
+		for (const listener of this.listeners) listener();
+		say(
+			spoken
+				? `noted against “${title}” — ${mmss(Math.round(clip.ms / 1000))} transcribed`
+				: `recorded against “${title}” — ${mmss(Math.round(clip.ms / 1000))}`
+		);
+	}
+
+	/**
+	 * Record the whole meeting.
+	 *
+	 * Worth its own mode because the deck knows something no recorder does:
+	 * which card was on screen at every moment. One long file becomes an index
+	 * of the talk, and the write-up can point at the minute a thing was said.
+	 */
+	private async toggleSessionRecording(): Promise<void> {
+		if (this.recorder?.isRecording && !this.recordingSession) {
+			say("a note is recording — R stops it");
+			return;
+		}
+
+		if (this.recordingSession && this.recorder) {
+			const recorder = this.recorder;
+			const startedAt = Date.now() - recorder.elapsed;
+			this.hideRecordingPip();
+			const clip = await recorder.stop();
+			this.recorder = null;
+			this.recordingSession = false;
+			this.recordBtn?.removeClass("is-live");
+			if (!clip) {
+				fail("nothing was recorded");
+				return;
+			}
+			const path = await this.saveClip(clip, "session");
+			if (path) {
+				this.sessionAudio = { path, startedAt, ms: clip.ms };
+				// The real file exists, so the safety copy is now a duplicate.
+				const part = normalizePath(
+					`${this.recordings}/${safeFileName(this.file.basename)} in progress.webm`
+				);
+				try {
+					if (await this.app.vault.adapter.exists(part)) {
+						await this.app.vault.adapter.remove(part);
+					}
+				} catch {
+					// Harmless if it stays; it is overwritten by the next talk.
+				}
+				this.journal?.save({ recording: undefined });
+				this.journalSave();
+				say(`recording saved — ${mmss(Math.round(clip.ms / 1000))}. Press W to write it up`);
+			}
+			return;
+		}
+
+		// A whole meeting is the one recording worth protecting while it runs:
+		// every two minutes what has been captured so far is written out, so a
+		// crash costs the gap rather than the hour.
+		const part = normalizePath(
+			`${this.recordings}/${safeFileName(this.file.basename)} in progress.webm`
+		);
+		const recorder = new Recorder(this.win, (data) => {
+			void this.writePart(part, data);
+		});
+		if (!(await recorder.start())) {
+			fail("could not reach a microphone. Check Obsidian has permission to use it");
+			return;
+		}
+		this.recorder = recorder;
+		this.recordingSession = true;
+		this.journal?.save({ recording: { path: part, startedAt: Date.now() } });
+		this.recordBtn?.addClass("is-live");
+		this.showRecordingPip("Recording — Shift+R stops");
+	}
+
+	/**
+	 * A question put to your notes, without leaving the deck.
+	 *
+	 * Built into the overlay rather than opened as a modal, for the same reason
+	 * the note box is: a modal belongs to the app's DOM, and the browser paints
+	 * nothing over a fullscreen element except that element. The ribbon icon
+	 * uses a modal quite happily — there is no deck in the way there.
+	 */
+	private askPanel: HTMLElement | null = null;
+
+	private askNotes(): void {
+		if (this.askPanel) {
+			this.askPanel.querySelector<HTMLInputElement>(".atl-ask-input")?.focus();
+			return;
+		}
+
+		const canLocal = isLocal(this.settings.askUrl);
+		const canCloud = this.settings.askWhere !== "local" && !!this.settings.cloudKey;
+		if (!canLocal && !canCloud) {
+			say("no model set — Settings → Atlas → Asking your notes", 7000);
+			return;
+		}
+
+		const panel = this.overlay.createDiv({ cls: "atl-note atl-ask-panel" });
+		this.askPanel = panel;
+		panel.createDiv({
+			cls: "atl-note-title",
+			text: `Ask your notes — ${this.settings.askFolder || "the whole vault"}`,
+		});
+
+		const row = panel.createDiv({ cls: "atl-ask-row" });
+		const input = row.createEl("input", { cls: "atl-ask-input", type: "text" });
+		input.placeholder = "What did we decide about…";
+		const go = row.createEl("button", { cls: "mod-cta", text: "Ask" });
+		const out = panel.createDiv({ cls: "atl-ask-out" });
+		panel.createDiv({ cls: "atl-note-hint", text: "Enter asks · Esc closes" });
+
+		const close = () => {
+			this.askPanel = null;
+			panel.remove();
+			this.stage.focus();
+		};
+
+		// The conversation, for as long as the panel is open. Closing it forgets
+		// everything: a question asked on slide four should not still be steering
+		// an answer on slide nineteen.
+		const turns: { q: string; a: string }[] = [];
+		let working = false;
+
+		const run = async (): Promise<void> => {
+			const question = input.value.trim();
+			if (!question || working) return;
+			working = true;
+			input.value = "";
+
+			out.createDiv({ cls: "atl-ask-q", text: question });
+
+			// The work, shown as it happens. Four model calls take several
+			// seconds, and seconds of nothing read as a hang — where the same
+			// seconds with the steps on screen read as thinking. It is also the
+			// only way to see which note it decided to read, and why.
+			const steps = out.createDiv({ cls: "atl-ask-steps" });
+			const step = (text: string): HTMLElement => {
+				const row = steps.createDiv({ cls: "atl-ask-step is-doing" });
+				row.createSpan({ cls: "atl-ask-tick" });
+				row.createSpan({ cls: "atl-ask-step-text", text });
+				out.scrollTop = out.scrollHeight;
+				return row;
+			};
+			const done = (row: HTMLElement, text?: string) => {
+				row.removeClass("is-doing");
+				if (text) row.querySelector(".atl-ask-step-text")?.setText(text);
+			};
+			out.scrollTop = out.scrollHeight;
+
+			// What to search for is its own question, and the model answers it
+			// better than a stop list can: it drops "can you brief me on", and
+			// it knows "dept" is worth looking for when you typed "department".
+			const looking = step("Working out what to look for…");
+			const search = await searchTerms(
+				this.settings.askUrl,
+				this.settings.askModel,
+				question
+			);
+			if (!this.askPanel) return;
+			const terms = search === question ? question : search.slice(question.length).trim();
+			done(looking, `Looking for: ${terms || question}`);
+
+			const searching = step("Searching your notes…");
+			const found = await findPassages(this.app, this.settings.askFolder, search, 10);
+			if (!this.askPanel) return;
+			if (found.length === 0) {
+				working = false;
+				done(searching, "No note mentions any of that.");
+				return;
+			}
+			done(searching, `${found.length} notes mention it`);
+
+			// The model reads the extracts and says which are worth opening —
+			// or that none of them are, which is the honest answer no amount of
+			// word-counting ever produced.
+			const choosing = step("Choosing which to read…");
+			const passages = await chooseNotes(
+				this.settings.askUrl,
+				this.settings.askModel,
+				question,
+				found
+			);
+			if (!this.askPanel) return;
+			if (passages.length === 0) {
+				working = false;
+				done(choosing, "None of them are about that.");
+				out.createDiv({ cls: "atl-ask-status", text: "No note found on that topic." });
+				out.scrollTop = out.scrollHeight;
+				return;
+			}
+			done(choosing, `Reading ${passages.map((p) => p.file.basename).join(", ")}`);
+
+			const writing = step("Writing the answer…");
+			const answer = await askBest(
+				{
+					where: this.settings.askWhere,
+					url: this.settings.askUrl,
+					model: this.settings.askModel,
+					cloudKey: this.settings.cloudKey,
+					cloudModel: this.settings.cloudModel,
+				},
+				question,
+				passages,
+				turns
+			);
+			if (!this.askPanel) return;
+			done(writing);
+
+			out.createDiv({
+				cls: answer ? "atl-ask-answer" : "atl-ask-status",
+				text: answer ? answer.text : "The model did not answer. The notes below mention it.",
+			});
+			if (answer) {
+				turns.push({ q: question, a: answer.text });
+				// Read back against the passages it came from. A claim that is
+				// fluent, plausible and absent from the notes is the one failure
+				// every other rule here lets through — so the answer is shown
+				// with a caution rather than quietly deleted, because a verifier
+				// that hides good answers would be worse than none.
+				const checking = step("Checking it against the notes…");
+				const sound = await verify(
+					this.settings.askUrl,
+					this.settings.askModel,
+					answer.text,
+					passages
+				);
+				if (!this.askPanel) return;
+				done(checking, sound ? "Every part of it is in the notes" : "Some of it is not in the notes");
+				if (!sound) {
+					out.createDiv({
+						cls: "atl-ask-caution",
+						text: "Not all of this is in the notes — check the sources below.",
+					});
+				}
+			}
+
+			const list = out.createDiv({ cls: "atl-ask-sources" });
+			list.createDiv({ cls: "atl-ask-label", text: "From" });
+			for (const p of passages) {
+				const chip = list.createDiv({ cls: "atl-ask-source", text: p.file.basename });
+				// Over the deck, like a wikilink — leaving the talk to read a note
+				// is the thing peek exists to avoid.
+				chip.addEventListener("click", () => void this.peek.showFile(p.file));
+			}
+			working = false;
+			out.scrollTop = out.scrollHeight;
+			input.focus();
+		};
+
+		go.addEventListener("click", () => void run());
+		input.addEventListener("keydown", (e) => {
+			// The deck must not hear any of this: typing a question used to drive
+			// the presentation.
+			e.stopPropagation();
+			if (e.key === "Enter") {
+				e.preventDefault();
+				void run();
+			} else if (e.key === "Escape") {
+				e.preventDefault();
+				close();
+			}
+		});
+		this.win.setTimeout(() => input.focus(), 0);
+	}
+
 	private noteBox: HTMLTextAreaElement | null = null;
 	/** The session review, built into the deck so fullscreen can show it. */
 	private review: ReviewPanel | null = null;
@@ -1525,6 +2044,7 @@ ${this.themeCss}`,
 			} else if (existing.length > 0) {
 				new Notice(`Atlas: note on “${title}” removed`);
 			}
+			this.journalSave();
 			this.updateHud(this.stopAt(this.index), 0);
 			for (const listener of this.listeners) listener();
 			close();
@@ -1589,6 +2109,7 @@ ${this.themeCss}`,
 				if (text) {
 					this.captures.push({ nodeId, title: visit?.title ?? "", text, at });
 				}
+				this.journalSave();
 				this.updateHud(this.stopAt(this.index), 0);
 			},
 			onWrite: () => void this.writeUp(),
@@ -1614,6 +2135,7 @@ ${this.themeCss}`,
 			visits: this.visits,
 			captures: this.captures,
 			prepared: this.notes,
+			audio: this.sessionAudio ?? undefined,
 		};
 	}
 
@@ -1634,6 +2156,11 @@ ${this.themeCss}`,
 		);
 		this.written = true;
 		if (!file) return;
+		// The journal existed to survive a crash. The minutes now say everything
+		// it said, so keeping it leaves a duplicate nobody will read — and a
+		// Sessions folder that only ever grows.
+		void this.journal?.done();
+		this.journal = null;
 
 		// Opened behind the deck: it is waiting when you leave, and the deck
 		// does not lose its place while you are still presenting.
@@ -1972,6 +2499,12 @@ ${this.themeCss}`,
 		if (this.stopped) return;
 		this.stopped = true;
 		this.stopAutoAdvance();
+		// The microphone goes back before anything else. A recording that
+		// outlived the deck would keep the light on with nothing watching it,
+		// and the audio would have nowhere to be written.
+		this.recorder?.dispose();
+		this.recorder = null;
+		this.hideRecordingPip();
 
 		// A headless deck was never presented: it registered nothing, took no
 		// keys and owns no screen. Running the full teardown had it unregister

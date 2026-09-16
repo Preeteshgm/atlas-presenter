@@ -59,6 +59,9 @@ starts at the beginning.
 | `Home` `End` | First and last card |
 | `B` | Blank the screen — attention on the room, not the slide |
 | `N` | Note against the card on screen — the cursor goes to the presenter panel's box |
+| `R` | Speak that note instead. Press again to stop; it lands on the same card |
+| `A` | Ask your notes a question, over the deck |
+| `Shift`+`R` | Record the whole meeting. The write-up indexes it by card |
 | `W` | Read the session and write it up — opens over the deck, so it works fullscreen |
 | `P` | Open the presenter panel — notes, the clock, what is next, and a box to write a remark in |
 | `Enter` | Dive into the sub-deck on this card |
@@ -404,14 +407,26 @@ bullets and real checkboxes for a task list.
 | **Paper** | Editorial light — warm paper, near-black ink, deep blue accent |
 | **Slate** | Dark room — for a projector with the lights down |
 | **Plain** | Follows your Obsidian theme; only the roles are imposed |
+| **Mono** | Black on white, oversized, one red accent. For a bad projector |
+| **Blueprint** | A drafting grid behind the cards, mono headings, cyan |
+| **Harbour** | Deep blue on warm white, with a colour for every section |
+| **Midnight** | Near-black with a vignette and an accent glow |
 
-**Settings → Background → Theme stylesheet**, or `theme: Atlas/Themes/Slate.css`
-on a canvas's `#deck` card to change one deck without touching settings.
+**Settings → Theme and background → Theme stylesheet**, which lists only
+stylesheets that are actually Atlas themes — a vault that has exported a reveal.js
+deck holds dozens that would do nothing here. Or `theme: Atlas/Themes/Slate.css`
+on a canvas's `#deck` card, to change one deck without touching settings.
+
+**A theme carries its backdrop too**, so picking one is the only choice most
+decks need. `backdrop:` on a `#deck` card overrides it for that canvas, and
+`Atlas/Backdrops/` holds two dozen as image files if you would rather pick one in
+settings.
 
 ### Making your own
 
-Copy a theme and change the **token block at the top**. Everything below it is
-identical in all three, so a new theme is about twelve values:
+Copy `Atlas/Themes/_Template.css`, which documents every token with what it
+touches, and change the **block at the top**. A theme is only a list of values —
+the card roles live in the plugin, so they work with any theme and with none:
 
 ```css
 .atl-overlay {
@@ -463,11 +478,12 @@ With a deck open, `Ctrl+Shift+I` shows you the exact classes on anything.
 |---|---|
 | **Starting a presentation** | The handbook, your shortcut, and a button to Obsidian's hotkey pane |
 | **Camera** | Flight duration, section overviews, framing padding, contain/cover, maximum zoom |
-| **Background** | Backdrop colour or image with dimming, theme stylesheet, accent, off-camera card opacity |
-| **Logo** | Any vault image, corner, height, opacity |
+| **Theme and background** | The theme first, since it decides everything including the backdrop. Then the backdrop if you want to override it, the image folder both pickers draw from, accent, off-camera card opacity |
+| **Logo** | Any vault image, corner, height, opacity. Several, comma-separated, sit in a row |
 | **Pictures and media** | Slide show transition, how pictures fit, video autoplay |
 | **On screen** | Bottom bar and counter, header line and where it shows, section titles, card alignment, next-card title, progress rail, timer |
-| **Notes and minutes** | Where minutes are filed, write-up on leaving, what goes in an action |
+| **Notes and minutes** | Where minutes are filed, a local speech server if you have one, write-up on leaving, what goes in an action |
+| **Asking your notes** | A local model server and which model, where to look, and whether questions may leave the machine |
 | **Browsing the vault** | What G opens — Obsidian's own graph view, or the one inside the deck |
 | **HTML cards** | Whether a card's <script> may run. Off by default |
 | **Reference** | The full authoring reference, with copyable snippets |
@@ -599,6 +615,48 @@ note you cannot see. One card holds one note, kept at the time you first made it
 so the write-up stays in order. Clear the box and save to delete it. The Remark
 button in the bar is outlined when the card you are on already has one.
 
+**Or speak it.** Press **`R`**, say the thing, press `R` again. The clip is saved
+and attached to the same card as if you had typed it, so it reaches the write-up
+by the same route. A pip appears in the corner with a live level meter — a
+recorder that captured nothing is discovered after the meeting, when the thing it
+was recording cannot be repeated.
+
+**`Shift`+`R` records the whole meeting.** One file, and the write-up indexes it
+by card:
+
+| At | Card |
+|---|---|
+| 0:00 | Opening · Northwind Depot |
+| 2:14 | The evidence · What the survey found |
+| 8:41 | The decision |
+
+That table is why this is worth having. The deck knows which card was on screen
+at every moment, so one long recording chapters itself. No recorder can do that,
+because none of them know what you were talking about.
+
+Everything is local. `MediaRecorder` is built into the app Obsidian runs on — no
+plugin, no key, no network.
+
+### Nothing is lost
+
+Notes used to live in memory until the deck closed cleanly, so a crash took the
+meeting with it. Every note and every card visit is now written the instant it
+happens, to `Meetings/Sessions/`, and a running recording is flushed to disk every
+two minutes. A crash costs the gap, never the notes.
+
+Next time Obsidian opens you are told: *"a session from Tuesday 14:02 was never
+written up — 9 notes · 23 cards"*, with a button. There is a command for it too,
+**Write up an unfinished session**. The journal is deleted only once the minutes
+exist — deleting it first would take the meeting with it, which is the one thing
+it is there to prevent.
+
+```
+Meetings/
+  Northwind Depot 2026-09-14.md     the minutes
+  Recordings/                        audio, kept: the minutes link it
+  Sessions/                          journals, cleared automatically
+```
+
 Leaving the deck writes it all up as one note in `Meetings/` — ordered the way
 minutes are read, not the way the talk ran. Whoever opens it a fortnight later
 wants the actions, and should not have to scroll past twenty cards to find them.
@@ -682,6 +740,72 @@ Leaving the deck writes the note directly, without the review.
 The folder is **Settings → Notes and minutes → Where minutes are filed**
 (`Meetings` by default), along with whether leaving writes at all, what gets
 appended to each action, and whether actions name the card they came from.
+
+---
+
+## Asking your notes
+
+Minutes accumulate. Six months of them is where the answer to *"what did we
+decide about the field app?"* actually lives, and by then you have forgotten
+which meeting it was.
+
+The **magnifier in the ribbon** — or the command **Ask your notes** — puts a
+question to them. It is off until you point it at a model, and everything about
+it is built so it cannot quietly become something else.
+
+**It runs on your machine.** *Where questions may go* defaults to **On this
+machine only**, which never contacts anything but a local server whatever else is
+configured. Two other settings allow OpenAI as a first or second choice; both
+require a key you enter yourself, and **every answer says which model produced
+it**, including that the notes were sent. A key is kept in the plugin's data file
+— which lives in your vault, so it travels with any sync or backup. The settings
+panel says so where the field is.
+
+**It works the way you would, and shows you.** Your question becomes search
+terms; the search returns candidates; the model reads their extracts and says
+which are worth opening — or that none are; it answers from those; then it reads
+its own answer back against them. Each step appears on screen as it happens, so
+you can see which note it decided to read.
+
+```
+● Looking for: intake survey findings
+● 9 notes mention it
+● Reading Northwind Depot 14 September, Intake survey 2026
+● Every part of it is in the notes
+```
+
+**Refusing is decided on evidence, not on word counts.** Asked for the budget for
+a swimming pool, every scoring rule tried here surfaced a schedule line about a
+pool and courtyard, because the word was there. Shown the extract and asked
+whether it bears on the question, the model says none of them do — and you get
+*"No note found on that topic"* without an answer ever being written.
+
+**Nothing is invented on your behalf.** Telling a 3B model *"reply NOT FOUND if
+the notes do not contain the answer"* made it reply NOT FOUND to a question the
+notes answered in one line — measured, twice. Letting it invent better search
+terms was worse: it turned PPC into *pay-per-click*. Recognising is a small
+model's strength and generating is not, so it is only ever asked to recognise.
+
+**Every answer carries its sources**, as chips you can click to open the note. A
+claim about what a meeting decided gets repeated in another meeting; it has to be
+checkable in one click.
+
+### Running a model
+
+Any server speaking the OpenAI chat API works — Ollama on `11434`, or llama.cpp's
+`llama-server`, which points straight at a `.gguf` with nothing to download:
+
+```
+llama-server -m path\to\model.gguf --host 127.0.0.1 --port 8080 -c 4096
+```
+
+Then **Settings → Atlas → Asking your notes**, paste the address, press **Test**.
+It says what is wrong rather than failing silently: server not answering, no
+models pulled, or connected with the list.
+
+`qwen2.5:3b` is a good starting point at about 2 GB. Changing the model is one
+field, so it is worth trying a larger one before concluding something cannot be
+done.
 
 ---
 

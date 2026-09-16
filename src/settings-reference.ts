@@ -316,6 +316,12 @@ The conclusion.`);
 		["Enter", "dive into the sub-deck on this card"],
 		["B", "blank the screen — attention on the room, not the slide"],
 		["N", "note against the card on screen — the cursor goes to the presenter panel's box"],
+		["R", "speak that note instead — press again to stop, and it lands on the same card"],
+		["A", "ask your notes a question, over the deck — needs a model server"],
+		[
+			"Shift+R",
+			"record the whole meeting. The write-up indexes it by card, so a question six weeks later is a scrub rather than a search",
+		],
 		["W", "read the session and write it up — opens over the deck, so it works fullscreen"],
 		["P", "the presenter panel — notes, the clock, what is next, and a box to write a remark in"],
 		["E", "export the deck to one standalone HTML file"],
