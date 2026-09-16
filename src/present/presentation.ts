@@ -1695,7 +1695,8 @@ ${this.themeCss}`,
 
 		const recorder = new Recorder(this.win);
 		if (!(await recorder.start())) {
-			fail("could not reach a microphone. Check Obsidian has permission to use it");
+			// Say which of the several possible failures it was.
+			fail(recorder.problem || "could not reach a microphone");
 			return;
 		}
 		this.recorder = recorder;
@@ -1798,7 +1799,8 @@ ${this.themeCss}`,
 			void this.writePart(part, data);
 		});
 		if (!(await recorder.start())) {
-			fail("could not reach a microphone. Check Obsidian has permission to use it");
+			// Say which of the several possible failures it was.
+			fail(recorder.problem || "could not reach a microphone");
 			return;
 		}
 		this.recorder = recorder;

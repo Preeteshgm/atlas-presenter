@@ -180,7 +180,12 @@ export async function findPassages(
 		try {
 			const body = await app.vault.cachedRead(file);
 			if (isDrawing(body, file.path)) continue;
-			read.push({ file, body, lower: body.toLowerCase() });
+			// The path is searched along with the text. A note called "EDMS -
+			// General Notes" can say "EDMS" nowhere in its body — people title a
+			// note for its subject and then stop repeating the word — and
+			// matching bodies alone made it invisible to anyone asking about
+			// EDMS. The name is where the subject is most reliably written down.
+			read.push({ file, body, lower: `${file.path}\n${body}`.toLowerCase() });
 		} catch {
 			// Unreadable notes are simply not candidates.
 		}
@@ -231,7 +236,21 @@ export async function findPassages(
 			.filter((c) => c.score > 0)
 			.sort((left, right) => right.score - left.score)
 			.slice(0, 2);
-		if (blocks.length === 0) continue;
+
+		// Matched by its name and by nothing in its text: show what it opens
+		// with. The alternative is dropping a note that is plainly about the
+		// subject because it does not repeat its own title.
+		if (blocks.length === 0) {
+			if (!named) continue;
+			const opening = chunksOf(body).slice(0, 2);
+			if (opening.length === 0) continue;
+			blocks.push(
+				...opening.map((c) => ({
+					text: c.heading ? `${c.heading}\n${c.text}` : c.text,
+					score: 0,
+				}))
+			);
+		}
 
 		scored.push({
 			file,

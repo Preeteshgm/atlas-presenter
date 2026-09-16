@@ -82,13 +82,21 @@ export class Peek {
 		this.crumbEl.setText(this.trail.length > 1 ? `${this.trail.length} deep · Backspace` : "");
 		this.bodyEl.empty();
 		this.bodyEl.scrollTop = 0;
+
+		// Into a fresh child, never into the panel itself. An HTML file is drawn
+		// by attaching a shadow root to whatever it is given, and a shadow root
+		// cannot be removed — empty() clears light-DOM children and leaves it in
+		// place, so peeking one HTML note once made every later peek render
+		// into a host whose content the browser no longer displays.
+		const holder = this.bodyEl.createDiv({ cls: "atl-peek-content" });
+
 		// The same renderer a card uses, so a drawing, a picture, a recording or
 		// a sub-canvas opens as itself rather than as its source.
 		const hash = linktext.indexOf("#");
 		await renderLinkedFile(
 			this.app,
 			this.owner,
-			this.bodyEl,
+			holder,
 			file,
 			hash >= 0 ? linktext.slice(hash) : ""
 		);

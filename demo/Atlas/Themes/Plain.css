@@ -24,6 +24,7 @@
 	--accent: var(--interactive-accent);
 	--accent-soft: var(--interactive-accent-hover);
 	--accent-ink: var(--text-on-accent);
+	--warn: var(--text-warning);
 	--highlight: var(--text-highlight-bg);
 	--highlight-ink: var(--text-normal);
 	--radius: var(--radius-m, 10px);

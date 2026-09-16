@@ -27,6 +27,37 @@ export interface Clip {
 	ms: number;
 }
 
+/**
+ * What the browser's refusal actually meant.
+ *
+ * getUserMedia rejects with a handful of named errors and each has a different
+ * fix. Collapsing them into one sentence left the most common cause — a
+ * Bluetooth headset with no microphone in its current profile — indistinguishable
+ * from a permission problem.
+ */
+function explain(error: unknown): string {
+	const name = error instanceof Error ? error.name : "";
+	switch (name) {
+		case "NotAllowedError":
+		case "SecurityError":
+			return "Obsidian is not allowed to use the microphone. Check Windows " +
+				"Settings → Privacy → Microphone, and that desktop apps may use it";
+		case "NotFoundError":
+		case "OverconstrainedError":
+			return "no microphone was offered. Bluetooth headphones often have none " +
+				"until they switch to their hands-free profile — try the built-in " +
+				"microphone in Windows sound settings";
+		case "NotReadableError":
+		case "AbortError":
+			return "the microphone is in use by another program — a call, or a " +
+				"recorder left running";
+		default:
+			return error instanceof Error && error.message
+				? error.message
+				: "the microphone could not be opened";
+	}
+}
+
 function extFor(mime: string): string {
 	if (mime.includes("ogg")) return "ogg";
 	if (mime.includes("mp4")) return "m4a";
@@ -80,18 +111,41 @@ export class Recorder {
 		return Math.min(1, peak / 96);
 	}
 
+	/**
+	 * Why the last start() failed, in the user's terms.
+	 *
+	 * "Could not reach a microphone" is true of every failure and useful for
+	 * none of them. Bluetooth headphones are the common one: in A2DP the device
+	 * has no microphone at all, so the browser reports no input and the fix —
+	 * switch to the hands-free profile, or use the built-in mic — is nothing
+	 * anyone would guess from the generic sentence.
+	 */
+	problem = "";
+
 	async start(): Promise<boolean> {
 		if (this.isRecording) return true;
+		this.problem = "";
 		const devices = this.win.navigator?.mediaDevices;
-		if (!devices?.getUserMedia) return false;
+		if (!devices?.getUserMedia) {
+			this.problem = "this window cannot reach audio devices";
+			return false;
+		}
 
+		const ask = (constraints: MediaStreamConstraints) => devices.getUserMedia(constraints);
 		try {
-			this.stream = await devices.getUserMedia({
+			this.stream = await ask({
 				audio: { echoCancellation: true, noiseSuppression: true },
 			});
-		} catch {
-			// Denied, or there is no microphone. Either way the caller says so.
-			return false;
+		} catch (first) {
+			// Echo cancellation and noise suppression are not offered by every
+			// input. Losing them is far better than losing the recording, so a
+			// plain request is tried before giving up.
+			try {
+				this.stream = await ask({ audio: true });
+			} catch (second) {
+				this.problem = explain(second ?? first);
+				return false;
+			}
 		}
 
 		const mime = TYPES.find((t) => MediaRecorder.isTypeSupported(t)) ?? "";

@@ -710,9 +710,15 @@ settings:
    conversation never pushes the thing you type into off the screen. */
 .atl-ask-panel .atl-ask-out { margin-top: 12px; max-height: 46vh; overflow-y: auto; }
 
+/* The question, in the theme's display face — the same one that titles a card,
+   so a transcript reads like part of the deck rather than a chat window that
+   happens to be open over it. */
 .atl-ask-q {
-	margin-top: 14px;
+	margin-top: 18px;
+	font-family: var(--display-font, var(--atl-heading-font));
+	font-size: 1.08em;
 	font-weight: 600;
+	letter-spacing: var(--tracking, -0.008em);
 	color: var(--ink, var(--text-normal));
 }
 .atl-ask-out > .atl-ask-q:first-child { margin-top: 0; }
@@ -745,13 +751,19 @@ settings:
 	font-size: 13px;
 }
 
+/* An answer is a small card, because a card is what this deck is made of — the
+   theme's paper, its hairline, its corner radius and its body face. A tinted
+   panel with a coloured bar down one side would be someone else's idiom
+   wearing Atlas's colours. */
 .atl-ask-answer {
 	white-space: pre-wrap;
 	line-height: 1.55;
-	padding: 12px 14px;
-	border-radius: 6px;
-	border-left: 3px solid var(--accent, var(--interactive-accent));
-	background: var(--wash, var(--background-modifier-hover));
+	padding: 13px 15px;
+	border-radius: var(--atl-card-radius, 10px);
+	border: var(--card-border, 1px solid var(--rule, var(--background-modifier-border)));
+	background: var(--card, var(--paper, var(--background-primary)));
+	color: var(--ink, var(--text-normal));
+	font-family: var(--body-font, var(--font-text));
 }
 
 /* The working-out, shown as it happens. A row is dim with a hollow mark while
@@ -788,13 +800,18 @@ settings:
 @keyframes atl-ask-pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.25; } }
 @media (prefers-reduced-motion: reduce) { .atl-ask-step.is-doing .atl-ask-tick { animation: none; } }
 
+/* A caution, in the theme's own warning colour where it has one. The amber was
+   hard-coded, so it stayed amber on a theme that had never heard of amber. */
 .atl-ask-caution {
 	font-size: 12.5px;
-	padding: 7px 11px;
-	border-radius: 5px;
-	border-left: 3px solid #E5A23D;
-	background: rgb(229 162 61 / 0.12);
-	color: var(--ink, var(--text-normal));
+	padding: 7px 0 0;
+	color: var(--warn, var(--text-warning, #B5762A));
+	font-family: var(--body-font, var(--font-text));
+}
+
+.atl-ask-caution::before {
+	content: "△ ";
+	opacity: 0.8;
 }
 
 .atl-ask-sources {
@@ -955,6 +972,15 @@ settings:
 	border: 1px solid var(--rule, var(--background-modifier-border));
 	box-shadow: 0 24px 80px rgb(0 0 0 / 0.45);
 	overflow: hidden;
+}
+
+/* A peeked file is drawn by the card renderer, which sizes media to fill a
+   card. In a scrolling panel that means a picture claiming the whole height,
+   so the media rules are relaxed here. */
+.atl-peek-content > .atl-media,
+.atl-peek-content .atl-media {
+	height: auto;
+	max-height: 70vh;
 }
 
 .atl-peek-head {

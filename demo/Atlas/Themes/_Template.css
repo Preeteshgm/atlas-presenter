@@ -57,6 +57,12 @@
 	--accent-soft: #6FA8C4;             /* hover, and bold on #dark   */
 	--accent-ink: #FFFFFF;              /* text drawn ON the accent   */
 
+	/* ---- a caution ------------------------------------------------------
+	   Used where Atlas has to say something is not quite right — an answer
+	   that went beyond the notes it was drawn from, for instance. Falls back
+	   to Obsidian's warning colour. */
+	--warn: #B5762A;
+
 	/* ---- ==highlight== -------------------------------------------------- */
 	--highlight: #FCE9A0;
 	--highlight-ink: #14232A;
