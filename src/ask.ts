@@ -40,6 +40,27 @@ export function isLocal(url: string): boolean {
 }
 
 /**
+ * Is there anything to ask?
+ *
+ * A model cannot be shipped with a plugin — it is gigabytes, it is someone
+ * else's to license, and no plugin should be putting binaries on a machine. So
+ * most people will never have one, and a button that has never worked and never
+ * explains itself is worse than no button: they will press it, get a notice,
+ * and conclude the plugin is broken.
+ *
+ * The controls appear when there is something behind them. Until then the
+ * feature is invisible, the settings panel explains what it needs, and
+ * everything else in the deck works exactly as before.
+ */
+export function hasModel(settings: {
+	askUrl: string;
+	askWhere: string;
+	cloudKey: string;
+}): boolean {
+	return isLocal(settings.askUrl) || (settings.askWhere !== "local" && !!settings.cloudKey);
+}
+
+/**
  * Words that are never the subject.
  *
  * The second group is the one that earned its place. "Can you brief me on the
@@ -616,6 +637,25 @@ export async function verify(
 	const said = pickChat(data)?.trim().toUpperCase() ?? "";
 	if (!said) return true;
 	return !said.startsWith("UNSUPPORTED");
+}
+
+/**
+ * Look for a model server already running on this machine.
+ *
+ * A model cannot ship with the plugin, so the setup is: install a server, then
+ * tell Atlas where it is. The second half is the part nobody should have to
+ * look up — the two that people actually run listen on well-known ports, and
+ * asking them takes a moment.
+ *
+ * Only ever localhost, and only when somebody presses the button.
+ */
+export async function findServer(): Promise<string | null> {
+	// Ollama first: it is the one most people have, and the one the rest of the
+	// Obsidian ecosystem assumes.
+	for (const url of ["http://127.0.0.1:11434", "http://127.0.0.1:8080", "http://127.0.0.1:1234"]) {
+		if ((await models(url))?.length !== undefined) return url;
+	}
+	return null;
 }
 
 /** What the server has, so the settings panel can say whether it is reachable. */

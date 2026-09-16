@@ -792,6 +792,11 @@ checkable in one click.
 
 ### Running a model
 
+**No model ships with Atlas, and none is downloaded for you.** Models are
+gigabytes and are not a plugin's to distribute, so this is a thin client: you
+install a server, Atlas talks to it. Until you do, the feature is invisible —
+no ribbon icon, no button on the bar, and no network call of any kind.
+
 Any server speaking the OpenAI chat API works — Ollama on `11434`, or llama.cpp's
 `llama-server`, which points straight at a `.gguf` with nothing to download:
 

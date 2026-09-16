@@ -11,7 +11,7 @@ import {
 import type AtlasPlugin from "./main";
 import { IMAGE_EXT } from "./media";
 import { renderReference } from "./settings-reference";
-import { isLocal, models } from "./ask";
+import { findServer, isLocal, models } from "./ask";
 import {
 	AskWhere,
 	BackgroundMode,
@@ -733,13 +733,16 @@ export class AtlasSettingTab extends PluginSettingTab {
 		new Setting(containerEl)
 			.setName("Local model server")
 			.setDesc(
-				"Optional, and empty by default. With a model server running on this " +
-					"machine, the command “Ask your notes” answers a question from your own " +
-					"notes and cites which ones — and says so plainly when none of them do. " +
-					"Ollama (port 11434) and llama.cpp's llama-server (usually 8080) both " +
-					"work; if you already have a .gguf on disk, llama-server points straight " +
-					"at it with nothing to download. Only a local address is accepted: notes " +
-					"are the most private thing in a vault."
+				"Off until you set this, and everything else in Atlas works without it. " +
+					"No model ships with the plugin — models are gigabytes and are not a " +
+					"plugin's to distribute — so you install a server yourself and point " +
+					"Atlas at it. Ollama is the usual choice (ollama.com, then " +
+					"“ollama pull qwen2.5:3b”); llama.cpp's llama-server works too, and " +
+					"points straight at a .gguf you already have. Press Find and Atlas will " +
+					"look for one. Only a local address is accepted: notes are the most " +
+					"private thing in a vault. With a server set, “Ask your notes” answers " +
+					"from your own notes, cites which ones, and says plainly when none of " +
+					"them do."
 			)
 			.addText((c) =>
 				c
@@ -760,9 +763,33 @@ export class AtlasSettingTab extends PluginSettingTab {
 					})
 			)
 			.addButton((c) =>
+				c.setButtonText("Find").onClick(async () => {
+					// The address is the one bit of setup nobody should have to
+					// look up. Ollama and llama-server sit on known ports.
+					new Notice("Atlas: looking for a model server…");
+					const found = await findServer();
+					if (!found) {
+						new Notice(
+							"Atlas: nothing answered on this machine. Start Ollama, or " +
+								"llama.cpp's llama-server, then press Find again.",
+							9000
+						);
+						return;
+					}
+					s.askUrl = found;
+					await this.save();
+					this.display();
+					const list = (await models(found)) ?? [];
+					new Notice(
+						`Atlas: found ${found}` + (list.length ? ` — ${list.join(", ")}` : ""),
+						9000
+					);
+				})
+			)
+			.addButton((c) =>
 				c.setButtonText("Test").onClick(async () => {
 					if (!s.askUrl) {
-						new Notice("Atlas: set an address first.");
+						new Notice("Atlas: set an address first, or press Find.");
 						return;
 					}
 					const found = await models(s.askUrl);

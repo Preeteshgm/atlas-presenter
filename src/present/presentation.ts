@@ -44,6 +44,7 @@ import {
 	askBest,
 	chooseNotes,
 	findPassages,
+	hasModel,
 	isLocal,
 	searchTerms,
 	verify,
@@ -495,7 +496,11 @@ export class Presentation extends Component {
 
 		// Finishing.
 		const end = right.createDiv({ cls: "atl-btns" });
-		button(end, "Ask", "A", "Ask your notes a question", () => this.askNotes());
+		// Only when there is a model to ask. Everything else on this bar works
+		// for everyone; this one would not.
+		if (hasModel(this.settings)) {
+			button(end, "Ask", "A", "Ask your notes a question", () => this.askNotes());
+		}
 		button(end, "Write up", "W", "Write the session up as a note", () =>
 			this.reviewSession()
 		);

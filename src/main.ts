@@ -13,10 +13,13 @@ import { Orphan, orphans } from "./present/journal";
 import { writeMinutes } from "./present/capture";
 import { offer } from "./notice";
 import { AskModal } from "./ask-modal";
+import { hasModel } from "./ask";
 
 export default class AtlasPlugin extends Plugin {
 	settings: AtlasSettings = { ...DEFAULT_SETTINGS };
 	private active: Presentation | null = null;
+	/** The ask icon, hidden until a model is configured. */
+	private askIcon: HTMLElement | null = null;
 
 	async onload(): Promise<void> {
 		// loadData() is untyped, so the shape is asserted once, here, rather than
@@ -125,9 +128,12 @@ export default class AtlasPlugin extends Plugin {
 
 		// Its own icon rather than a button folded into the graph bar: asking
 		// your notes is its own job, and it is useful when no deck is running.
-		this.addRibbonIcon("search", "Atlas: ask your notes", () => {
+		// Shown only once a model is configured — see hasModel(). The command
+		// stays in the palette either way, where it can explain itself.
+		this.askIcon = this.addRibbonIcon("search", "Atlas: ask your notes", () => {
 			new AskModal(this.app, this.settings).open();
 		});
+		this.showAskIcon();
 
 		this.registerEvent(
 			this.app.workspace.on("file-menu", (menu, file) => {
@@ -422,7 +428,16 @@ export default class AtlasPlugin extends Plugin {
 		}
 	}
 
+	/** The ask icon belongs on the ribbon only when there is a model behind it. */
+	private showAskIcon(): void {
+		if (!this.askIcon) return;
+		if (hasModel(this.settings)) this.askIcon.show();
+		else this.askIcon.hide();
+	}
+
 	async saveSettings(): Promise<void> {
 		await this.saveData(this.settings);
+		// A model set or cleared in the panel changes what belongs on screen.
+		this.showAskIcon();
 	}
 }
