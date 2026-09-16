@@ -845,6 +845,17 @@ plumbing holds. Every wrong interaction so far was found by presenting.
 
 ---
 
+## Writing decks with an assistant
+
+A canvas is plain JSON, so an assistant can write one — the geometry, the
+sections, the running order and the cards — and you open the file it produces.
+[docs/authoring-with-claude.md](docs/authoring-with-claude.md) is the brief to
+hand it: the node shapes, the spacing that reads well, the `#deck` keys and the
+card roles. Put that and this README in front of it and the decks come back
+presentable rather than close.
+
+---
+
 ## Developing
 
 `npm run dev` watches and rebuilds; the installer drops a `.hotreload` marker, so
