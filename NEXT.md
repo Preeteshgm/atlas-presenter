@@ -1,4 +1,4 @@
-# Atlas Presenter — state at 0.29.0
+# Atlas Presenter — state at 0.29.3
 
 Live in the Obsidian community store. Lint, type-check and all four audits clean;
 CI green on every release.
@@ -52,6 +52,14 @@ product name it had just been shown. It rewrites a query, picks from a list of
 real notes, and checks an answer against its sources — never asked to produce
 something that has to be right.
 
+**A question naming what is on screen is not a search.** Nothing in a vault is
+*about* the open deck, so "summarise the canvas I am presenting" matched two
+unrelated site plans and answered from them. `scopeOf()` reads the question for
+Obsidian's vocabulary (note, document, file, page) and presenting's (deck,
+canvas, slide, card, screen) before anything is searched, and hands over the
+deck or the card instead. A noun counts only with a pointing word within three
+words of it, so "the depot note" stays a search; deck words need none.
+
 **Four calls, shown as steps.** Rewrite, choose, answer, verify. Six seconds of
 silence reads as a hang; the same six with the steps on screen reads as work.
 
@@ -61,22 +69,28 @@ silent fallback, and every answer says which model produced it.
 
 ## Left
 
-1. **Embeddings.** Retrieval still matches letters, not meaning — a note saying
-   "Percent Plan Complete" is invisible to someone typing PPC. nomic-embed-text is
-   about 275 MB and is the last big accuracy jump available.
-2. **Background AI summaries.** Per-card summaries from a session transcript, cut
+1. **Embeddings.** Retrieval matches letters, not meaning, so a note saying
+   "Percent Plan Complete" is invisible to someone typing PPC. nomic-embed-text
+   was tested against three real failures and fixed one of them; the PPC case
+   stayed wrong because the term is defined in no note in the vault, which no
+   retrieval method can fix. Worth doing, but it is not the jump it looked like.
+2. **The rest of "what I am looking at".** `scopeOf()` answers about the deck and
+   the card. The same shape covers "what did I just say" (the journal), "what is
+   in the note behind this card" (the linked file) and "what have we covered so
+   far" (the stops up to now) — all state the app holds and search cannot reach.
+3. **Background AI summaries.** Per-card summaries from a session transcript, cut
    by the visit timeline, landing in the `W` panel as editable drafts. Needs a
    local whisper server, which nobody has stood up yet.
-3. **Per-card history.** Standing on slide 14, show what was noted there in past
+4. **Per-card history.** Standing on slide 14, show what was noted there in past
    sessions. The minutes already carry `type: minutes` and `deck:` frontmatter, so
    it is a lookup.
-4. **A chat window over a page.** Grounded in this deck, your notes, or a URL you
+5. **A chat window over a page.** Grounded in this deck, your notes, or a URL you
    name. Not web search — the chat API cannot browse, and implying it can is worse
    than not having it.
-5. **The demo pack never reaches store users.** Releases ship three files; the
+6. **The demo pack never reaches store users.** Releases ship three files; the
    seven themes, `_Template.css`, `Backdrops.css` and 24 backdrops live only in the
    repo. A command to write them into a vault would be about 20 KB in `main.js`.
-6. **Never run on mobile.** No Node or Electron APIs, but nobody has opened it on
+7. **Never run on mobile.** No Node or Electron APIs, but nobody has opened it on
    a phone.
 
 ## What testing keeps proving
@@ -93,6 +107,7 @@ type-check and four audits passed continuously while these shipped broken:
   Settings with a one-character path.
 - An `feTurbulence` filter on a fill-less `<rect>` renders solid black.
 - The NOT FOUND instruction above.
+- A question about the deck answered from two notes that shared a word with it.
 
 Every one rendered *something*. Each was found by using it.
 
