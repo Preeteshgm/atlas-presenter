@@ -792,6 +792,9 @@ checkable in one click.
 
 ### Running a model
 
+Full instructions, including what an update does and does not touch, are in
+[docs/local-model.md](docs/local-model.md).
+
 **No model ships with Atlas, and none is downloaded for you.** Models are
 gigabytes and are not a plugin's to distribute, so this is a thin client: you
 install a server, Atlas talks to it. Until you do, the feature is invisible —
