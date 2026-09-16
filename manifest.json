@@ -1,7 +1,7 @@
 {
 	"id": "atlas-presenter",
 	"name": "Atlas Presenter",
-	"version": "0.29.3",
+	"version": "0.29.4",
 	"minAppVersion": "1.7.2",
 	"description": "Present a Canvas as a map you fly across: edges set the running order, groups become sections, and you can jump to any card — or any note in your vault — mid-talk and land back exactly where you were.",
 	"author": "Preetesh",

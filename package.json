@@ -1,6 +1,6 @@
 {
 	"name": "atlas-presenter",
-	"version": "0.29.3",
+	"version": "0.29.4",
 	"description": "Present an Obsidian Canvas as a map you fly across",
 	"private": true,
 	"scripts": {
