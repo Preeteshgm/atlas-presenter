@@ -254,7 +254,7 @@ export class Presentation extends Component {
 			`Atlas · ${where}\n` +
 				"Drag this tab to another screen if you want it there · F fullscreen\n" +
 				"→ advances · O the overview · M the map · Esc leaves\n" +
-				"N notes · R speaks one · Shift+R records the meeting · W writes it up",
+				"N notes · R speaks one · Shift+R records the meeting · W writes it up · E exports",
 			8000
 		);
 	}
@@ -516,6 +516,11 @@ export class Presentation extends Component {
 		}
 		button(end, "Write up", "W", "Write the session up as a note", () =>
 			this.reviewSession()
+		);
+		// E has always done this; nothing said so, which is the same as not
+		// having it. The one thing on this bar that leaves the vault.
+		button(end, "Export", "E", "Export this deck to a folder you can send", () =>
+			void this.exportToHtml()
 		);
 
 		if (this.settings.timer !== "off") {
