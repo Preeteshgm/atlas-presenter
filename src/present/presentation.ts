@@ -2402,7 +2402,11 @@ ${this.themeCss}`,
 		return file;
 	}
 
-	async writeUp(): Promise<void> {
+	/**
+	 * `open` is false when the deck is going away under us: closing the tab or
+	 * quitting is no time to be opening another one.
+	 */
+	async writeUp(open = true): Promise<void> {
 		if (this.captures.length === 0 && this.visits.length === 0) {
 			new Notice("Atlas: nothing to write up yet.");
 			return;
@@ -2423,6 +2427,7 @@ ${this.themeCss}`,
 		void this.journal?.done();
 		this.journal = null;
 
+		if (!open) return;
 		// Opened behind the deck: it is waiting when you leave, and the deck
 		// does not lose its place while you are still presenting.
 		try {
@@ -2836,10 +2841,18 @@ ${this.themeCss}`,
 			return;
 		}
 		// Leaving is the one click: a talk that was noted gets written up.
-		if (!unloading && !this.written && this.captures.length > 0 && this.settings.minutesOnExit) {
-			// Leaving is the one click, so the note opens rather than waiting to
-			// be found.
-			void this.writeUp();
+		//
+		// Closing the tab used to skip this, which was right when a write-up
+		// meant a new dated file — but the deck's one note is written here too,
+		// and skipping it left the remarks nowhere but the crash journal. Every
+		// talk closed by its tab then came back on the next launch as a session
+		// that "was never written up", because it never was.
+		//
+		// The note is written either way now; only the opening of it is skipped
+		// when the deck is going away under us.
+		const unsaved = !this.written && this.captures.length > 0;
+		if (unsaved && (this.settings.deckNotes || this.settings.minutesOnExit)) {
+			void this.writeUp(!unloading);
 		}
 		// Returning to a parent hands the deck back; nulling it here would blank
 		// the presenter window the instant you came up a level.
