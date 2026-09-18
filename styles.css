@@ -597,8 +597,23 @@ settings:
 .atl-node.atl-tag-split h1,
 .atl-node.atl-tag-split h2 { column-span: all; }
 
-/* #full — a picture with no margin. */
-.atl-node.atl-tag-full .atl-body { padding: 0; }
+/* #full — a picture with no margin.
+   The padding went, but the picture sat in a paragraph capped at reading width
+   and with a height of its own, so it came out small in the top-left corner
+   with white all round it — the one thing the role exists to prevent. The body
+   is a column now, and whatever holds the picture takes the space left. */
+.atl-node.atl-tag-full .atl-body {
+	padding: 0;
+	display: flex;
+	flex-direction: column;
+}
+.atl-node.atl-tag-full .atl-body > * { max-width: none; margin: 0; }
+.atl-node.atl-tag-full .atl-body > p:has(.atl-embed),
+.atl-node.atl-tag-full .atl-body > .atl-embed {
+	flex: 1;
+	min-height: 0;
+}
+.atl-node.atl-tag-full .atl-body > p:has(.atl-embed) > .atl-embed { height: 100%; }
 .atl-node.atl-tag-full img {
 	width: 100%;
 	height: 100%;
@@ -1565,6 +1580,13 @@ button.atl-browse-fit:hover { color: var(--ink, var(--text-normal)); border-colo
 }
 
 .atl-embed-row > .atl-embed { margin: 0; }
+
+/* A paragraph carrying pictures is not prose, and the reading-width cap on
+   paragraphs was being applied to it: three pictures written on one line broke
+   after two because the row was capped at 62 characters, and a picture asked to
+   be 420 wide was squeezed into the same measure. */
+.atl-body p.atl-embed-row,
+.atl-body p:has(> .atl-embed) { max-width: none; }
 
 /* --- The authoring reference in the settings tab ------------------------ */
 /* Not inside the overlay: these render in Obsidian's own settings pane. */

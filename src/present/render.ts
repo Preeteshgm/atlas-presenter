@@ -1083,6 +1083,46 @@ function hoistPins(body: HTMLElement): void {
 	body.querySelectorAll(":scope > * .atl-pin").forEach((pin) => body.appendChild(pin));
 }
 
+/**
+ * A step marker is a block of its own.
+ *
+ * `+++` divides a card into frames, and the frames are read off the rendered
+ * elements. Written the way anyone writes it —
+ *
+ *     The first point.
+ *     +++
+ *     The second.
+ *
+ * — markdown makes all of that one paragraph, so there was no element boundary
+ * to divide at: the card showed everything at once with `+++` printed in the
+ * middle of it. A blank line either side is all it needed, and an author cannot
+ * be expected to know that.
+ */
+function spaceSteps(md: string): string {
+	const out: string[] = [];
+	let fence = "";
+	for (const line of md.split("\n")) {
+		const open = line.match(/^[ \t]*(`{3,}|~{3,})/);
+		if (fence) {
+			if (open && open[1].startsWith(fence[0]) && open[1].length >= fence.length) fence = "";
+			out.push(line);
+			continue;
+		}
+		if (open) {
+			fence = open[1];
+			out.push(line);
+			continue;
+		}
+		if (/^\s*\+{3,}\s*$/.test(line)) {
+			if (out.length > 0 && out[out.length - 1].trim() !== "") out.push("");
+			out.push(line.trim(), "");
+			continue;
+		}
+		out.push(line);
+	}
+	return out.join("\n");
+}
+
 function layOutPanes(card: HTMLElement, body: HTMLElement): void {
 	if (!PANED.some((c) => card.hasClass(c))) return;
 
@@ -1286,7 +1326,7 @@ export async function renderNode(
 			// Only for the layouts that split on a rule: everywhere else `---`
 			// under a line is a heading on purpose, and people write it that way.
 			const paned = hooks.classes.some((c) => PANED.includes(c));
-			const text = paned ? spaceRules(hooks.text) : hooks.text;
+			const text = spaceSteps(paned ? spaceRules(hooks.text) : hooks.text);
 			await renderMarkdown(app, owner, body, text, sourcePath, themeCss, allowScripts);
 		} else if (node.type === "file") {
 			await renderFileNode(app, owner, body, node, themeCss, allowScripts);
