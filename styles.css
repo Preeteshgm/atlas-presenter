@@ -464,7 +464,10 @@ settings:
 	justify-content: center;
 	padding: 8% 9%;
 }
-.atl-node.atl-tag-title h1 { font-size: var(--scale-title, 4.1em); max-width: 18ch; }
+/* h2 too: the roles are written for whatever heading the card leads with, and
+   an author who starts a card with ## should not get a card that looks unstyled. */
+.atl-node.atl-tag-title h1,
+.atl-node.atl-tag-title h2 { font-size: var(--scale-title, 4.1em); max-width: 18ch; }
 .atl-node.atl-tag-title p {
 	font-size: 1.15em;
 	color: var(--ink-soft, var(--text-muted));
@@ -524,6 +527,19 @@ settings:
 	line-height: 1.3;
 	color: var(--ink, var(--text-normal));
 }
+/* A quote card written as plain text.
+   The role styled a blockquote and nothing else, so a card that simply *is* the
+   quote — which is how anyone would write one — came out at body size with no
+   mark, looking like the tag had done nothing. The first paragraph of a quote
+   card that holds no blockquote is the quote. */
+.atl-node.atl-tag-quote .atl-body:not(:has(blockquote)) > p:first-of-type {
+	font-family: var(--display-font, var(--atl-heading-font));
+	font-size: var(--scale-quote, 2.05em);
+	line-height: 1.3;
+	color: var(--ink, var(--text-normal));
+	max-width: none;
+}
+.atl-node.atl-tag-quote .atl-body:not(:has(blockquote)) > p:first-of-type::before,
 .atl-node.atl-tag-quote blockquote::before {
 	content: "\201C";
 	display: block;
@@ -540,7 +556,8 @@ settings:
 	align-items: center;
 	text-align: center;
 }
-.atl-node.atl-tag-stat h1 {
+.atl-node.atl-tag-stat h1,
+.atl-node.atl-tag-stat h2 {
 	font-size: var(--scale-stat, 6.6em);
 	margin: 0;
 	color: var(--stat-ink, var(--accent, var(--interactive-accent)));
@@ -2575,6 +2592,14 @@ textarea.atl-note-box:focus { outline: none; border-color: var(--accent, var(--i
 
 /* A pane holding one of these has to give it the height to work against. */
 .atl-pane:has(> .atl-align) { display: flex; flex-direction: column; }
+
+/* And the pane has to be given that height in the first place. The columns
+   grid packs its rows to the top, so a pane was exactly as tall as its own
+   text — which made "the foot of this column" the line under the last word,
+   and "the middle" the same place again. Stretching the row is only done when
+   a column actually holds a placed block, so every other card keeps its
+   columns sized to their content. */
+.atl-body[data-panes]:has(.atl-align) { align-content: stretch; }
 
 /* A placement marker in Obsidian's own preview: still legible, no longer
    shouting. On the slide itself the marker is consumed and never drawn. */
