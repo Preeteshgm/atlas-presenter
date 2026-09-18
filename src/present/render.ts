@@ -213,6 +213,11 @@ export function titleOf(node: CanvasNode): string {
 		return "HTML slide";
 	}
 	for (const line of stripComments(raw).split("\n")) {
+		// A line of nothing but tags is a hook, not a heading. It never reaches
+		// the screen, and naming a card after it produced titles like "right
+		// #focus-right #fade-left" — on the map, in the presenter window, in the
+		// exported deck's counter, and at the head of that card's notes.
+		if (TAG_LINE.test(line)) continue;
 		const cleaned = cleanTitle(line);
 		if (cleaned) return cleaned;
 	}
