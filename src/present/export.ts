@@ -408,6 +408,8 @@ const RUNTIME = `
   var blank = document.getElementById('blank');
   var map = document.getElementById('map');
   var keys = document.getElementById('keys');
+  var writeup = document.getElementById('writeup');
+  var notesBtn = document.getElementById('notes');
   var stops = window.__ATLAS_STOPS__, pad = window.__ATLAS_PAD__, max = window.__ATLAS_MAX__;
   var mapData = window.__ATLAS_MAP__;
   var i = 0, step = 0;
@@ -787,6 +789,15 @@ const RUNTIME = `
   document.addEventListener('keydown', function (e) {
     if (e.ctrlKey || e.metaKey || e.altKey) return;
     var k = e.key;
+    /* The write-up is read, so arrows and Page keys scroll it; only Escape and
+       N put it away. */
+    if (writeup && writeup.classList.contains('on')) {
+      if (k === 'Escape' || k === 'n' || k === 'N') {
+        e.preventDefault();
+        showWriteup(false);
+      }
+      return;
+    }
     /* The key card is modal: it closes, and nothing else happens. */
     if (keys.classList.contains('on')) {
       e.preventDefault();
@@ -867,6 +878,27 @@ const RUNTIME = `
 
   blank.addEventListener('click', function () { blank.classList.remove('on'); });
   keys.addEventListener('click', function () { keys.classList.remove('on'); });
+
+  /* The write-up, read over the deck. It is markup inside this file, not a link
+     to the page beside it: that page can be deleted, renamed or never sent, and
+     this still opens. */
+  function showWriteup(on) {
+    if (!writeup) return;
+    writeup.classList.toggle('on', on);
+    if (on) writeup.scrollTop = 0;
+  }
+  if (notesBtn) {
+    notesBtn.addEventListener('click', function (e) {
+      e.stopPropagation();
+      showWriteup(!writeup.classList.contains('on'));
+    });
+  }
+  if (writeup) {
+    /* Anywhere off the text closes it, the way the key card does. */
+    writeup.addEventListener('click', function (e) {
+      if (e.target === writeup) showWriteup(false);
+    });
+  }
   /* A click inside a card's shadow root is retargeted to the host, so e.target
      is the card and never the button that was pressed — pressing a control in
      an interactive card advanced the slide instead of working. The composed
@@ -1109,10 +1141,37 @@ export async function buildDeckHtml(
     justify-content: space-between; padding: 10px 18px; font-size: 13px;
     color: var(--ink-soft, #6b7a80); pointer-events: none; }
   /* The one way in from the deck, and only when there is something to open. */
-  #bar a { pointer-events: auto; color: var(--accent, #1d5a78); text-decoration: none;
+  #bar button { font: inherit; }
+  #bar a, #bar button { pointer-events: auto; color: var(--accent, #1d5a78); text-decoration: none;
+    background: none; cursor: pointer;
     border: 1px solid color-mix(in srgb, var(--accent, #1d5a78) 45%, transparent);
     border-radius: 999px; padding: 2px 10px; margin-left: 10px; font-size: 12px; }
-  #bar a:hover { border-color: var(--accent, #1d5a78); }
+  #bar a:hover, #bar button:hover { border-color: var(--accent, #1d5a78); }
+  /* The write-up, over the deck. Styled by id: the deck's own rules are
+     written for cards and must not reach a document, and this must not reach
+     them either — which is the mistake that made the first version of this
+     page white on white. */
+  #writeup { position: fixed; inset: 0; z-index: 55; display: none;
+    background: color-mix(in srgb, var(--paper, #fff) 92%, transparent);
+    overflow: auto; }
+  #writeup.on { display: block; }
+  #writeup-page { max-width: 44rem; margin: 0 auto; padding: 6vh 22px 12vh;
+    color: var(--ink, #14232a); font-family: var(--body-font, var(--font-interface));
+    font-size: 17px; line-height: 1.62; }
+  #writeup-page header { border-bottom: 1px solid var(--rule, #d7dbd7);
+    padding-bottom: 16px; margin-bottom: 26px; }
+  #writeup-page h1 { font-family: var(--display-font, var(--body-font));
+    font-size: 2em; line-height: 1.1; margin: 0 0 6px; }
+  #writeup-page .when { color: var(--ink-soft, #4e5f66); font-size: 0.9em; }
+  #writeup-page .atl-note { margin: 0 0 26px; }
+  #writeup-page .atl-note h2 { font-family: var(--display-font, var(--body-font));
+    font-size: 1.05em; margin: 0 0 6px; color: var(--accent, #1d5a78); }
+  #writeup-page p { margin: 0 0 10px; }
+  #writeup-page ul { margin: 0 0 10px; padding-left: 1.3em; }
+  #writeup-page li { margin: 0 0 5px; }
+  #writeup-page li::marker { color: var(--accent, #1d5a78); }
+  #writeup-page code { font-family: var(--mono-font, monospace); font-size: 0.86em;
+    background: var(--wash, rgb(0 0 0 / 0.06)); border-radius: 4px; padding: 0.1em 0.35em; }
   #rail { z-index: 30; position: fixed; left: 0; right: 0; top: 0; height: 3px; background: rgb(0 0 0 / 0.08); }
   #railfill { height: 100%; width: 0; background: var(--accent, #1d5a78); transition: width 420ms ease; }
   #blank { position: fixed; inset: 0; background: #000; display: none; z-index: 40; }
@@ -1165,7 +1224,7 @@ export async function buildDeckHtml(
   #print { display: none; }
   @media print {
     html, body { height: auto; overflow: visible; background: #fff; }
-    #view, #bar { display: none !important; }
+    #view, #bar, #writeup { display: none !important; }
     #print { display: block; }
     .page { page-break-after: always; break-after: page; padding: 0; position: relative; }
     /* The card number, where a printed deck is read from: bottom right, on
@@ -1203,11 +1262,12 @@ ${input.css}
 <div id="hint">Drag or scroll &middot; Ctrl+wheel or +/&minus; to zoom &middot; 0 shows all &middot; click a card to go there &middot; Esc</div>
 <div id="rail"><div id="railfill"></div></div>
 <div id="blank"></div>
+<div id="writeup"${input.notes.length > 0 ? "" : " hidden"}><div id="writeup-page">${
+	input.notes.length > 0 ? writeupBody(input) : ""
+}</div></div>
 <div id="map" class="atl-minimap atl-overlay"><div class="atl-minimap-hint">Click a card to fly to it &middot; M or Esc to close</div></div>
 <div id="bar"><span>${input.title}${
-	input.notes.length > 0
-		? ` <a id="notes" href="./${encodeURIComponent(notesFileName(input.title))}" target="_blank" rel="noopener">Notes</a>`
-		: ""
+	input.notes.length > 0 ? ` <button type="button" id="notes">Notes</button>` : ""
 }</span><span id="counter"></span></div>
 <div id="keys"><table>
 <caption>Keys</caption>
@@ -1219,6 +1279,7 @@ ${input.css}
 <tr><td>B</td><td>Blank the screen</td></tr>
 <tr><td>F</td><td>Fullscreen</td></tr>
 <tr><td>Ctrl+P</td><td>Print, or save as PDF — one card to a page</td></tr>
+<tr><td>Notes</td><td>The write-up, over the deck &mdash; Esc or N closes it</td></tr>
 <tr><td>?</td><td>Close this</td></tr>
 </table></div>
 <div id="print" class="atl-overlay">__PRINT__</div>
@@ -1354,7 +1415,8 @@ function remarkHtml(text: string): string {
  * the theme's tokens reach it — the page is the deck's paper and ink, at
  * reading size rather than presenting size.
  */
-function notesPage(input: ExportInput, deckHref: string): string {
+/** The write-up's own markup: a heading, then a section per card. */
+function writeupBody(input: ExportInput): string {
 	const today = new Date().toLocaleDateString(undefined, {
 		day: "numeric",
 		month: "long",
@@ -1371,6 +1433,14 @@ function notesPage(input: ExportInput, deckHref: string): string {
 		)
 		.join(BREAK);
 
+	return `<header>
+  <h1>${escapeHtml(input.title)}</h1>
+  <div class="when">Presented ${today} · ${cards} card${cards === 1 ? "" : "s"} with remarks</div>
+</header>
+${entries}`;
+}
+
+function notesPage(input: ExportInput, deckHref: string): string {
 	// The theme's tokens are declared on `.atl-overlay`; here they belong to the
 	// page itself. Re-aimed at :root, so a document gets the deck's paper, ink,
 	// accent and type without the overlay they were written for.
@@ -1443,11 +1513,7 @@ ${tokens}
 </head>
 <body>
 <div class="atl-notes">
-<header>
-  <h1>${escapeHtml(input.title)}</h1>
-  <div class="when">Presented ${today} · ${cards} card${cards === 1 ? "" : "s"} with remarks</div>
-</header>
-${entries}
+${writeupBody(input)}
 <footer>Written while presenting, and read-only here. <a href="${deckHref}">Open the deck</a></footer>
 </div>
 </body>
