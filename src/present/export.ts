@@ -965,7 +965,17 @@ export async function buildDeckHtml(
      travels with this file — draws it exactly as the deck does. Only the
      stacking is stated here, because .atl-minimap is positioned inside the
      overlay and this one is a layer over the whole page. */
-  #map { position: fixed; z-index: 50; }
+  /* The map carries .atl-overlay for one reason: every colour in it comes from
+     a theme token, and those tokens are declared on .atl-overlay. Outside one,
+     a browser resolves them to nothing and falls back to Obsidian's own
+     variables, which do not exist in a file opened from disk — so the cards
+     came out as black rectangles and the labels as black text on black. The
+     overlay's own layout is undone here; only its tokens are wanted. */
+  #map.atl-overlay { position: fixed; inset: 0; z-index: 50;
+    background: color-mix(in srgb, var(--paper, #fff) 88%, transparent);
+    overflow: hidden; }
+  #map.atl-minimap:not(.is-open) { display: none; }
+  #map.atl-minimap.is-open { display: flex; }
   /* The overview: the same map, readable, every card clickable. Off-camera
      cards are dimmed by the plugin stylesheet so the audience keeps its
      bearings; here that is exactly wrong. */
@@ -1037,7 +1047,7 @@ ${input.css}
 <div id="hint">Drag or scroll &middot; Ctrl+wheel or +/&minus; to zoom &middot; 0 shows all &middot; click a card to go there &middot; Esc</div>
 <div id="rail"><div id="railfill"></div></div>
 <div id="blank"></div>
-<div id="map" class="atl-minimap"><div class="atl-minimap-hint">Click a card to fly to it &middot; M or Esc to close</div></div>
+<div id="map" class="atl-minimap atl-overlay"><div class="atl-minimap-hint">Click a card to fly to it &middot; M or Esc to close</div></div>
 <div id="bar"><span>${input.title}</span><span id="counter"></span></div>
 <div id="keys"><table>
 <caption>Keys</caption>
