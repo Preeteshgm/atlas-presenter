@@ -273,7 +273,7 @@
 	<div><h4>Nothing to convert</h4><p>The canvas file is the deck. Edit it and present again.</p></div>
 	<div><h4>The map is a feature</h4><p>Press <kbd>O</kbd> mid-talk, read the whole map, click where you need to be.</p></div>
 	<div><h4>Your notes are there</h4><p>Click a wikilink to read the note over the deck, then carry on.</p></div>
-	<div><h4>It leaves the vault</h4><p>Export one self-contained HTML file. Print it for a PDF.</p></div>
+	<div><h4>It leaves the vault</h4><p>Export a folder anyone can open: one self-contained HTML file, recordings beside it. Print it for a PDF.</p></div>
 </div>
 
 <h2 id="install">Install</h2>
@@ -332,7 +332,7 @@
 		<tr><td>Present a variant…</td><td>Asks which talk to give, if the canvas has <a href="#variants">variants</a>.</td></tr>
 		<tr><td>Stop presenting</td><td>Ends the talk from this window, wherever the deck is.</td></tr>
 		<tr><td>Preview the export</td><td>Opens the exported deck, running, in a tab beside the canvas.</td></tr>
-		<tr><td>Export to HTML</td><td>Writes one standalone file. Works with or without a deck running.</td></tr>
+		<tr><td>Export to HTML</td><td>Writes the deck into a folder of its own — one standalone file, with any recordings beside it. Works with or without a deck running.</td></tr>
 		<tr><td>How to write a card</td><td>Writes a reference note into the vault and opens it in a pane, so what you need while authoring sits beside the canvas. It opens whichever copy is already there, so a copy you have annotated is the one you get back.</td></tr>
 	</tbody>
 </table>
@@ -882,9 +882,18 @@ dim: 0.35</code></pre>
 <h2 id="export">Export, preview, PDF</h2>
 
 <p>
-	<b>Export to HTML</b> writes one self-contained file to your vault root: every
-	picture, video and sound inlined, the stylesheet embedded, no Obsidian and no
-	network. It opens in any browser, on any machine.
+	<b>Export to HTML</b> gives the deck a <b>folder of its own</b> under
+	<i>Settings → Atlas → Export folder</i> (<code>Atlas/Exports</code> by
+	default). Inside it: the HTML file, with every picture and the whole stylesheet
+	carried within it, and any sound or video beside it under a relative link.
+	Share the folder — or zip it — and the deck is complete. No Obsidian, no
+	plugin, no network; it opens in any browser on any machine.
+</p>
+
+<p>
+	A deck with no recordings in it is a folder holding one file, which can be sent
+	on its own. Where a file genuinely cannot travel, the card says so rather than
+	showing a control that does nothing.
 </p>
 
 <p>
