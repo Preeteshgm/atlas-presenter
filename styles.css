@@ -606,6 +606,7 @@ settings:
 	padding: 0;
 	display: flex;
 	flex-direction: column;
+	overflow: hidden;
 }
 .atl-node.atl-tag-full .atl-body > * { max-width: none; margin: 0; }
 .atl-node.atl-tag-full .atl-body > p:has(.atl-embed),
@@ -613,7 +614,24 @@ settings:
 	flex: 1;
 	min-height: 0;
 }
-.atl-node.atl-tag-full .atl-body > p:has(.atl-embed) > .atl-embed { height: 100%; }
+
+/* The picture takes what is left, rather than a hundred percent of a box that
+   also holds a line of text. Given both, the card grew past its own edge and
+   had to be scrolled — and a #full card that scrolls is not full, it is a
+   picture too big for the card it is on. */
+.atl-node.atl-tag-full .atl-body > p:has(.atl-embed) {
+	display: flex;
+	flex-direction: column;
+	gap: 0.4em;
+}
+.atl-node.atl-tag-full .atl-body > p:has(.atl-embed) > .atl-embed,
+.atl-node.atl-tag-full .atl-body > .atl-embed {
+	width: 100% !important;
+	height: auto !important;
+	flex: 1;
+	min-height: 0;
+	object-fit: cover;
+}
 .atl-node.atl-tag-full img {
 	width: 100%;
 	height: 100%;
@@ -1594,8 +1612,7 @@ button.atl-browse-fit:hover { color: var(--ink, var(--text-normal)); border-colo
    say so louder than the number written in the card, or `![[plan.png|420]]`
    turns a full-bleed pane back into a 420-pixel picture in the corner of it. */
 .atl-node.atl-tag-left .atl-pane.has-picture .atl-embed,
-.atl-node.atl-tag-right .atl-pane.has-picture .atl-embed,
-.atl-node.atl-tag-full .atl-body .atl-embed {
+.atl-node.atl-tag-right .atl-pane.has-picture .atl-embed {
 	width: 100% !important;
 	height: 100% !important;
 }
