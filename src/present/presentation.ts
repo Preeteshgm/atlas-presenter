@@ -2669,7 +2669,10 @@ ${this.themeCss}`,
 		if (!template.trim()) return "";
 		return template
 			.replace(/\{(\w[\w -]*)\}/g, (whole, key: string) => {
-				const value = meta[key.toLowerCase()];
+				// Normalised the same way the #deck card's keys are stored, so
+				// `{logo corner}` finds `logo corner:` — it did not, because the
+				// key was filed under `logocorner` and looked up verbatim.
+				const value = meta[key.toLowerCase().replace(/[ -]/g, "")];
 				return value === undefined ? whole : value;
 			})
 			.replace(/\{deck\}/g, this.file.basename)
