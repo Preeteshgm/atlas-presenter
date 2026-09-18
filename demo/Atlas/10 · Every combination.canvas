@@ -11,7 +11,7 @@
 		{"id":"g0","type":"group","label":"A · Columns and bands","x":0,"y":0,"width":12080,"height":1020},
 		{"id":"s1_0","type":"text","text":"#title\n# 09 · `#title`\nThe opening card — a large heading with a line beneath it.\n","x":80,"y":1340,"width":1280,"height":860},
 		{"id":"s1_1","type":"text","text":"#section\n# 10 · `#section`\nA divider, inverted, with a rule under the name.\n","x":1600,"y":1340,"width":1280,"height":860},
-		{"id":"s1_2","type":"text","text":"#quote\n# 11 · `#quote`\nThis card holds both forms, so this line is the **introduction** and stays small — a blockquote on the card is the quote, and it wins.\n\n> Written as a blockquote. On a card with no blockquote, a plain paragraph is\n> set exactly like this one.\n","x":3120,"y":1340,"width":1280,"height":860},
+		{"id":"s1_2","type":"text","text":"#quote\n# 11 · `#quote`\nThis card holds both forms, so this line is the **introduction** and stays small — a blockquote on the card is the quote, and it wins.\n\n> Written as a blockquote. On a card with no blockquote, a plain paragraph is set exactly like this one.\n","x":3120,"y":1340,"width":1280,"height":860},
 		{"id":"s1_3","type":"text","text":"#stat\n# 12 · `#stat`\n\nOne large number, centred, with a line about it underneath.\n","x":4640,"y":1340,"width":1280,"height":860},
 		{"id":"s1_4","type":"text","text":"#dark\n# 13 · `#dark`\nThe same card, inverted. **Bold** here should take the soft accent.\n","x":6160,"y":1340,"width":1280,"height":860},
 		{"id":"s1_5","type":"text","text":"#agenda\n# 14 · `#agenda`\n1. Set large\n2. Numbered\n3. One line to a row\n4. And nothing else\n","x":7680,"y":1340,"width":1280,"height":860},
@@ -36,7 +36,14 @@
 		{"id":"s4_1","type":"text","text":"# 30 · +++ steps\nThe first frame is here.\n+++\nThis should arrive on the next press.\n+++\nAnd this one after it.\n","x":1600,"y":5120,"width":1280,"height":860},
 		{"id":"s4_2","type":"text","text":"#band\n# 31 · A table and a list\n---\n### The table\n| Thing | State |\n|---|---|\n| One | `built` |\n| Two | `next` |\n| Three | `after` |\n---\n### The list\n- A bullet\n- Another\n  - Nested under it\n1. Numbered\n2. And again\n","x":3120,"y":5120,"width":1280,"height":860},
 		{"id":"g4","type":"group","label":"E · The rest","x":0,"y":5040,"width":4480,"height":1020},
-		{"id":"deck","type":"text","text":"#deck\n\ntheme: Atlas/Themes/Paper.css\nheader: {deck}  ·  {section}  ·  {n}/{total}\nsection: title\n\n# Every combination\n**One card per thing Atlas claims to do, numbered, so a screenshot names itself**\n\n31 cards in five sections. Present it, photograph anything that looks wrong, and quote its number.\n","x":0,"y":-1100,"width":12080,"height":860}
+		{"id":"s5_0","type":"text","text":"#right\n### 32 · `#right`\nThe words take the left, the picture the right. The mirror of 27, and the other card whose picture is sized by the pane rather than by a number.\n---\n![[Assets/site-4.svg|420]]\n","x":80,"y":6380,"width":1280,"height":860},
+		{"id":"s5_1","type":"text","text":"#full\n![[Assets/site-2.svg]]\n","x":1600,"y":6380,"width":1280,"height":860},
+		{"id":"s5_2","type":"text","text":"#gallery\n# 34 · `#gallery`\n![[Assets/site-1.svg|300]]\n![[Assets/site-2.svg|300]]\n![[Assets/site-3.svg|300]]\n![[Assets/site-4.svg|300]]\n","x":3120,"y":6380,"width":1280,"height":860},
+		{"id":"s5_3","type":"text","text":"#scroll\n# 35 · `#scroll`\n![[Assets/site-1.svg]]\n![[Assets/site-2.svg]]\n![[Assets/site-3.svg]]\n","x":4640,"y":6380,"width":1280,"height":860},
+		{"id":"s5_4","type":"text","text":"#slideshow\n# 36 · `#slideshow`\n![[Assets/site-1.svg]]\n![[Assets/site-2.svg]]\n![[Assets/site-3.svg]]\n","x":6160,"y":6380,"width":1280,"height":860},
+		{"id":"s5_5","type":"text","text":"# 37 · A picture beside words, by hand\nTwo blocks, no role: the picture should sit in the flow at the size asked for and nothing should stretch.\n\n![[Assets/site-3.svg|260]] The text after a picture on the same line sits beside it, because\nthe paragraph became a row.\n","x":7680,"y":6380,"width":1280,"height":860},
+		{"id":"g5","type":"group","label":"F · Pictures, the other ways","x":0,"y":6300,"width":9040,"height":1020},
+		{"id":"deck","type":"text","text":"#deck\n\ntheme: Atlas/Themes/Paper.css\nheader: {deck}  ·  {section}  ·  {n}/{total}\nsection: title\n\n# Every combination\n**One card per thing Atlas claims to do, numbered, so a screenshot names itself**\n\n37 cards in six sections. Present it, photograph anything that looks wrong, and quote its number.\n","x":0,"y":-1100,"width":12080,"height":860}
 	],
 	"edges":[
 		{"id":"e1","fromNode":"s0_0","toNode":"s0_1","label":"1."},
@@ -68,7 +75,13 @@
 		{"id":"e27","fromNode":"s3_3","toNode":"s3_4","label":"27."},
 		{"id":"e28","fromNode":"s3_4","toNode":"s4_0","label":"28."},
 		{"id":"e29","fromNode":"s4_0","toNode":"s4_1","label":"29."},
-		{"id":"e30","fromNode":"s4_1","toNode":"s4_2","label":"30."}
+		{"id":"e30","fromNode":"s4_1","toNode":"s4_2","label":"30."},
+		{"id":"e31","fromNode":"s4_2","toNode":"s5_0","label":"31."},
+		{"id":"e32","fromNode":"s5_0","toNode":"s5_1","label":"32."},
+		{"id":"e33","fromNode":"s5_1","toNode":"s5_2","label":"33."},
+		{"id":"e34","fromNode":"s5_2","toNode":"s5_3","label":"34."},
+		{"id":"e35","fromNode":"s5_3","toNode":"s5_4","label":"35."},
+		{"id":"e36","fromNode":"s5_4","toNode":"s5_5","label":"36."}
 	],
 	"metadata":{
 		"version":"1.0-1.0",
