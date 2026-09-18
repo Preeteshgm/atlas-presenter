@@ -1,0 +1,519 @@
+{
+ "nodes": [
+  {
+   "id": "s0_0",
+   "type": "text",
+   "text": "#two\n# 01 · #two, no band\nThe first block is text, so it is a column like the others.\n---\n### Left\nTwo columns, nothing across the top.\n---\n### Right\nBoth should be the same width.\n",
+   "x": 80,
+   "y": 80,
+   "width": 1280,
+   "height": 860
+  },
+  {
+   "id": "s0_1",
+   "type": "text",
+   "text": "#two #band\n# 02 · #two #band\nThis block should run the full width, above both columns.\n---\n### Left\nA column.\n---\n### Right\nA column.\n",
+   "x": 1600,
+   "y": 80,
+   "width": 1280,
+   "height": 860
+  },
+  {
+   "id": "s0_2",
+   "type": "text",
+   "text": "#two #noband\n# 03 · #two #noband\n---\n### Left\nThe heading block above should be a **column**, not a band — so this card has\nthree columns across.\n---\n### Right\nA column.\n",
+   "x": 3120,
+   "y": 80,
+   "width": 1280,
+   "height": 860
+  },
+  {
+   "id": "s0_3",
+   "type": "text",
+   "text": "#band\n# 04 · #band, three columns\nA band, then three columns.\n---\n### One\nLeft.\n---\n### Two\nMiddle.\n---\n### Three\nRight.\n",
+   "x": 4640,
+   "y": 80,
+   "width": 1280,
+   "height": 860
+  },
+  {
+   "id": "s0_4",
+   "type": "text",
+   "text": "#band\n# 05 · #band, four columns\n---\n### One\nNarrow.\n---\n### Two\nNarrow.\n---\n### Three\nNarrow.\n---\n### Four\nNarrow.\n",
+   "x": 6160,
+   "y": 80,
+   "width": 1280,
+   "height": 860
+  },
+  {
+   "id": "s0_5",
+   "type": "text",
+   "text": "#noband\n### 06 · #noband, two columns\nThis heading stays in its own column.\n---\n### The other\nBeside it, not under it.\n",
+   "x": 7680,
+   "y": 80,
+   "width": 1280,
+   "height": 860
+  },
+  {
+   "id": "s0_6",
+   "type": "text",
+   "text": "#band\n### 07 · #band with only two blocks\nNothing to band, so both of these should be columns.\n---\n### The second\nBeside, not under.\n",
+   "x": 9200,
+   "y": 80,
+   "width": 1280,
+   "height": 860
+  },
+  {
+   "id": "s0_7",
+   "type": "text",
+   "text": "# 08 · No tag at all\nThis is the control. It should **stack**, and the line below should be a\nheading, because a rule under a line of text is a heading in markdown.\n---\nThis is under it, not beside it.\n",
+   "x": 10720,
+   "y": 80,
+   "width": 1280,
+   "height": 860
+  },
+  {
+   "id": "g0",
+   "type": "group",
+   "label": "A · Columns and bands",
+   "x": 0,
+   "y": 0,
+   "width": 12080,
+   "height": 1020
+  },
+  {
+   "id": "s1_0",
+   "type": "text",
+   "text": "#title\n# 09 · #title\nThe opening card — a large heading with a line beneath it.\n",
+   "x": 80,
+   "y": 1340,
+   "width": 1280,
+   "height": 860
+  },
+  {
+   "id": "s1_1",
+   "type": "text",
+   "text": "#section\n# 10 · #section\nA divider, inverted, with a rule under the name.\n",
+   "x": 1600,
+   "y": 1340,
+   "width": 1280,
+   "height": 860
+  },
+  {
+   "id": "s1_2",
+   "type": "text",
+   "text": "#quote\n# 11 · #quote\nSet large, with an opening mark, and nothing else on the card.\n",
+   "x": 3120,
+   "y": 1340,
+   "width": 1280,
+   "height": 860
+  },
+  {
+   "id": "s1_3",
+   "type": "text",
+   "text": "#stat\n# 12 · #stat\n\nOne large number, centred, with a line about it underneath.\n",
+   "x": 4640,
+   "y": 1340,
+   "width": 1280,
+   "height": 860
+  },
+  {
+   "id": "s1_4",
+   "type": "text",
+   "text": "#dark\n# 13 · #dark\nThe same card, inverted. **Bold** here should take the soft accent.\n",
+   "x": 6160,
+   "y": 1340,
+   "width": 1280,
+   "height": 860
+  },
+  {
+   "id": "s1_5",
+   "type": "text",
+   "text": "#agenda\n# 14 · #agenda\n1. Set large\n2. Numbered\n3. One line to a row\n4. And nothing else\n",
+   "x": 7680,
+   "y": 1340,
+   "width": 1280,
+   "height": 860
+  },
+  {
+   "id": "s1_6",
+   "type": "text",
+   "text": "#end\n# 15 · #end\nThank you · **a contact** · a next step, centred.\n",
+   "x": 9200,
+   "y": 1340,
+   "width": 1280,
+   "height": 860
+  },
+  {
+   "id": "s1_7",
+   "type": "text",
+   "text": "#split\n# 16 · #split\nTwo *flowed* columns: this text should spill out of the first column into the\nsecond rather than being cut at a rule. Written long enough to prove it, which\nmeans several sentences of filler that nobody has to read. The point is only\nwhere the last word lands. If the text stops at the bottom of the first column\nand starts again at the top of the second, the role is working. If it sits in\none narrow column with white space beside it, it is not. One more sentence to\nbe sure of the overflow.\n",
+   "x": 10720,
+   "y": 1340,
+   "width": 1280,
+   "height": 860
+  },
+  {
+   "id": "g1",
+   "type": "group",
+   "label": "B · The card roles",
+   "x": 0,
+   "y": 1260,
+   "width": 12080,
+   "height": 1020
+  },
+  {
+   "id": "s2_0",
+   "type": "text",
+   "text": "# 17 · :::pin, four corners\n\n:::pin top-left\n**top-left**\n:::\n\n:::pin top-right\n**top-right**\n:::\n\n:::pin bottom-left\n**bottom-left**\n:::\n\n:::pin bottom-right\n**bottom-right**\n:::\n",
+   "x": 80,
+   "y": 2600,
+   "width": 1280,
+   "height": 860
+  },
+  {
+   "id": "s2_1",
+   "type": "text",
+   "text": "# 18 · :::pin, the edges and the middle\n\n:::pin top\n**top**\n:::\n\n:::pin left\n**left**\n:::\n\n:::pin centre\n**centre**\n:::\n\n:::pin right\n**right**\n:::\n\n:::pin bottom\n**bottom**\n:::\n",
+   "x": 1600,
+   "y": 2600,
+   "width": 1280,
+   "height": 860
+  },
+  {
+   "id": "s2_2",
+   "type": "text",
+   "text": "# 19 · :::pin with a row\nTwo pictures across, bottom right, rather than down.\n\n:::pin bottom-right row\n![[Assets/site-1.svg|90]] ![[Assets/site-2.svg|90]]\n:::\n",
+   "x": 3120,
+   "y": 2600,
+   "width": 1280,
+   "height": 860
+  },
+  {
+   "id": "s2_3",
+   "type": "text",
+   "text": "#two\n# 20 · :::align inside a column\n---\n### Left\n:::align bottom-left\nAt the foot of **this column**, not the card.\n:::\n---\n### Right\n:::align centre\nIn the middle of **this column**.\n:::\n",
+   "x": 4640,
+   "y": 2600,
+   "width": 1280,
+   "height": 860
+  },
+  {
+   "id": "s2_4",
+   "type": "text",
+   "text": "# 21 · :::pin by coordinates\n`:::pin 20,70` is x,y in percent of the card.\n\n:::pin 20,70\n**20, 70**\n:::\n\n:::pin 75,30 0.2x0.2\n**75, 30 — sized 0.2x0.2**\n:::\n",
+   "x": 6160,
+   "y": 2600,
+   "width": 1280,
+   "height": 860
+  },
+  {
+   "id": "s2_5",
+   "type": "text",
+   "text": "# 22 · Advanced Slides <grid>\nA deck carried over should work as written.\n\n<grid drag=\"30 20\" drop=\"topright\">\n**drop=topright**\n</grid>\n\n<grid drag=\"30 20\" drop=\"10 72\">\n**drop=10 72**\n</grid>\n",
+   "x": 7680,
+   "y": 2600,
+   "width": 1280,
+   "height": 860
+  },
+  {
+   "id": "s2_6",
+   "type": "text",
+   "text": "# 23 · Markers inside a fence\nThe block below must render as **text**, not be obeyed.\n\n````\n:::pin top-right\nThis is a code sample.\n:::\n````\n",
+   "x": 9200,
+   "y": 2600,
+   "width": 1280,
+   "height": 860
+  },
+  {
+   "id": "g2",
+   "type": "group",
+   "label": "C · Placing a block",
+   "x": 0,
+   "y": 2520,
+   "width": 10560,
+   "height": 1020
+  },
+  {
+   "id": "s3_0",
+   "type": "text",
+   "text": "# 24 · Sizing\n`![[site-1.svg|300]]` — 300 wide, shape kept.\n\n![[Assets/site-1.svg|300]]\n",
+   "x": 80,
+   "y": 3860,
+   "width": 1280,
+   "height": 860
+  },
+  {
+   "id": "s3_1",
+   "type": "text",
+   "text": "# 25 · A forced box\n`![[site-2.svg|420x160]]` — forced into that box.\n\n![[Assets/site-2.svg|420x160]]\n",
+   "x": 1600,
+   "y": 3860,
+   "width": 1280,
+   "height": 860
+  },
+  {
+   "id": "s3_2",
+   "type": "text",
+   "text": "# 26 · Three on one line\nWritten on one line, so they should be a **row**, not a stack.\n\n![[Assets/site-1.svg|200]] ![[Assets/site-2.svg|200]] ![[Assets/site-3.svg|200]]\n",
+   "x": 3120,
+   "y": 3860,
+   "width": 1280,
+   "height": 860
+  },
+  {
+   "id": "s3_3",
+   "type": "text",
+   "text": "#left\n![[Assets/site-4.svg|420]]\n---\n### 27 · #left\nThe picture takes the left, the words the right.\n",
+   "x": 4640,
+   "y": 3860,
+   "width": 1280,
+   "height": 860
+  },
+  {
+   "id": "s3_4",
+   "type": "text",
+   "text": "#full\n# 28 · #full\n![[Assets/site-1.svg]]\n",
+   "x": 6160,
+   "y": 3860,
+   "width": 1280,
+   "height": 860
+  },
+  {
+   "id": "g3",
+   "type": "group",
+   "label": "D · Pictures",
+   "x": 0,
+   "y": 3780,
+   "width": 7520,
+   "height": 1020
+  },
+  {
+   "id": "s4_0",
+   "type": "text",
+   "text": "#compare\n# 29 · #compare\n---\n### Today\n- slow\n- by hand\n- argued about\n---\n### Proposed\n- quick\n- from the model\n- the same every time\n",
+   "x": 80,
+   "y": 5120,
+   "width": 1280,
+   "height": 860
+  },
+  {
+   "id": "s4_1",
+   "type": "text",
+   "text": "# 30 · +++ steps\nThe first frame is here.\n+++\nThis should arrive on the next press.\n+++\nAnd this one after it.\n",
+   "x": 1600,
+   "y": 5120,
+   "width": 1280,
+   "height": 860
+  },
+  {
+   "id": "s4_2",
+   "type": "text",
+   "text": "#band\n# 31 · A table and a list\n---\n### The table\n| Thing | State |\n|---|---|\n| One | `built` |\n| Two | `next` |\n| Three | `after` |\n---\n### The list\n- A bullet\n- Another\n  - Nested under it\n1. Numbered\n2. And again\n",
+   "x": 3120,
+   "y": 5120,
+   "width": 1280,
+   "height": 860
+  },
+  {
+   "id": "g4",
+   "type": "group",
+   "label": "E · The rest",
+   "x": 0,
+   "y": 5040,
+   "width": 4480,
+   "height": 1020
+  },
+  {
+   "id": "deck",
+   "type": "text",
+   "text": "#deck\n\ntheme: Atlas/Themes/Paper.css\nheader: {deck}  ·  {section}  ·  {n}/{total}\nsection: title\n\n# Every combination\n**One card per thing Atlas claims to do, numbered, so a screenshot names\nitself**\n\n31 cards in five sections. Present it, photograph anything that looks wrong,\nand quote its number.\n",
+   "x": 0,
+   "y": -1100,
+   "width": 12080,
+   "height": 860
+  }
+ ],
+ "edges": [
+  {
+   "id": "e1",
+   "fromNode": "s0_0",
+   "toNode": "s0_1",
+   "label": "1."
+  },
+  {
+   "id": "e2",
+   "fromNode": "s0_1",
+   "toNode": "s0_2",
+   "label": "2."
+  },
+  {
+   "id": "e3",
+   "fromNode": "s0_2",
+   "toNode": "s0_3",
+   "label": "3."
+  },
+  {
+   "id": "e4",
+   "fromNode": "s0_3",
+   "toNode": "s0_4",
+   "label": "4."
+  },
+  {
+   "id": "e5",
+   "fromNode": "s0_4",
+   "toNode": "s0_5",
+   "label": "5."
+  },
+  {
+   "id": "e6",
+   "fromNode": "s0_5",
+   "toNode": "s0_6",
+   "label": "6."
+  },
+  {
+   "id": "e7",
+   "fromNode": "s0_6",
+   "toNode": "s0_7",
+   "label": "7."
+  },
+  {
+   "id": "e8",
+   "fromNode": "s0_7",
+   "toNode": "s1_0",
+   "label": "8."
+  },
+  {
+   "id": "e9",
+   "fromNode": "s1_0",
+   "toNode": "s1_1",
+   "label": "9."
+  },
+  {
+   "id": "e10",
+   "fromNode": "s1_1",
+   "toNode": "s1_2",
+   "label": "10."
+  },
+  {
+   "id": "e11",
+   "fromNode": "s1_2",
+   "toNode": "s1_3",
+   "label": "11."
+  },
+  {
+   "id": "e12",
+   "fromNode": "s1_3",
+   "toNode": "s1_4",
+   "label": "12."
+  },
+  {
+   "id": "e13",
+   "fromNode": "s1_4",
+   "toNode": "s1_5",
+   "label": "13."
+  },
+  {
+   "id": "e14",
+   "fromNode": "s1_5",
+   "toNode": "s1_6",
+   "label": "14."
+  },
+  {
+   "id": "e15",
+   "fromNode": "s1_6",
+   "toNode": "s1_7",
+   "label": "15."
+  },
+  {
+   "id": "e16",
+   "fromNode": "s1_7",
+   "toNode": "s2_0",
+   "label": "16."
+  },
+  {
+   "id": "e17",
+   "fromNode": "s2_0",
+   "toNode": "s2_1",
+   "label": "17."
+  },
+  {
+   "id": "e18",
+   "fromNode": "s2_1",
+   "toNode": "s2_2",
+   "label": "18."
+  },
+  {
+   "id": "e19",
+   "fromNode": "s2_2",
+   "toNode": "s2_3",
+   "label": "19."
+  },
+  {
+   "id": "e20",
+   "fromNode": "s2_3",
+   "toNode": "s2_4",
+   "label": "20."
+  },
+  {
+   "id": "e21",
+   "fromNode": "s2_4",
+   "toNode": "s2_5",
+   "label": "21."
+  },
+  {
+   "id": "e22",
+   "fromNode": "s2_5",
+   "toNode": "s2_6",
+   "label": "22."
+  },
+  {
+   "id": "e23",
+   "fromNode": "s2_6",
+   "toNode": "s3_0",
+   "label": "23."
+  },
+  {
+   "id": "e24",
+   "fromNode": "s3_0",
+   "toNode": "s3_1",
+   "label": "24."
+  },
+  {
+   "id": "e25",
+   "fromNode": "s3_1",
+   "toNode": "s3_2",
+   "label": "25."
+  },
+  {
+   "id": "e26",
+   "fromNode": "s3_2",
+   "toNode": "s3_3",
+   "label": "26."
+  },
+  {
+   "id": "e27",
+   "fromNode": "s3_3",
+   "toNode": "s3_4",
+   "label": "27."
+  },
+  {
+   "id": "e28",
+   "fromNode": "s3_4",
+   "toNode": "s4_0",
+   "label": "28."
+  },
+  {
+   "id": "e29",
+   "fromNode": "s4_0",
+   "toNode": "s4_1",
+   "label": "29."
+  },
+  {
+   "id": "e30",
+   "fromNode": "s4_1",
+   "toNode": "s4_2",
+   "label": "30."
+  }
+ ]
+}
