@@ -1061,7 +1061,22 @@ function layOutPictures(card: HTMLElement, body: HTMLElement): void {
 
 	const box = body.createDiv({ cls: kind[1] });
 	body.insertBefore(box, media[0]);
-	for (const el of media) box.appendChild(el);
+	for (const el of media) {
+		// The pictures themselves, not the paragraph they happened to land in.
+		// Written the way anyone writes them — one embed per line, no blank
+		// lines — markdown makes all three one paragraph, and the container
+		// then held a single item: a gallery of one cell, a slide show of one
+		// frame with no controls at all, because a show of one frame has
+		// nothing to control. A paragraph carrying words as well as pictures is
+		// left whole, so a caption stays with what it captions.
+		const pictures = Array.from(el.querySelectorAll<HTMLElement>("img, video"));
+		if (el.tagName === "P" && pictures.length > 1 && !el.textContent?.trim()) {
+			for (const picture of pictures) box.appendChild(picture);
+			el.remove();
+		} else {
+			box.appendChild(el);
+		}
+	}
 }
 
 function isHeading(el: Element): boolean {

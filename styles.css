@@ -1588,6 +1588,29 @@ button.atl-browse-fit:hover { color: var(--ink, var(--text-normal)); border-colo
 .atl-body p.atl-embed-row,
 .atl-body p:has(> .atl-embed) { max-width: none; }
 
+/* A size written on an embed is inline style now, and inline style beats a
+   stylesheet. Where the *container* decides the size — a picture pane in #left
+   or #right, a gallery, a scroll, a slide show, #full — the container has to
+   say so louder than the number written in the card, or `![[plan.png|420]]`
+   turns a full-bleed pane back into a 420-pixel picture in the corner of it. */
+.atl-node.atl-tag-left .atl-pane.has-picture .atl-embed,
+.atl-node.atl-tag-right .atl-pane.has-picture .atl-embed,
+.atl-node.atl-tag-full .atl-body .atl-embed {
+	width: 100% !important;
+	height: 100% !important;
+}
+
+.atl-gallery > .atl-embed,
+.atl-scroll > .atl-embed {
+	width: 100% !important;
+	height: auto !important;
+}
+
+.atl-slideshow .atl-frame-item > .atl-embed {
+	width: 100% !important;
+	height: 100% !important;
+}
+
 /* --- The authoring reference in the settings tab ------------------------ */
 /* Not inside the overlay: these render in Obsidian's own settings pane. */
 

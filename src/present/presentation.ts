@@ -2703,16 +2703,28 @@ ${this.themeCss}`,
 	 * with the numbered badges on the map, which count cards.
 	 */
 	private get cardTotal(): number {
-		return this.scene.stops.filter((s) => s.kind === "node").length;
+		return this.scene.stops.filter((s) => s.kind === "node" && !this.isBanner(s)).length;
 	}
 
+	/**
+	 * The banner is not card one.
+	 *
+	 * It is the deck's own card, presented before the talk starts — the cover,
+	 * not the first thing being said. Counting it put every card one ahead of
+	 * where the deck plainly was, and an exported page numbered the same way
+	 * would disagree with anyone's notes. It is numbered 0, which is to say not
+	 * numbered: nothing shows a number on it.
+	 */
 	private cardNumber(index: number): number {
+		const stop = this.scene.stops[index];
+		if (stop && this.isBanner(stop)) return 0;
 		let seen = 0;
 		for (let i = 0; i <= index; i++) {
-			if (this.scene.stops[i]?.kind === "node") seen++;
+			const s = this.scene.stops[i];
+			if (s?.kind === "node" && !this.isBanner(s)) seen++;
 		}
 		// On a section overview, name the card it is about to show.
-		return this.scene.stops[index]?.kind === "node" ? seen : Math.min(seen + 1, this.cardTotal);
+		return stop?.kind === "node" ? seen : Math.min(seen + 1, this.cardTotal);
 	}
 
 	/**

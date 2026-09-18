@@ -401,11 +401,15 @@ const RUNTIME = `
     for (var c = 0; c < cards.length; c++) cards[c].classList.remove('is-active');
     var active = cardAt(i);
     if (active) active.classList.add('is-active');
-    var total = stops.length;
+    /* Cards, the way the deck counts them: a section overview is a stop but
+       not a card, and the banner is the cover rather than card one, so
+       counting stops here made the exported file disagree with the deck it
+       came from, slide for slide. */
+    var total = cardTotal();
     var name = s.label || s.title;
     counter.textContent =
-      '? for keys  \\u00b7  ' + (i + 1) + ' / ' + total + (name ? '  \\u00b7  ' + name : '');
-    railfill.style.width = (total < 2 ? 100 : (i / (total - 1)) * 100) + '%';
+      '? for keys  \\u00b7  ' + (s.order ? s.order + ' / ' + total : '') + (name ? '  \\u00b7  ' + name : '');
+    railfill.style.width = (stops.length < 2 ? 100 : (i / (stops.length - 1)) * 100) + '%';
     if (map.classList.contains('is-open')) markMap();
   }
 
@@ -413,6 +417,12 @@ const RUNTIME = `
      the deck uses, so a script that stops its animation off camera behaves the
      same here. Without this an exported animation would run for every card in
      the file at once, for as long as the tab stayed open. */
+  function cardTotal() {
+    var n = 0;
+    for (var i = 0; i < stops.length; i++) if (stops[i].order > n) n = stops[i].order;
+    return n;
+  }
+
   function signal(el, kind) {
     var body = el && el.querySelector('.atl-body');
     if (body) body.dispatchEvent(new CustomEvent('atlas:' + kind));
@@ -839,7 +849,10 @@ function printPages(clone: HTMLElement, stops: ExportInput["stops"]): string {
 			for (const f of frames) f.addClass("is-current");
 			show.addClass("print-all");
 		}
-		pages.push(`<div class="page">${page.outerHTML}</div>`);
+		// The number a printed deck is referred to by. A section overview carries
+		// none: it is the same view as the cards under it.
+		const n = stop.order ? ` data-n="${stop.order}"` : "";
+		pages.push(`<div class="page"${n}>${page.outerHTML}</div>`);
 	}
 	return pages.join("\n");
 }
@@ -988,7 +1001,17 @@ export async function buildDeckHtml(
     html, body { height: auto; overflow: visible; background: #fff; }
     #view, #bar { display: none !important; }
     #print { display: block; }
-    .page { page-break-after: always; break-after: page; padding: 0; }
+    .page { page-break-after: always; break-after: page; padding: 0; position: relative; }
+    /* The card number, where a printed deck is read from: bottom right, on
+       every page that is a card. */
+    .page[data-n]::after {
+      content: attr(data-n);
+      position: absolute;
+      right: 2mm;
+      bottom: 2mm;
+      font: 10pt/1 ui-sans-serif, system-ui, sans-serif;
+      color: #777;
+    }
     .page:last-child { page-break-after: auto; break-after: auto; }
     .atl-node { box-shadow: none !important; border: 1px solid #ddd; }
     /* #print carries .atl-overlay so the theme's tokens reach it, but the
