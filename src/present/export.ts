@@ -1469,7 +1469,7 @@ function notesPage(input: ExportInput, deckHref: string): string {
 ${tokens}
   html, body { margin: 0; }
   body { background: var(--backdrop, var(--paper, #fff)); }
-  .atl-notes {
+  .wu-page {
     max-width: 44rem;
     margin: 0 auto;
     padding: 5vh 20px 12vh;
@@ -1478,19 +1478,19 @@ ${tokens}
     font-size: 17px;
     line-height: 1.62;
   }
-  .atl-notes header {
+  .wu-page header {
     border-bottom: 1px solid var(--rule, #d7dbd7);
     padding-bottom: 18px;
     margin-bottom: 30px;
   }
-  .atl-notes h1 {
+  .wu-page h1 {
     font-family: var(--display-font, var(--body-font));
     font-size: 2.1em;
     line-height: 1.1;
     margin: 0 0 6px;
     color: var(--ink, #14232a);
   }
-  .atl-notes .when { color: var(--ink-soft, #4e5f66); font-size: 0.9em; }
+  .wu-page .when { color: var(--ink-soft, #4e5f66); font-size: 0.9em; }
   .wu-entry { margin: 0 0 30px; }
   .wu-entry h2 {
     font-family: var(--display-font, var(--body-font));
@@ -1510,22 +1510,22 @@ ${tokens}
     border-radius: 4px;
     padding: 0.1em 0.35em;
   }
-  .atl-notes footer {
+  .wu-page footer {
     border-top: 1px solid var(--rule, #d7dbd7);
     margin-top: 40px;
     padding-top: 16px;
     font-size: 0.86em;
     color: var(--ink-soft, #4e5f66);
   }
-  .atl-notes a { color: var(--accent, #1d5a78); }
+  .wu-page a { color: var(--accent, #1d5a78); }
   @media print {
-    .atl-notes { max-width: none; padding: 0; }
-    .atl-notes footer { display: none; }
+    .wu-page { max-width: none; padding: 0; }
+    .wu-page footer { display: none; }
   }
 </style>
 </head>
 <body>
-<div class="atl-notes">
+<div class="wu-page">
 ${writeupBody(input)}
 <footer>Written while presenting, and read-only here. <a href="${deckHref}">Open the deck</a></footer>
 </div>
