@@ -1222,23 +1222,41 @@ button.atl-peek-close {
 	pointer-events: none;
 }
 
-.atl-overlay .atl-show-arrow {
-	pointer-events: auto;
-	cursor: pointer;
-	padding: 0 6px;
+/* Obsidian styles every <button> inside a view — a border, a fill, a radius,
+   a minimum width — and a bare class does not outrank it, which is why an
+   arrow and a dot both came out as pills with boxes round them. The element
+   plus the class does, and it is the third time this has caught this plugin. */
+.atl-overlay button.atl-show-arrow,
+.atl-overlay button.atl-show-dot {
+	appearance: none;
+	-webkit-appearance: none;
 	border: 0;
 	background: none;
 	box-shadow: none;
+	min-width: 0;
+	min-height: 0;
+	padding: 0;
+	margin: 0;
+	font-family: inherit;
+}
+
+.atl-overlay button.atl-show-arrow {
+	pointer-events: auto;
+	cursor: pointer;
+	padding: 0 6px;
 	color: var(--ink, var(--text-normal));
 	font-size: 30px;
 	line-height: 1;
-	opacity: 0.45;
+	opacity: 0.5;
 	text-shadow: 0 1px 6px var(--paper, var(--background-primary));
-	transition: opacity 180ms ease;
+	transition: opacity 180ms ease, color 180ms ease;
 }
 
-.atl-overlay .atl-show-arrow:hover { opacity: 1; }
-.atl-overlay .atl-show-arrow:disabled { opacity: 0.12; cursor: default; }
+.atl-overlay button.atl-show-arrow:hover {
+	opacity: 1;
+	color: var(--atl-accent, var(--accent, var(--interactive-accent)));
+}
+.atl-overlay button.atl-show-arrow:disabled { opacity: 0.12; cursor: default; }
 
 .atl-show-dots {
 	display: flex;
@@ -1247,23 +1265,25 @@ button.atl-peek-close {
 	pointer-events: none;
 }
 
-.atl-overlay .atl-show-dot {
+/* A dot, not a button that happens to be round: the theme's ink at a third
+   strength, the theme's accent for the one you are looking at. */
+.atl-overlay button.atl-show-dot {
 	pointer-events: auto;
 	width: 9px;
 	height: 9px;
-	padding: 0;
 	border-radius: 50%;
-	border: 1px solid color-mix(in srgb, var(--ink, var(--text-normal)) 45%, transparent);
-	background: color-mix(in srgb, var(--paper, var(--background-primary)) 55%, transparent);
-	box-shadow: none;
+	background: color-mix(in srgb, var(--ink, var(--text-normal)) 34%, transparent);
 	cursor: pointer;
 	transition: background 200ms ease, transform 200ms ease;
 }
 
-.atl-overlay .atl-show-dot.is-current {
-	background: var(--atl-accent);
-	border-color: var(--atl-accent);
-	transform: scale(1.25);
+.atl-overlay button.atl-show-dot:hover {
+	background: color-mix(in srgb, var(--ink, var(--text-normal)) 60%, transparent);
+}
+
+.atl-overlay button.atl-show-dot.is-current {
+	background: var(--atl-accent, var(--accent, var(--interactive-accent)));
+	transform: scale(1.3);
 }
 
 /* --- Vault browser ------------------------------------------------------ */
