@@ -616,6 +616,15 @@ export class Presentation extends Component {
 				el.style.setProperty("--section", `var(--section-${(at % 6) + 1}, var(--atl-accent))`);
 			}
 			this.nodeEls.set(n.id, el);
+			// The banner is marked on the card, not only on the overlay while it
+			// happens to be on screen. The rules that centre its panes are
+			// written `.atl-node.is-banner`, so with the class living on the
+			// overlay alone they matched nothing — and an exported file, which
+			// has every card at once and no notion of which is current, could
+			// never have carried that state anyway.
+			if (this.scene.meta.__body && n.id === this.scene.stops[0]?.node.id) {
+				el.addClass("is-banner");
+			}
 			const body = el.querySelector<HTMLElement>(".atl-body");
 			if (body) {
 				const albums = slideshowsIn(body).map(

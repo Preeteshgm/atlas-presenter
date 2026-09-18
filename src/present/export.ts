@@ -323,11 +323,27 @@ const RUNTIME = `
   function cardAt(n) {
     return stage.querySelector('[data-node-id="' + stops[n].nodeId + '"]');
   }
+  /* querySelectorAll does not cross into a shadow root, and an HTML card's
+     content is inside one — rebuilt when this page loads. So a card that
+     reveals itself a step at a time had its steps found in the deck and not
+     found here: they stayed at opacity 0 and the card came out blank. The
+     hosts are asked as well as the card. */
+  function deep(el, selector) {
+    if (!el) return [];
+    var out = [].slice.call(el.querySelectorAll(selector));
+    var all = [].slice.call(el.querySelectorAll('*'));
+    for (var n = 0; n < all.length; n++) {
+      if (all[n].shadowRoot) {
+        out = out.concat([].slice.call(all[n].shadowRoot.querySelectorAll(selector)));
+      }
+    }
+    return out;
+  }
   function stepsIn(el) {
-    return el ? [].slice.call(el.querySelectorAll('.atl-step')) : [];
+    return deep(el, '.atl-step');
   }
   function showsIn(el) {
-    return el ? [].slice.call(el.querySelectorAll('.atl-slideshow')) : [];
+    return deep(el, '.atl-slideshow');
   }
   function framesIn(show) {
     return [].slice.call(show.querySelectorAll('.atl-frame-item'));
