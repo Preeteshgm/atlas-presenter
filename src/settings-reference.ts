@@ -135,7 +135,8 @@ export function renderReference(containerEl: HTMLElement): void {
 		["#dark", "The same card, inverted. Useful for a point you want to land."],
 		["#agenda", "A running order: the list is set large and numbered, one line to a row."],
 		["#end", "The closing card — thanks, a contact, a next step, centred."],
-		["#full", "A picture with no margin, filling the card."],
+		["#full", "A picture with no margin, filling the card. Words on it take their line; the picture fills what is left and crops."],
+		["#focus-left", "Keep the left of a cropped picture. #focus-right and #focus-centre are the other two; centred is what happens anyway."],
 		["#split", "Two flowed columns — text spills out of the first into the second. For a deliberate split, use #two."],
 	] as [string, string][]) {
 		entry(roles, tag, what, tag === "(no tag)" ? undefined : tag);

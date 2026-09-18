@@ -1648,6 +1648,16 @@ button.atl-browse-fit:hover { color: var(--ink, var(--text-normal)); border-colo
 	height: 100% !important;
 }
 
+/* Which part of a cropped picture survives.
+   A picture that fills its pane or its box is cropped to fit, and the crop is
+   centred — which is right until the thing worth seeing is at one end of it.
+   Three words, no more: the card says #focus-left or #focus-right and every
+   picture on it keeps that edge. */
+.atl-node.atl-tag-focus-left .atl-embed { object-position: left center; }
+.atl-node.atl-tag-focus-right .atl-embed { object-position: right center; }
+.atl-node.atl-tag-focus-centre .atl-embed,
+.atl-node.atl-tag-focus-center .atl-embed { object-position: center; }
+
 /* --- The authoring reference in the settings tab ------------------------ */
 /* Not inside the overlay: these render in Obsidian's own settings pane. */
 
