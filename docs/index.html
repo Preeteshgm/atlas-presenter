@@ -787,6 +787,7 @@ Controls plan, rev A · **Sam Avery**</code></pre>
 	<div><h4>Gold</h4><p>Near-black with a gold plate at the head of every card.</p></div>
 	<div><h4>Onyx</h4><p>A drafting grid behind flat black cards, one cold accent.</p></div>
 	<div><h4>Bronze</h4><p>Warm black, no card edges, big type, deep shadow.</p></div>
+	<div><h4>Glass</h4><p>Translucent cards, frosted — for a deck with a picture behind it.</p></div>
 </div>
 
 <p>
@@ -806,6 +807,34 @@ Controls plan, rev A · **Sam Avery**</code></pre>
 	<code>Atlas/Themes/Backdrops.css</code> lists two dozen ready to paste, and
 	<code>Atlas/Backdrops/</code> holds the same set as image files if you would
 	rather pick one in settings.
+</p>
+
+<h3>A picture behind the cards</h3>
+
+<p>
+	Two lines on the <code>#deck</code> card, and they beat both the theme's
+	backdrop and any <code>backdrop:</code> line:
+</p>
+
+<pre><code>#deck
+
+theme: Atlas/Themes/Glass.css
+image: Atlas/Backdrops/Harbour fall.svg
+dim: 0.35</code></pre>
+
+<p>
+	<code>image:</code> is a <b>vault path</b> — no brackets, no exclamation mark,
+	and spaces in the name are fine. <code>dim:</code> is 0 to 1 and lays black over
+	the picture so the deck stays readable: photographs usually want 0.45 to 0.6,
+	the flat SVG backdrops 0.2 to 0.4.
+</p>
+
+<p>
+	A backdrop wants one tone across the middle where the cards sit, detail only at
+	the edges, and no focal point of its own — the card is the focal point.
+	<b>Glass</b> is the theme built for this case: translucent cards over a frosted
+	blur, so the picture carries colour through the deck rather than hiding behind
+	it.
 </p>
 
 <p>

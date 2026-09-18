@@ -1,0 +1,177 @@
+{
+ "nodes": [
+  {
+   "id": "c0_0",
+   "type": "text",
+   "text": "#band\n# Six lines are a theme\nA theme is one CSS file. It sets values; the plugin already knows what to do\nwith them. You never write a selector unless you want one.\n---\n````\n/* Atlas/Themes/Brass.css */\n.atl-overlay {\n\t--backdrop: linear-gradient(180deg, #2A2118, #140F0A);\n\t--paper: #F6F1E7;\n\t--ink: #211A12;\n\t--accent: #B5842F;\n}\n````\n---\n### That is a working theme\nEverything not mentioned falls back to something sensible, so a half-written\ntheme is never a broken one. Add a line when you have an opinion; delete a\nline to take the opinion back.\n",
+   "x": 80,
+   "y": 80,
+   "width": 1280,
+   "height": 860
+  },
+  {
+   "id": "c0_1",
+   "type": "text",
+   "text": "#band\n# The file, and how Atlas finds it\n---\n### The two rules\n1. Keep it in a folder called **Themes**. Atlas lists those first, by name.\n2. The file must contain `.atl-` somewhere. Keeping the `.atl-overlay {` line\nsatisfies that on its own.\n\nThere is no register step and no reload.\n---\n### Picking it\n**For every deck**: Settings, Atlas, *Theme stylesheet*.\n\n**For one deck**: a line on that canvas's `#deck` card.\n\n`theme: Atlas/Themes/Brass.css`\n\nThe deck's own line wins, so a client deck and an internal one can look\nnothing alike without either touching settings.\n",
+   "x": 1600,
+   "y": 80,
+   "width": 1280,
+   "height": 860
+  },
+  {
+   "id": "c0_2",
+   "type": "text",
+   "text": "#band\n# Atlas/Themes/_Template.css\nCopy it, rename it, edit the values. It is the reference as well as the\nstarting point: every token Atlas reads is in it, in groups, with a comment\nsaying what it touches.\n---\n### The groups\n- **backdrop** - what sits behind the cards\n- **paper and ink** - the two that matter; the rest are shades between\n- **accent** - links, markers, the live card, the `#stat` number\n- **cards** - radius, background, border, shadow, ring\n- **sections** - six colours, cycling\n- **type** - three fonts, a base size, and the scale in ems\n- **roles that invert** - `#section` and `#dark` backgrounds\n---\n### Two worth knowing\n`--card` takes a gradient, not just a colour. `--atl-inactive` is how visible\nthe off-camera cards are; set it to 0 and they disappear entirely.\n",
+   "x": 3120,
+   "y": 80,
+   "width": 1280,
+   "height": 860
+  },
+  {
+   "id": "c0_3",
+   "type": "text",
+   "text": "#two\n# Choosing the five\n---\n### Set these first\n`--paper` and `--ink` decide the deck. Everything else can be left alone and\nthe theme will already look deliberate.\n\n`--ink-soft` about a third of the way from ink to paper.\n`--rule` near paper, not near ink. A hairline that shouts is a mistake.\n`--wash` is ink at six percent.\n---\n### The accent\nOne colour, used in eight places. Test it twice: as text on `--paper`, and as\n`--accent-ink` text drawn **on** the accent.\n\n### Dark themes\nSwap paper and ink, then check `--card-shadow`: a black shadow on a dark\nbackdrop does nothing. Onyx, Bronze and Midnight raise the card with a\nlighter border instead.\n",
+   "x": 4640,
+   "y": 80,
+   "width": 1280,
+   "height": 860
+  },
+  {
+   "id": "c0_4",
+   "type": "text",
+   "text": "#band\n# When you do want a selector\nWrite one only when a role should **behave** differently, not just look\ndifferent. Any tag on a card becomes a class, so a tag of your own needs no\nplugin change at all.\n---\n````\n/* #brand becomes .atl-tag-brand */\n.atl-node.atl-tag-brand:not(.atl-node-group) {\n\tbackground: linear-gradient(140deg, #123, #245);\n\tborder-color: transparent;\n}\n.atl-node.atl-tag-brand .atl-body { color: #fff; }\n````\n---\n### The names you need\n`.atl-overlay` the deck, `.atl-node` a card, `.atl-node-group` a section box,\n`.atl-body` the text, `.atl-tag-NAME` any tag.\n\nAlways add `:not(.atl-node-group)` when you mean a card, or the section boxes\ntake the rule too.\n",
+   "x": 6160,
+   "y": 80,
+   "width": 1280,
+   "height": 860
+  },
+  {
+   "id": "g0",
+   "type": "group",
+   "label": "Writing a theme",
+   "x": 0,
+   "y": 0,
+   "width": 7520,
+   "height": 1020
+  },
+  {
+   "id": "c1_0",
+   "type": "text",
+   "text": "#band\n# What is behind the cards\nThree ways, and they override each other in this order. None is needed: a\ntheme already brings its own.\n---\n### 1. The theme\n`--backdrop` in the theme file. Any CSS background: a colour, a gradient, a\nrepeating pattern. `Atlas/Themes/Backdrops.css` has two dozen to paste.\n---\n### 2. A line on the #deck card\n`backdrop: linear-gradient(180deg, #151B26, #07090E)`\n\nThe same thing, for one deck, without editing a theme.\n---\n### 3. A picture\n`image:` and `dim:`. This is the one that takes a file, and it beats both of\nthe above.\n",
+   "x": 80,
+   "y": 1340,
+   "width": 1280,
+   "height": 860
+  },
+  {
+   "id": "c1_1",
+   "type": "text",
+   "text": "#band\n# image: and dim:\n---\n````\n#deck\n\ntheme: Atlas/Themes/Glass.css\nimage: Atlas/Backdrops/Harbour fall.svg\ndim: 0.35\nlogo: Atlas/Assets/mark.png\n\n# Northwind Depot\nThe controls upgrade\n````\n---\n### The two lines\n`image:` is a **vault path**, not a markdown embed. No brackets, no\nexclamation mark, and spaces in the name are fine.\n\n`dim:` is 0 to 1. It lays black over the picture so the deck stays readable.\n0 leaves the picture alone; 1 is a black screen. Photographs usually want\n0.45 to 0.6; the flat SVG backdrops want 0.2 to 0.4.\n",
+   "x": 1600,
+   "y": 1340,
+   "width": 1280,
+   "height": 860
+  },
+  {
+   "id": "c1_2",
+   "type": "text",
+   "text": "#two\n# What makes a good backdrop\n---\n### It wants\n- One tone across the middle, where the cards sit\n- Detail at the edges, if anywhere\n- No focal point. The card is the focal point\n- Width: it is cropped to the screen, not fitted\n\n`Atlas/Backdrops` holds two dozen SVGs built for this. Being vector, they\ncost nothing and never go soft on a large screen.\n---\n### It does not want\n- Faces, text, or a horizon through the middle\n- A photograph straight off a phone at full size\n- Anything you would have to dim past 0.7 to survive. At that point you have\nchosen a dark colour with extra steps\n",
+   "x": 3120,
+   "y": 1340,
+   "width": 1280,
+   "height": 860
+  },
+  {
+   "id": "c1_3",
+   "type": "text",
+   "text": "#band\n# Atlas/Themes/Glass.css\nEvery other theme's cards are opaque, which is right: the picture is scenery.\nGlass is the exception. Translucent cards over a frosted blur, so the picture\ncarries colour through the whole deck.\n---\n### How it does it\n`--paper: rgb(255 255 255 / 0.86)` and one selector adding\n`backdrop-filter: blur(14px)`. That is the whole trick, and it is four lines\nto copy into a theme of your own.\n---\n### When to use it\nA launch deck, a site with a photograph worth showing, an opening section.\nNot a deck of tables: translucency and dense figures fight, and the figures\nlose.\n",
+   "x": 4640,
+   "y": 1340,
+   "width": 1280,
+   "height": 860
+  },
+  {
+   "id": "c1_4",
+   "type": "text",
+   "text": "#band\n# Present these\nFour short decks, the same three cards each, with a different picture and\ntheme behind them. Open one, press Space, and decide which treatment you\nwant.\n---\n### Atlas/Image backdrops/\n**Dawn** - Glass over a pale sweep, dim 0.22. The light one.\n\n**Harbour fall** - Harbour over its own backdrop, dim 0.35.\n\n**Deep water** - Midnight, dim 0.5. Dark, quiet, a lot of contrast.\n\n**Boardroom navy** - Onyx, dim 0.45. The formal one.\n---\nChange one number in each `#deck` card and present again. `dim:` is the\nfastest thing in Atlas to form an opinion about.\n",
+   "x": 6160,
+   "y": 1340,
+   "width": 1280,
+   "height": 860
+  },
+  {
+   "id": "g1",
+   "type": "group",
+   "label": "A picture behind the cards",
+   "x": 0,
+   "y": 1260,
+   "width": 7520,
+   "height": 1020
+  },
+  {
+   "id": "deck",
+   "type": "text",
+   "text": "#deck\n\ntheme: Atlas/Themes/Glass.css\nimage: Atlas/Backdrops/Slant slate.svg\ndim: 0.32\nheader: {deck}  ·  {section}  ·  {n}/{total}\n\n# Themes and backdrops\n**Writing a theme of your own, and putting a picture behind the cards**\n\nThis deck is presenting what it describes: Glass, over Slant slate, dimmed to\n0.32. The `#deck` card is four lines long.\n",
+   "x": 0,
+   "y": -1100,
+   "width": 7520,
+   "height": 860
+  }
+ ],
+ "edges": [
+  {
+   "id": "e1",
+   "fromNode": "c0_0",
+   "toNode": "c0_1",
+   "label": "1."
+  },
+  {
+   "id": "e2",
+   "fromNode": "c0_1",
+   "toNode": "c0_2",
+   "label": "2."
+  },
+  {
+   "id": "e3",
+   "fromNode": "c0_2",
+   "toNode": "c0_3",
+   "label": "3."
+  },
+  {
+   "id": "e4",
+   "fromNode": "c0_3",
+   "toNode": "c0_4",
+   "label": "4."
+  },
+  {
+   "id": "e5",
+   "fromNode": "c0_4",
+   "toNode": "c1_0",
+   "label": "5."
+  },
+  {
+   "id": "e6",
+   "fromNode": "c1_0",
+   "toNode": "c1_1",
+   "label": "6."
+  },
+  {
+   "id": "e7",
+   "fromNode": "c1_1",
+   "toNode": "c1_2",
+   "label": "7."
+  },
+  {
+   "id": "e8",
+   "fromNode": "c1_2",
+   "toNode": "c1_3",
+   "label": "8."
+  },
+  {
+   "id": "e9",
+   "fromNode": "c1_3",
+   "toNode": "c1_4",
+   "label": "9."
+  }
+ ]
+}

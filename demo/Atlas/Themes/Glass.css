@@ -1,0 +1,125 @@
+/* ===========================================================================
+   Glass — a theme made to sit on top of a picture.
+
+   Every other theme paints its own backdrop and the cards sit on it, opaque.
+   This one leaves the cards translucent and frosts what is behind them, so a
+   photograph or a pattern set with `image:` on the #deck card shows through
+   without the text ever having to compete with it.
+
+   Use it with a picture:
+
+     #deck
+
+     theme: Atlas/Themes/Glass.css
+     image: Atlas/Backdrops/Harbour fall.svg
+     dim: 0.35
+
+   Without one it still works: the gradient below stands in.
+   =========================================================================== */
+
+.atl-overlay {
+
+	/* Only seen when the deck sets no image of its own. */
+	--backdrop: linear-gradient(160deg, #26333D, #10181F 60%, #1B2A33);
+
+	/* Paper with alpha is the whole idea. Raise it towards 1 if the picture
+	   you chose is busy; drop it towards 0.6 if it is quiet and you want
+	   more of it. */
+	--paper: rgb(255 255 255 / 0.86);
+	--ink: #17222B;
+	--ink-soft: #4B5A66;
+	--ink-faint: rgb(255 255 255 / 0.55);   /* drawn on the picture, not a card */
+	--rule: rgb(23 34 43 / 0.16);
+	--wash: rgb(23 34 43 / 0.07);
+	--panel: rgb(255 255 255 / 0.95);
+
+	--accent: #0E7C9B;
+	--accent-soft: #6FC3D8;
+	--accent-ink: #FFFFFF;
+
+	--warn: #B5762A;
+	--highlight: #FCE9A0;
+	--highlight-ink: #17222B;
+
+	--radius: 18px;
+	--card: var(--paper);
+	--card-border: 1px solid rgb(255 255 255 / 0.55);
+	--card-shadow: 0 18px 60px rgb(0 0 0 / 0.38);
+	--card-ring: none;
+	--card-ring-offset: 3px;
+	--atl-inactive: 0.16;
+
+	--section-1: #0E7C9B;
+	--section-2: #B06A2C;
+	--section-3: #3F7A58;
+	--section-4: #6B4270;
+	--section-5: #2D5580;
+	--section-6: #7A6A2E;
+
+	--group-size: 96px;
+	--group-weight: 700;
+	--group-tracking: -0.015em;
+	--group-transform: none;
+	--group-fill: transparent;
+	--group-border: 2px dashed rgb(255 255 255 / 0.35);
+	--group-radius: 20px;
+	--group-opacity: 0.7;
+
+	--display-font: 'Archivo', var(--font-interface), sans-serif;
+	--body-font: 'IBM Plex Sans', var(--font-interface), sans-serif;
+	--mono-font: 'IBM Plex Mono', var(--font-monospace), monospace;
+
+	--body-size: 19px;
+	--measure: 60ch;
+	--heading-weight: 700;
+	--heading-transform: none;
+	--tracking: -0.012em;
+
+	--scale-h1: 2.9em;
+	--scale-h2: 2.05em;
+	--scale-h3: 1.35em;
+	--scale-title: 4.2em;
+	--scale-section: 3.2em;
+	--scale-quote: 2.0em;
+	--scale-stat: 6.8em;
+
+	--code-bg: rgb(23 34 43 / 0.08);
+	--code-ink: var(--ink);
+	--code-rule: var(--rule);
+	--code-size: 0.78em;
+
+	/* A divider is the one card that should stop the picture dead. */
+	--section-bg: rgb(16 24 31 / 0.88);
+	--section-ink: #F2F6F8;
+	--section-border: transparent;
+	--dark-bg: rgb(16 24 31 / 0.88);
+	--dark-ink: #F2F6F8;
+	--dark-border: transparent;
+	--stat-ink: var(--accent);
+
+	--media-radius: 10px;
+
+	/* Less than most themes want: the cards are doing the work of keeping
+	   text readable, so the picture can stay lighter than usual. */
+	--atl-dim: 0.30;
+	--atl-band: 24;
+}
+
+/* ---------------------------------------------------------------------------
+   The frost. This is what makes the translucency read as glass rather than as
+   a card someone forgot to finish: the picture behind is blurred, so it gives
+   colour and depth without giving detail for the eye to chase.
+   --------------------------------------------------------------------------- */
+.atl-node:not(.atl-node-group) {
+	backdrop-filter: blur(14px) saturate(1.25);
+	-webkit-backdrop-filter: blur(14px) saturate(1.25);
+}
+
+/* The banner and the dividers sit over the picture more heavily, so they get
+   a stronger blur and no hairline. */
+.atl-node.atl-tag-banner:not(.atl-node-group),
+.atl-node.atl-tag-section:not(.atl-node-group) {
+	backdrop-filter: blur(22px) saturate(1.1);
+	-webkit-backdrop-filter: blur(22px) saturate(1.1);
+	border-color: transparent;
+}

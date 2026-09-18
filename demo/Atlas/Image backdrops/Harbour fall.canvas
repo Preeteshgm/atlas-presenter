@@ -1,0 +1,63 @@
+{
+ "nodes": [
+  {
+   "id": "c0_0",
+   "type": "text",
+   "text": "#band\n# How it reads with text\nThe only question a backdrop has to answer: can this be read across a room,\nfor twenty minutes, without anyone squinting.\n---\n### Raise dim: if\n- The card edges disappear into the picture\n- A heading over the picture is hard to find\n- The picture keeps catching your eye mid-sentence\n---\n### Lower dim: if\n- The picture may as well be a flat colour\n- The deck feels heavier than what it is saying\n",
+   "x": 80,
+   "y": 80,
+   "width": 1280,
+   "height": 860
+  },
+  {
+   "id": "c0_1",
+   "type": "text",
+   "text": "#stat\n# 0.35\n\nThe dim on this deck. One line on the `#deck` card, and the only number here\nworth arguing about.\n",
+   "x": 1600,
+   "y": 80,
+   "width": 1280,
+   "height": 860
+  },
+  {
+   "id": "c0_2",
+   "type": "text",
+   "text": "#section\n# Over a picture\nA divider is the one card that should stop the picture dead.\n",
+   "x": 3120,
+   "y": 80,
+   "width": 1280,
+   "height": 860
+  },
+  {
+   "id": "g0",
+   "type": "group",
+   "label": "The look",
+   "x": 0,
+   "y": 0,
+   "width": 4480,
+   "height": 1020
+  },
+  {
+   "id": "deck",
+   "type": "text",
+   "text": "#deck\n\ntheme: Atlas/Themes/Harbour.css\nimage: Atlas/Backdrops/Harbour fall.svg\ndim: 0.35\nheader: {deck}  ·  {n}/{total}\n\n# Harbour fall\n**A theme presented over its own backdrop, as a picture rather than a gradient.**\n\n`Harbour.css` · `dim: 0.35`\n",
+   "x": 0,
+   "y": -1100,
+   "width": 4480,
+   "height": 860
+  }
+ ],
+ "edges": [
+  {
+   "id": "e1",
+   "fromNode": "c0_0",
+   "toNode": "c0_1",
+   "label": "1."
+  },
+  {
+   "id": "e2",
+   "fromNode": "c0_1",
+   "toNode": "c0_2",
+   "label": "2."
+  }
+ ]
+}

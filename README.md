@@ -471,6 +471,7 @@ bullets and real checkboxes for a task list.
 | **Gold** | Near-black with a gold plate at the head of every card |
 | **Onyx** | A drafting grid behind flat black cards, one cold accent |
 | **Bronze** | Warm black, no card edges, big type, deep shadow |
+| **Glass** | Translucent cards, frosted, for a deck with a picture behind it |
 
 **Settings → Theme and background → Theme stylesheet**, which lists only
 stylesheets that are actually Atlas themes — a vault that has exported a reveal.js
@@ -481,6 +482,28 @@ on a canvas's `#deck` card, to change one deck without touching settings.
 decks need. `backdrop:` on a `#deck` card overrides it for that canvas, and
 `Atlas/Backdrops/` holds two dozen as image files if you would rather pick one in
 settings.
+
+### A picture behind the cards
+
+Two lines on the `#deck` card, and they beat both the theme's backdrop and any
+`backdrop:` line:
+
+```
+#deck
+
+theme: Atlas/Themes/Glass.css
+image: Atlas/Backdrops/Harbour fall.svg
+dim: 0.35
+```
+
+`image:` is a **vault path** — no brackets, no exclamation mark, spaces are fine.
+`dim:` is 0 to 1 and lays black over the picture so the deck stays readable:
+photographs usually want 0.45 to 0.6, the flat SVG backdrops 0.2 to 0.4.
+
+A backdrop wants one tone across the middle where the cards sit, detail only at
+the edges, and no focal point of its own. **Glass** is the theme built for this
+case: translucent cards over a frosted blur, so the picture carries colour
+through the deck instead of hiding behind it.
 
 ### Making your own
 
