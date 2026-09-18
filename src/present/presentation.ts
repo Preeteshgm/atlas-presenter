@@ -408,11 +408,11 @@ export class Presentation extends Component {
 			// Through a custom property rather than straight onto the element,
 			// so the banner can show the same logo larger without fighting an
 			// inline style.
-			row.style.setProperty("--atl-logo-height", `${s.logoHeight}px`);
+			row.setCssProps({ "--atl-logo-height": `${s.logoHeight}px` });
 			for (const path of logos) {
 				const logo = row.createEl("img", { cls: "atl-logo" });
 				logo.src = resourcePath(this.app, path);
-				logo.style.height = "var(--atl-logo-height)";
+				logo.setCssStyles({ height: "var(--atl-logo-height)" });
 			}
 		}
 	}
