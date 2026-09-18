@@ -34,7 +34,7 @@
 		{"id":"p6_1","type":"text","text":"# P20 · Sound\nAn audio file becomes a player sized for the card.\n\n![[Assets/tone.wav]]\n","x":1600,"y":7640,"width":1280,"height":860},
 		{"id":"p6_2","type":"text","text":"#two\n# P21 · A picture against a drawing\n---\n### Photograph\n![[Assets/site-2.svg|300]]\n---\n### Drawing\n![[Assets/motion.svg|300]]\n","x":3120,"y":7640,"width":1280,"height":860},
 		{"id":"g6","type":"group","label":"E · Other media","x":0,"y":7560,"width":4480,"height":1020},
-		{"id":"deck","type":"text","text":"#deck\n\ntheme: Atlas/Themes/Paper.css\nheader: {deck}  ·  {section}\n\n# Pictures and media\n**Every way a picture can be put on a card, in one place**\n\nAdd to this canvas rather than starting another: a new case belongs in the\nsection it tests, numbered after the last one.\n","x":0,"y":-1100,"width":7520,"height":860}
+		{"id":"deck","type":"text","text":"#deck\n\ntheme: Atlas/Themes/Paper.css\nheader: {deck}  ·  {section}\n\n#right #focus-right #fade-left\n# Pictures and media\n**Every way a picture can be put on a card, in one place**\n\nAdd to this canvas rather than starting another: a new case belongs in the\nsection it tests, numbered after the last one.\n---\n![[Assets/site-4.svg|520]]\n","x":0,"y":-1100,"width":7520,"height":860}
 	],
 	"edges":[
 		{"id":"e1","fromNode":"p0_0","toNode":"p0_1","label":"1."},
