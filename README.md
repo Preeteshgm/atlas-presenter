@@ -677,6 +677,14 @@ any sound or video beside it under a relative link. Share the folder — or zip
 it — and the deck is complete. A deck with no recordings in it is a folder
 holding one file, which you can send on its own.
 
+### The write-up, beside the deck
+
+Turn on **Export the write-up beside the deck** and the remarks you typed on each
+card travel with it: a second page in the same folder, one card after another in
+the order you presented, and a **Notes** button on the deck that opens the same
+thing over the cards. Read-only, text only, off by default — those remarks are
+written for you.
+
 ### For PDF, print it
 
 The exported file carries a print stylesheet: one card per landscape page, the
