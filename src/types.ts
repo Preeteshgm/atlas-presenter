@@ -152,6 +152,8 @@ export interface AtlasSettings {
 	timer: TimerMode;
 	/** Where a written-up session is filed. Recordings go in a folder under it. */
 	minutesFolder: string;
+	/** Where an exported deck's folder is written. Blank means the vault root. */
+	exportFolder: string;
 	/**
 	 * One note per canvas, beside it, or a new file every session.
 	 *
@@ -250,6 +252,7 @@ export const DEFAULT_SETTINGS: AtlasSettings = {
 	showProgress: true,
 	timer: "off",
 	minutesFolder: "Meetings",
+	exportFolder: "Atlas/Exports",
 	deckNotes: true,
 	transcribeUrl: "",
 	askUrl: "",

@@ -652,6 +652,14 @@ There is no auto-refresh, because a page opened from `file://` cannot watch your
 vault. Re-exporting overwrites the same path, so the loop is edit → export →
 `F5`.
 
+### Where it lands
+
+Each deck gets a **folder of its own** under **Settings → Atlas → Export folder**
+(`Atlas/Exports` by default): the HTML file, with every picture inside it, and
+any sound or video beside it under a relative link. Share the folder — or zip
+it — and the deck is complete. A deck with no recordings in it is a folder
+holding one file, which you can send on its own.
+
 ### For PDF, print it
 
 The exported file carries a print stylesheet: one card per landscape page, the

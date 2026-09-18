@@ -1369,6 +1369,7 @@ ${this.themeCss}`,
 				sectionTitles: this.settings.sectionTitles,
 			},
 			openAfter: this.settings.openExport,
+			exportFolder: this.settings.exportFolder,
 			logo: this.settings.logo
 				? {
 						srcs: this.settings.logo

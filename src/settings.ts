@@ -693,6 +693,23 @@ export class AtlasSettingTab extends PluginSettingTab {
 			);
 
 		new Setting(containerEl)
+			.setName("Export folder")
+			.setDesc(
+				"Each exported deck gets a folder of its own here, holding the HTML file " +
+					"and any sound or video it uses. Share the folder and the deck is " +
+					"complete. Leave this empty to write to the vault root."
+			)
+			.addText((c) =>
+				c
+					.setPlaceholder("Atlas/Exports")
+					.setValue(s.exportFolder)
+					.onChange(async (v) => {
+						s.exportFolder = v.trim();
+						await this.save();
+					})
+			);
+
+		new Setting(containerEl)
 			.setName("Local speech server")
 			.setDesc(
 				"Optional, and empty by default. Recording works entirely offline: R speaks a " +

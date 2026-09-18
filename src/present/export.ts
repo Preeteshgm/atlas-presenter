@@ -1,4 +1,4 @@
-import { App, Notice, TFile, normalizePath } from "obsidian";
+import { App, Notice, TFile, TFolder, normalizePath } from "obsidian";
 import { safeFileName } from "../format";
 import { mimeFor } from "../media";
 import { fail, offer, say } from "../notice";
@@ -90,6 +90,18 @@ export interface ExportInput {
 	 * asked.
 	 */
 	openAfter: boolean;
+	/**
+	 * Where the deck's folder is written. Blank is the vault root, which is
+	 * where every export landed before there was a setting for it.
+	 */
+	exportFolder: string;
+}
+
+/** A sound or a film, copied beside the deck rather than into it. */
+interface Carried {
+	file: TFile;
+	/** The name it takes inside the deck's folder. */
+	name: string;
 }
 
 /** The deck's look, as the attributes the exported overlay is opened with. */
@@ -155,21 +167,83 @@ async function dataUri(app: App, src: string): Promise<string | null> {
 	}
 }
 
-async function inlineMedia(app: App, root: HTMLElement): Promise<number> {
+/**
+ * Pictures go inside the file; sound and film go beside it.
+ *
+ * A picture is worth carrying inside the page — it is the deck. A recording is
+ * not: base64 adds a third to its size, and a two-minute clip would make a deck
+ * nobody can send. Those are copied into the deck's own folder and linked by a
+ * relative path, so the folder is the thing you share.
+ *
+ * Until now they were simply dropped: the player stayed, its source was
+ * removed, and whoever opened the file got a dead control with no explanation.
+ */
+async function inlineMedia(
+	app: App,
+	root: HTMLElement,
+	carried: Carried[]
+): Promise<number> {
 	let inlined = 0;
+	const taken = new Set<string>();
 	const holders = Array.from(root.querySelectorAll<HTMLElement>("img, video, audio, source"));
 	for (const el of holders) {
 		const src = el.getAttribute("src");
 		if (!src || src.startsWith("data:")) continue;
-		const uri = await dataUri(app, src);
-		if (uri) {
-			el.setAttribute("src", uri);
-			inlined++;
-		} else {
-			el.removeAttribute("src");
+
+		const isPicture = el.tagName === "IMG";
+		if (isPicture) {
+			const uri = await dataUri(app, src);
+			if (uri) {
+				el.setAttribute("src", uri);
+				inlined++;
+			} else {
+				el.removeAttribute("src");
+				missing(el, "a picture");
+			}
+			continue;
 		}
+
+		const file = fileFor(app, src);
+		if (!file) {
+			el.removeAttribute("src");
+			missing(el, "a recording");
+			continue;
+		}
+		// One copy per file, and no two files sharing a name: a second
+		// `audio.wav` from another folder would otherwise overwrite the first.
+		let held = carried.find((c) => c.file.path === file.path);
+		if (!held) {
+			let name = file.name;
+			for (let n = 2; taken.has(name.toLowerCase()); n++) {
+				name = `${file.basename} ${n}.${file.extension}`;
+			}
+			taken.add(name.toLowerCase());
+			held = { file, name };
+			carried.push(held);
+		}
+		el.setAttribute("src", `./${encodeURIComponent(held.name)}`);
 	}
 	return inlined;
+}
+
+/** The vault file a resource path points at. */
+function fileFor(app: App, src: string): TFile | null {
+	const match = decodeURIComponent(src).match(/([^/?#]+\.\w+)(?:\?|$)/);
+	const name = match?.[1];
+	return (name ? app.vault.getFiles().find((f) => f.name === name) : undefined) ?? null;
+}
+
+/**
+ * Say what did not travel, where the thing that did not travel was.
+ *
+ * A player with no source is a control that does nothing, and nobody reading it
+ * can tell whether the deck is broken or the file was left behind.
+ */
+function missing(el: HTMLElement, what: string): void {
+	const note = el.ownerDocument.createElement("div");
+	note.className = "atl-missing";
+	note.textContent = `${what} is not in this export.`;
+	el.replaceWith(note);
 }
 
 /**
@@ -893,9 +967,22 @@ function launcher(app: App): ((p: string) => void) | null {
 	return typeof open === "function" ? (p: string) => open.call(app, p) : null;
 }
 
-function reveal(app: App, path: string, inlined: number, openAfter: boolean): void {
+function reveal(
+	app: App,
+	path: string,
+	inlined: number,
+	carried: number,
+	openAfter: boolean
+): void {
 	const open = launcher(app);
-	const files = `${inlined} file${inlined === 1 ? "" : "s"} inlined.`;
+	// What to send matters more than what was done: a deck with a recording in
+	// it is a folder now, and someone who mails the HTML alone has sent a
+	// player with nothing behind it.
+	const beside =
+		carried > 0
+			? ` ${carried} recording${carried === 1 ? "" : "s"} beside it — send the folder.`
+			: "";
+	const files = `${inlined} picture${inlined === 1 ? "" : "s"} inside it.${beside}`;
 
 	if (openAfter && open) {
 		try {
@@ -912,9 +999,7 @@ function reveal(app: App, path: string, inlined: number, openAfter: boolean): vo
 		el.createDiv({ text: `Atlas: exported to ${path}` });
 		el.createDiv({
 			cls: "atl-notice-sub",
-			text:
-				`${inlined} file${inlined === 1 ? "" : "s"} inlined. ` +
-				"Print it from the browser for a PDF.",
+			text: `${files} Print it from the browser for a PDF.`,
 		});
 
 		if (!open) return;
@@ -942,10 +1027,11 @@ function reveal(app: App, path: string, inlined: number, openAfter: boolean): vo
 export async function buildDeckHtml(
 	app: App,
 	input: ExportInput
-): Promise<{ html: string; inlined: number }> {
+): Promise<{ html: string; inlined: number; carried: Carried[] }> {
 	const clone = input.stage.cloneNode(true) as HTMLElement;
 	flattenShadows(input.stage, clone);
-	const inlined = await inlineMedia(app, clone);
+	const carried: Carried[] = [];
+	const inlined = await inlineMedia(app, clone, carried);
 
 	// The logo is written into the template rather than cloned, so it misses
 	// the pass above and has to be inlined on its own.
@@ -1130,6 +1216,7 @@ __SCRIPTS__
 
 	return {
 		inlined,
+		carried,
 		html: html
 			.replace('<div id="stage" class="atl-stage"></div>', `<div id="stage" class="atl-stage">${stageHtml}</div>`)
 			.replace("__PRINT__", printHtml)
@@ -1143,15 +1230,69 @@ __SCRIPTS__
 	};
 }
 
+/** Make a folder and everything above it, quietly if it is already there. */
+async function ensureFolder(app: App, path: string): Promise<void> {
+	if (!path) return;
+	const parts = path.split("/").filter(Boolean);
+	let here = "";
+	for (const part of parts) {
+		here = here ? `${here}/${part}` : part;
+		if (!app.vault.getAbstractFileByPath(here)) {
+			try {
+				await app.vault.createFolder(here);
+			} catch {
+				// Someone else made it between the check and the call.
+			}
+		}
+	}
+}
+
+/**
+ * The deck, and whatever has to travel beside it, in a folder of its own.
+ *
+ * One folder per canvas: the HTML file with every picture inside it, and any
+ * sound or film next to it under a relative link. Share the folder and the deck
+ * is complete; there is nothing else to gather and nothing to lose track of.
+ */
 export async function exportDeck(app: App, input: ExportInput): Promise<string | null> {
-	const { html: out, inlined } = await buildDeckHtml(app, input);
-	const folder = safeFileName(input.title);
-	const path = normalizePath(`${folder} — deck.html`);
+	const { html: out, inlined, carried } = await buildDeckHtml(app, input);
+	const name = `${safeFileName(input.title)} — deck`;
+	const parent = input.exportFolder.trim().replace(/^\/+|\/+$/g, "");
+	const folder = normalizePath(parent ? `${parent}/${name}` : name);
+	const path = normalizePath(`${folder}/${name}.html`);
+
 	try {
+		await ensureFolder(app, folder);
+
 		const existing = app.vault.getAbstractFileByPath(path);
 		if (existing instanceof TFile) await app.vault.modify(existing, out);
 		else await app.vault.create(path, out);
-		reveal(app, path, inlined, input.openAfter);
+
+		for (const item of carried) {
+			const to = normalizePath(`${folder}/${item.name}`);
+			const data = await app.vault.readBinary(item.file);
+			const there = app.vault.getAbstractFileByPath(to);
+			if (there instanceof TFile) await app.vault.modifyBinary(there, data);
+			else await app.vault.createBinary(to, data);
+		}
+
+		// Yesterday's clips, in this deck's own folder and nowhere else: a deck
+		// that dropped a recording should not keep handing it out.
+		const keep = new Set([path, ...carried.map((c) => normalizePath(`${folder}/${c.name}`))]);
+		const here = app.vault.getAbstractFileByPath(folder);
+		if (here instanceof TFolder) {
+			for (const child of here.children) {
+				if (child instanceof TFile && !keep.has(child.path)) {
+					try {
+						await app.fileManager.trashFile(child);
+					} catch {
+						// Left behind rather than lost.
+					}
+				}
+			}
+		}
+
+		reveal(app, path, inlined, carried.length, input.openAfter);
 		return path;
 	} catch (e) {
 		new Notice(`Atlas: could not write the export — ${String(e)}`);
