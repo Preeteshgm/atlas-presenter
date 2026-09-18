@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="512" height="512">
+<!--
+  Atlas Presenter's mark: three stops joined by a route.
+  The same path the plugin registers as `atlas-route`, kept here as a file so
+  it can be uploaded, printed or put on a slide.
+-->
+<g fill="none" stroke="#F4F5F0" stroke-width="7" stroke-linecap="round" stroke-linejoin="round">
+  <path d="M24 76 C 42 76 34 50 52 48 C 68 46 66 28 78 24" stroke-dasharray="0.1 11" stroke-width="5.2"/>
+  <circle cx="24" cy="76" r="10" fill="#F4F5F0" stroke="none"/>
+  <circle cx="52" cy="48" r="8"/>
+  <circle cx="78" cy="24" r="10"/>
+</g>
+</svg>
