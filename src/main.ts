@@ -14,6 +14,7 @@ import { writeMinutes } from "./present/capture";
 import { offer } from "./notice";
 import { AskModal } from "./ask-modal";
 import { hasModel } from "./ask";
+import { REFERENCE_NAME, REFERENCE_NOTE } from "./reference-note";
 
 export default class AtlasPlugin extends Plugin {
 	settings: AtlasSettings = { ...DEFAULT_SETTINGS };
@@ -177,6 +178,12 @@ export default class AtlasPlugin extends Plugin {
 		this.addSettingTab(new AtlasSettingTab(this.app, this));
 
 		this.addCommand({
+			id: "open-reference-note",
+			name: "How to write a card",
+			callback: () => void this.openReference(),
+		});
+
+		this.addCommand({
 			id: "ask-notes",
 			name: "Ask your notes",
 			callback: () => new AskModal(this.app, this.settings).open(),
@@ -193,6 +200,33 @@ export default class AtlasPlugin extends Plugin {
 			this.closeStaleViews();
 			void this.offerRecovery();
 		});
+	}
+
+	/**
+	 * The reference, in a pane beside whatever you are writing.
+	 *
+	 * Found by name wherever it is in the vault, so a copy you have moved or
+	 * annotated is the one that opens. Written beside the canvas you are on the
+	 * first time, because that is where you will look for it again.
+	 */
+	private async openReference(): Promise<void> {
+		const wanted = `${REFERENCE_NAME}.md`;
+		let file =
+			this.app.vault
+				.getMarkdownFiles()
+				.find((f) => f.name === wanted || f.basename.endsWith(REFERENCE_NAME)) ?? null;
+
+		if (!file) {
+			const here = this.app.workspace.getActiveFile()?.parent?.path ?? "";
+			const path = here ? `${here}/${wanted}` : wanted;
+			try {
+				file = await this.app.vault.create(path, REFERENCE_NOTE);
+			} catch {
+				new Notice("Atlas: could not write the reference note here.");
+				return;
+			}
+		}
+		await this.app.workspace.getLeaf("split").openFile(file);
 	}
 
 	/**
