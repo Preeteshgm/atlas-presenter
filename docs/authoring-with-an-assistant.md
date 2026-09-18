@@ -160,3 +160,29 @@ line become a row.
 3. **No CSS in a card.** Roles and themes, so the deck restyles in one line.
 4. **Say what you assumed.** If the deck needs an image, a logo or a theme that
    may not exist, name the path you used and say it must be in place.
+
+
+### Pictures, cropping and edges
+
+`![[plan.png|420]]` is 420 wide with the shape kept; `![[plan.png|420x160]]` is
+that box exactly — **filled and cropped**, never stretched. Several embeds on
+one line become a row, and the number is pixels on the card, not on the screen.
+
+A picture that fills a pane or a box is cropped from the middle. Four card tags
+change that: `#focus-left`, `#focus-right` and `#focus-centre` choose which part
+survives, and `#fade-left`, `#fade-right` and `#fade-both` dissolve the
+picture's edge into the card rather than cutting it off. They are meant to pair
+— keep the far end, fade the near one — and they work on the `#deck` card's
+banner like any other card.
+
+`#gallery`, `#scroll` and `#slideshow` show several pictures: a grid, a stack,
+and one at a time with arrows and dots. Write one embed per line; a line of
+words above them stays above them.
+
+### Two markdown traps
+
+Obsidian joins consecutive lines into one paragraph, and `---`, `+++` and the
+picture containers all work on blocks — Atlas spaces the markers itself now, but
+a blank line around them is never wrong. And `---` directly under a line of text
+is a *heading* in markdown, not a rule; on a card tagged for columns Atlas
+corrects that, on an untagged card it leaves markdown alone.

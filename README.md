@@ -650,10 +650,24 @@ vault. Re-exporting overwrites the same path, so the loop is edit → export →
 ### For PDF, print it
 
 The exported file carries a print stylesheet: one card per landscape page, the
-camera and bottom bar hidden, every reveal shown and picture stacks un-stacked
-so nothing is lost on paper. Open it in a browser and print to PDF. That keeps
+card's **number at the foot of each page**, the camera and bottom bar hidden,
+every reveal shown and picture stacks un-stacked so nothing is lost on paper. Open it in a browser and print to PDF. That keeps
 the deck a deck on screen and gives you pages on paper, without a second export
 path to maintain.
+
+---
+
+## The reference, beside the canvas
+
+**Atlas: How to write a card** writes a reference note into your vault and opens
+it in a pane. It is organised by what you want rather than by what things are
+called — *I want two columns* against what to type — and covers the roles, the
+switches, `:::pin` and `:::align`, pictures and their cropping, `+++`, the
+`#deck` card's keys, and the two markdown traps worth knowing.
+
+It opens whichever copy is already in the vault, so a copy you have moved or
+annotated is the one you get back. Settings → Atlas carries the same reference
+for when you would rather not have a note.
 
 ---
 
