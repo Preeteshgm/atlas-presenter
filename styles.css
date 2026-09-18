@@ -1153,7 +1153,10 @@ button.atl-peek-close {
 
 .atl-frame-item {
 	position: absolute;
-	inset: 0;
+	/* Room at the foot for the arrows and dots, so they sit under the picture
+	   rather than across whatever is printed along its bottom edge. A show of
+	   one frame has no controls, and .atl-show-single takes the space back. */
+	inset: 0 0 30px;
 	display: flex;
 	align-items: center;
 	justify-content: center;
@@ -1170,6 +1173,8 @@ button.atl-peek-close {
    being re-rasterised each time the camera scales the stage underneath them,
    which is what read as a flicker on the way past. One card's frames are all
    that ever move. */
+.atl-show-single .atl-frame-item { inset: 0; }
+
 .atl-node.is-active .atl-frame-item {
 	will-change: transform, opacity;
 }
@@ -1213,7 +1218,8 @@ button.atl-peek-close {
 	position: absolute;
 	left: 0;
 	right: 0;
-	bottom: 10px;
+	bottom: 0;
+	height: 26px;
 	z-index: 3;
 	display: flex;
 	align-items: center;
@@ -1228,15 +1234,16 @@ button.atl-peek-close {
    plus the class does, and it is the third time this has caught this plugin. */
 .atl-overlay button.atl-show-arrow,
 .atl-overlay button.atl-show-dot {
-	appearance: none;
-	-webkit-appearance: none;
-	border: 0;
-	background: none;
-	box-shadow: none;
-	min-width: 0;
-	min-height: 0;
-	padding: 0;
-	margin: 0;
+	appearance: none !important;
+	-webkit-appearance: none !important;
+	border: 0 !important;
+	background: none !important;
+	box-shadow: none !important;
+	min-width: 0 !important;
+	min-height: 0 !important;
+	padding: 0 !important;
+	margin: 0 !important;
+	border-radius: 0 !important;
 	font-family: inherit;
 }
 
@@ -1269,20 +1276,20 @@ button.atl-peek-close {
    strength, the theme's accent for the one you are looking at. */
 .atl-overlay button.atl-show-dot {
 	pointer-events: auto;
-	width: 9px;
-	height: 9px;
-	border-radius: 50%;
-	background: color-mix(in srgb, var(--ink, var(--text-normal)) 34%, transparent);
+	width: 9px !important;
+	height: 9px !important;
+	border-radius: 50% !important;
+	background: color-mix(in srgb, var(--ink, var(--text-normal)) 34%, transparent) !important;
 	cursor: pointer;
 	transition: background 200ms ease, transform 200ms ease;
 }
 
 .atl-overlay button.atl-show-dot:hover {
-	background: color-mix(in srgb, var(--ink, var(--text-normal)) 60%, transparent);
+	background: color-mix(in srgb, var(--ink, var(--text-normal)) 60%, transparent) !important;
 }
 
 .atl-overlay button.atl-show-dot.is-current {
-	background: var(--atl-accent, var(--accent, var(--interactive-accent)));
+	background: var(--atl-accent, var(--accent, var(--interactive-accent))) !important;
 	transform: scale(1.3);
 }
 

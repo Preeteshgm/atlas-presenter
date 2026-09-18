@@ -37,6 +37,10 @@ export class Slideshow {
 		if (this.frames.length > 1) {
 			this.buildControls();
 			this.bindSwipe();
+		} else {
+			// Nothing to control, so the picture takes the strip the controls
+			// would have used rather than leaving a gap under it.
+			root.classList.add("atl-show-single");
 		}
 		this.layout(false);
 	}
