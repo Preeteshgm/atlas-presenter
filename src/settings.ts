@@ -205,7 +205,7 @@ export class AtlasSettingTab extends PluginSettingTab {
 		const s = this.plugin.settings;
 
 		// --------------------------------------------------------- shortcut
-		new Setting(containerEl).setName("Starting a presentation").setHeading();
+		new Setting(containerEl).setName("Presenting").setHeading();
 
 		// The reference at the foot of this panel is the same material, but a
 		// panel is a poor place to read anything at length.
@@ -230,8 +230,27 @@ export class AtlasSettingTab extends PluginSettingTab {
 				b.setButtonText("Change shortcut").onClick(() => this.openHotkeys())
 			);
 
-		// ---------------------------------------------------------- movement
-		new Setting(containerEl).setName("Camera").setHeading();
+		new Setting(containerEl)
+			.setName("What G opens")
+			.setDesc(
+				"Obsidian's graph view is the real thing — filters, groups, forces, " +
+					"local graph. The deck steps aside for it and shows a way back. The " +
+					"built-in one stays inside the presentation and never leaves fullscreen."
+			)
+			.addDropdown((c) =>
+				c
+					.addOptions({
+						obsidian: "Obsidian's graph view",
+						builtin: "The built-in graph, inside the deck",
+					})
+					.setValue(s.browser)
+					.onChange(async (v) => {
+						s.browser = v as BrowserMode;
+						await this.save();
+					})
+			);
+
+		new Setting(containerEl).setName("The camera").setHeading();
 
 		new Setting(containerEl)
 			.setName("Flight duration")
@@ -290,8 +309,7 @@ export class AtlasSettingTab extends PluginSettingTab {
 				})
 			);
 
-		// ----------------------------------------------------------- look
-		new Setting(containerEl).setName("Theme and background").setHeading();
+		new Setting(containerEl).setName("Look").setHeading();
 
 		// The theme comes first because it is the only choice most decks need:
 		// it carries the colours, the type, the card roles and the backdrop.
@@ -424,9 +442,6 @@ export class AtlasSettingTab extends PluginSettingTab {
 				)
 			);
 
-		// ------------------------------------------------------- branding
-		new Setting(containerEl).setName("Logo").setHeading();
-
 		new Setting(containerEl)
 			.setName("Logo image")
 			.setDesc(
@@ -488,55 +503,6 @@ export class AtlasSettingTab extends PluginSettingTab {
 				);
 		}
 
-		// --------------------------------------------------------- media
-		new Setting(containerEl).setName("Pictures and media").setHeading();
-
-		new Setting(containerEl)
-			.setName("Play video on arrival")
-			.setDesc("Video and audio start when their card comes on camera, and pause when it leaves.")
-			.addToggle((c) =>
-				c.setValue(s.autoplayMedia).onChange(async (v) => {
-					s.autoplayMedia = v;
-					await this.save();
-				})
-			);
-
-		new Setting(containerEl)
-			.setName("Slide show transition")
-			.setDesc("How one image gives way to the next inside a card.")
-			.addDropdown((c) =>
-				c
-					.addOptions({
-						slide: "Slide sideways",
-						"slide-up": "Slide upwards",
-						fade: "Fade",
-						zoom: "Zoom",
-						flip: "Flip",
-					})
-					.setValue(s.slideshowTransition)
-					.onChange(async (v) => {
-						s.slideshowTransition = v as SlideshowTransition;
-						await this.save();
-					})
-			);
-
-		new Setting(containerEl)
-			.setName("Slide show images")
-			.setDesc(
-				"Contain keeps every picture whole, leaving bars when its shape differs " +
-					"from the frame. Cover fills the frame and crops the overhang."
-			)
-			.addDropdown((c) =>
-				c
-					.addOptions({ contain: "Contain — whole picture", cover: "Cover — fill the frame" })
-					.setValue(s.slideshowFit)
-					.onChange(async (v) => {
-						s.slideshowFit = v as "contain" | "cover";
-						await this.save();
-					})
-			);
-
-		// ------------------------------------------------------ on screen
 		new Setting(containerEl).setName("On screen").setHeading();
 
 		new Setting(containerEl)
@@ -656,7 +622,68 @@ export class AtlasSettingTab extends PluginSettingTab {
 					})
 			);
 
-		new Setting(containerEl).setName("Notes and minutes").setHeading();
+		new Setting(containerEl).setName("Pictures and media").setHeading();
+
+		new Setting(containerEl)
+			.setName("Play video on arrival")
+			.setDesc("Video and audio start when their card comes on camera, and pause when it leaves.")
+			.addToggle((c) =>
+				c.setValue(s.autoplayMedia).onChange(async (v) => {
+					s.autoplayMedia = v;
+					await this.save();
+				})
+			);
+
+		new Setting(containerEl)
+			.setName("Slide show transition")
+			.setDesc("How one image gives way to the next inside a card.")
+			.addDropdown((c) =>
+				c
+					.addOptions({
+						slide: "Slide sideways",
+						"slide-up": "Slide upwards",
+						fade: "Fade",
+						zoom: "Zoom",
+						flip: "Flip",
+					})
+					.setValue(s.slideshowTransition)
+					.onChange(async (v) => {
+						s.slideshowTransition = v as SlideshowTransition;
+						await this.save();
+					})
+			);
+
+		new Setting(containerEl)
+			.setName("Slide show images")
+			.setDesc(
+				"Contain keeps every picture whole, leaving bars when its shape differs " +
+					"from the frame. Cover fills the frame and crops the overhang."
+			)
+			.addDropdown((c) =>
+				c
+					.addOptions({ contain: "Contain — whole picture", cover: "Cover — fill the frame" })
+					.setValue(s.slideshowFit)
+					.onChange(async (v) => {
+						s.slideshowFit = v as "contain" | "cover";
+						await this.save();
+					})
+			);
+
+		new Setting(containerEl)
+			.setName("Run scripts in HTML cards")
+			.setDesc(
+				"A card written as HTML can carry a <script> — a toggle, a chart, an " +
+					"animation. That runs JavaScript stored in your vault, so it is off " +
+					"until you turn it on. Cards still render either way."
+			)
+			.addToggle((c) =>
+				c.setValue(s.allowScripts).onChange(async (v) => {
+					s.allowScripts = v;
+					await this.save();
+				})
+			);
+
+		new Setting(containerEl).setName("Notes, minutes and recording").setHeading();
 
 		new Setting(containerEl)
 			.setName("Keep one note per deck")
@@ -693,33 +720,54 @@ export class AtlasSettingTab extends PluginSettingTab {
 			);
 
 		new Setting(containerEl)
-			.setName("Export folder")
+			.setName("Write up on leaving")
 			.setDesc(
-				"Each exported deck gets a folder of its own here, holding the HTML file " +
-					"and any sound or video it uses. Share the folder and the deck is " +
-					"complete. Leave this empty to write to the vault root."
+				"When you noted something during a talk, leaving the deck writes the "
+					+ "minutes. Turn this off to write them only with W."
+			)
+			.addToggle((c) =>
+				c.setValue(s.minutesOnExit).onChange(async (v) => {
+					s.minutesOnExit = v;
+					await this.save();
+				})
+			);
+
+		new Setting(containerEl)
+			.setName("Include the cards' own notes")
+			.setDesc(
+				"Put each card's %%notes%% into the write-up as well as what you typed " +
+					"during the talk. Off by default: those are your prompts — “they will " +
+					"ask about the survey” — and minutes get sent round."
+			)
+			.addToggle((c) =>
+				c.setValue(s.minutesIncludeNotes).onChange(async (v) => {
+					s.minutesIncludeNotes = v;
+					await this.save();
+				})
+			);
+
+		new Setting(containerEl)
+			.setName("Append to every action")
+			.setDesc(
+				"Added to each line you type beginning - [ ]. A tag the Tasks plugin can "
+				+ "query, a person, or a due date in whatever syntax you already use."
 			)
 			.addText((c) =>
 				c
-					.setPlaceholder("Atlas/Exports")
-					.setValue(s.exportFolder)
+					.setPlaceholder("#meeting")
+					.setValue(s.actionSuffix)
 					.onChange(async (v) => {
-						s.exportFolder = v.trim();
+						s.actionSuffix = v.trim();
 						await this.save();
 					})
 			);
 
 		new Setting(containerEl)
-			.setName("Export the write-up beside the deck")
-			.setDesc(
-				"Off by default. Writes the remarks you typed on each card as a second " +
-					"file in the export folder — one page, every card, in the order you " +
-					"presented, read-only. They are written for you, so they leave the " +
-					"vault only when you say so."
-			)
+			.setName("Name the card on each action")
+			.setDesc("So an action still says what it came out of once it has moved.")
 			.addToggle((c) =>
-				c.setValue(s.exportNotes).onChange(async (v) => {
-					s.exportNotes = v;
+				c.setValue(s.actionsLinkBack).onChange(async (v) => {
+					s.actionsLinkBack = v;
 					await this.save();
 				})
 			);
@@ -755,6 +803,55 @@ export class AtlasSettingTab extends PluginSettingTab {
 						s.transcribeUrl = url;
 						await this.save();
 					})
+			);
+
+		new Setting(containerEl).setName("Exporting").setHeading();
+
+		new Setting(containerEl)
+			.setName("Export folder")
+			.setDesc(
+				"Each exported deck gets a folder of its own here, holding the HTML file " +
+					"and any sound or video it uses. Share the folder and the deck is " +
+					"complete. Leave this empty to write to the vault root."
+			)
+			.addText((c) =>
+				c
+					.setPlaceholder("Atlas/Exports")
+					.setValue(s.exportFolder)
+					.onChange(async (v) => {
+						s.exportFolder = v.trim();
+						await this.save();
+					})
+			);
+
+		new Setting(containerEl)
+			.setName("Export the write-up beside the deck")
+			.setDesc(
+				"Off by default. Writes the remarks you typed on each card as a second " +
+					"file in the export folder — one page, every card, in the order you " +
+					"presented, read-only. They are written for you, so they leave the " +
+					"vault only when you say so."
+			)
+			.addToggle((c) =>
+				c.setValue(s.exportNotes).onChange(async (v) => {
+					s.exportNotes = v;
+					await this.save();
+				})
+			);
+
+		new Setting(containerEl)
+			.setName("Open the file after exporting")
+			.setDesc(
+				"Obsidian will not render an HTML file, so an export you are not shown " +
+					"is a path you have to go and find. The file is always written to the " +
+					"same place and always replaces what was there, so opening it costs " +
+					"nothing."
+			)
+			.addToggle((c) =>
+				c.setValue(s.openExport).onChange(async (v) => {
+					s.openExport = v;
+					await this.save();
+				})
 			);
 
 		new Setting(containerEl).setName("Asking your notes").setHeading();
@@ -936,117 +1033,6 @@ export class AtlasSettingTab extends PluginSettingTab {
 						})
 				);
 		}
-
-		new Setting(containerEl)
-			.setName("Write up on leaving")
-			.setDesc(
-				"When you noted something during a talk, leaving the deck writes the "
-					+ "minutes. Turn this off to write them only with W."
-			)
-			.addToggle((c) =>
-				c.setValue(s.minutesOnExit).onChange(async (v) => {
-					s.minutesOnExit = v;
-					await this.save();
-				})
-			);
-
-		new Setting(containerEl)
-			.setName("Include the cards' own notes")
-			.setDesc(
-				"Put each card's %%notes%% into the write-up as well as what you typed " +
-					"during the talk. Off by default: those are your prompts — “they will " +
-					"ask about the survey” — and minutes get sent round."
-			)
-			.addToggle((c) =>
-				c.setValue(s.minutesIncludeNotes).onChange(async (v) => {
-					s.minutesIncludeNotes = v;
-					await this.save();
-				})
-			);
-
-		new Setting(containerEl)
-			.setName("Append to every action")
-			.setDesc(
-				"Added to each line you type beginning - [ ]. A tag the Tasks plugin can "
-				+ "query, a person, or a due date in whatever syntax you already use."
-			)
-			.addText((c) =>
-				c
-					.setPlaceholder("#meeting")
-					.setValue(s.actionSuffix)
-					.onChange(async (v) => {
-						s.actionSuffix = v.trim();
-						await this.save();
-					})
-			);
-
-		new Setting(containerEl)
-			.setName("Name the card on each action")
-			.setDesc("So an action still says what it came out of once it has moved.")
-			.addToggle((c) =>
-				c.setValue(s.actionsLinkBack).onChange(async (v) => {
-					s.actionsLinkBack = v;
-					await this.save();
-				})
-			);
-
-		// ------------------------------------------------------ browsing
-		new Setting(containerEl).setName("Browsing the vault").setHeading();
-
-		new Setting(containerEl)
-			.setName("What G opens")
-			.setDesc(
-				"Obsidian's graph view is the real thing — filters, groups, forces, " +
-					"local graph. The deck steps aside for it and shows a way back. The " +
-					"built-in one stays inside the presentation and never leaves fullscreen."
-			)
-			.addDropdown((c) =>
-				c
-					.addOptions({
-						obsidian: "Obsidian's graph view",
-						builtin: "The built-in graph, inside the deck",
-					})
-					.setValue(s.browser)
-					.onChange(async (v) => {
-						s.browser = v as BrowserMode;
-						await this.save();
-					})
-			);
-
-		// ------------------------------------------------------- exporting
-		new Setting(containerEl).setName("Exporting").setHeading();
-
-		new Setting(containerEl)
-			.setName("Open the file after exporting")
-			.setDesc(
-				"Obsidian will not render an HTML file, so an export you are not shown " +
-					"is a path you have to go and find. The file is always written to the " +
-					"same place and always replaces what was there, so opening it costs " +
-					"nothing."
-			)
-			.addToggle((c) =>
-				c.setValue(s.openExport).onChange(async (v) => {
-					s.openExport = v;
-					await this.save();
-				})
-			);
-
-		// --------------------------------------------------- html cards
-		new Setting(containerEl).setName("HTML cards").setHeading();
-
-		new Setting(containerEl)
-			.setName("Run scripts in HTML cards")
-			.setDesc(
-				"A card written as HTML can carry a <script> — a toggle, a chart, an " +
-					"animation. That runs JavaScript stored in your vault, so it is off " +
-					"until you turn it on. Cards still render either way."
-			)
-			.addToggle((c) =>
-				c.setValue(s.allowScripts).onChange(async (v) => {
-					s.allowScripts = v;
-					await this.save();
-				})
-			);
 
 		renderReference(containerEl);
 	}
