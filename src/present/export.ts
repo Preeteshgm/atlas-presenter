@@ -1392,7 +1392,7 @@ function notesPage(input: ExportInput, deckHref: string): string {
     margin: 0 0 6px;
     color: var(--ink, #14232a);
   }
-  .atl-notes .atl-when { color: var(--ink-soft, #4e5f66); font-size: 0.9em; }
+  .atl-notes .when { color: var(--ink-soft, #4e5f66); font-size: 0.9em; }
   .atl-note { margin: 0 0 30px; }
   .atl-note h2 {
     font-family: var(--display-font, var(--body-font));
@@ -1431,7 +1431,7 @@ ${input.css}
 <div class="atl-overlay atl-notes" style="position: static; inset: auto; overflow: visible; height: auto; background: none;">
 <header>
   <h1>${escapeHtml(input.title)}</h1>
-  <div class="atl-when">Presented ${today} · ${cards} card${cards === 1 ? "" : "s"} with remarks</div>
+  <div class="when">Presented ${today} · ${cards} card${cards === 1 ? "" : "s"} with remarks</div>
 </header>
 ${entries}
 <footer>Written while presenting, and read-only here. <a href="${deckHref}">Open the deck</a></footer>
