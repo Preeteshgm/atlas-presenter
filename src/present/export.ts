@@ -258,6 +258,8 @@ function fileFor(app: App, src: string): TFile | null {
  * can tell whether the deck is broken or the file was left behind.
  */
 function missing(el: HTMLElement, what: string): void {
+	// The element's own document: this runs over a clone of the stage, which may
+	// have been built in the deck's own window rather than this one.
 	const note = el.ownerDocument.createElement("div");
 	note.className = "atl-missing";
 	note.textContent = `${what} is not in this export.`;

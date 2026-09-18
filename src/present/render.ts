@@ -400,6 +400,10 @@ function parseCardHtml(doc: Document, html: string): HTMLElement {
 	// shadow root had already been attached, and a shadow root hides its host's
 	// light-DOM children — so the error message was invisible too and every
 	// HTML card simply went blank.
+	// doc.createElement, not createEl: `doc` is the card's own document, which
+	// is another window's when the deck has been dragged out. Obsidian's helper
+	// builds in the document it was loaded in, and an element from the wrong
+	// realm brings the wrong window's styles and event loop with it.
 	const wrap = doc.createElement("div");
 	const parsed = new DOMParser().parseFromString(html, "text/html");
 	// Head first, then body.
@@ -496,6 +500,8 @@ function renderRawHtml(
 	// there already; these two come first, so a card that styles itself wins.
 	for (const css of [RESET, themeCss]) {
 		if (!css) continue;
+		// The host's own document, for the same reason: this style element has to
+		// belong to the window the card is in.
 		const style = host.ownerDocument.createElement("style");
 		style.textContent = css;
 		shadow.append(style);

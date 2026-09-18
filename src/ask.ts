@@ -1,4 +1,4 @@
-import { App, TFile, TFolder, normalizePath } from "obsidian";
+import { App, TFile, TFolder, normalizePath, requestUrl } from "obsidian";
 
 /**
  * Asking your own notes a question.
@@ -445,16 +445,21 @@ async function askCloud(
 ): Promise<string | null> {
 	if (!key) return null;
 	try {
-		const response = await fetch("https://api.openai.com/v1/chat/completions", {
+		// requestUrl rather than fetch, as the plugin guidelines ask: it is
+		// Obsidian's own client, it is not subject to the page's CORS rules, and
+		// `throw: false` lets a refusal be read rather than caught.
+		const response = await requestUrl({
+			url: "https://api.openai.com/v1/chat/completions",
 			method: "POST",
 			headers: {
 				"Content-Type": "application/json",
 				Authorization: `Bearer ${key}`,
 			},
 			body: JSON.stringify({ model, messages, temperature: 0 }),
+			throw: false,
 		});
-		if (!response.ok) return null;
-		const text = pickChat(await response.json())?.trim();
+		if (response.status < 200 || response.status >= 300) return null;
+		const text = pickChat(response.json)?.trim();
 		return text && usable(text) ? text : null;
 	} catch {
 		return null;
@@ -557,15 +562,17 @@ export async function ask(
 	return answer && usable(answer) ? answer : null;
 }
 
-async function post(url: string, body: unknown): Promise<unknown | null> {
+async function post(url: string, body: unknown): Promise<unknown> {
 	try {
-		const response = await fetch(url, {
+		const response = await requestUrl({
+			url,
 			method: "POST",
 			headers: { "Content-Type": "application/json" },
 			body: JSON.stringify(body),
+			throw: false,
 		});
-		if (!response.ok) return null;
-		return (await response.json()) as unknown;
+		if (response.status < 200 || response.status >= 300) return null;
+		return response.json as unknown;
 	} catch {
 		return null;
 	}
@@ -750,10 +757,11 @@ export async function models(url: string): Promise<string[] | null> {
 	if (!isLocal(url)) return null;
 	const base = url.replace(/\/+$/, "");
 
-	const get = async (path: string): Promise<unknown | null> => {
+	const get = async (path: string): Promise<unknown> => {
 		try {
-			const response = await fetch(base + path);
-			return response.ok ? ((await response.json()) as unknown) : null;
+			const response = await requestUrl({ url: base + path, throw: false });
+			const ok = response.status >= 200 && response.status < 300;
+			return ok ? (response.json as unknown) : null;
 		} catch {
 			return null;
 		}

@@ -272,6 +272,14 @@ export async function transcribe(
 		// `audio_file`. A server ignores the part it does not know.
 		form.append("file", new Blob([clip.data]), fileName);
 
+		// fetch, deliberately, and the only one left in the plugin.
+		//
+		// The guidelines ask for requestUrl, whose body is a string or an
+		// ArrayBuffer — it cannot express a multipart upload, and a transcription
+		// server wants the clip as a file part. Hand-rolling the multipart
+		// envelope to satisfy a lint rule would be more code with more to go
+		// wrong, for a request that only ever goes to 127.0.0.1: the setting
+		// refuses any address that is not local.
 		const response = await fetch(url, { method: "POST", body: form });
 		if (!response.ok) return null;
 		const raw = (await response.text()).trim();

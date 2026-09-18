@@ -2264,8 +2264,12 @@ ${this.themeCss}`,
 		// while talking is to see what you have already written. It stops at
 		// 40% of the deck's height so the card underneath is never buried.
 		const grow = () => {
-			box.style.height = "auto";
-			box.style.height = `${Math.min(box.scrollHeight, this.overlay.clientHeight * 0.4)}px`;
+			// Measured, not guessed: the box is let go, its content height read,
+			// and then it is set — so it has to be written twice.
+			box.setCssStyles({ height: "auto" });
+			box.setCssStyles({
+				height: `${Math.min(box.scrollHeight, this.overlay.clientHeight * 0.4)}px`,
+			});
 		};
 		box.addEventListener("input", grow);
 		box.placeholder =
