@@ -203,19 +203,25 @@ export class Presentation extends Component {
 		this.browser = new Browser(this.overlay, this.app, (file) => void this.peek.showFile(file));
 		this.minimap = new Minimap(this.overlay, this.app, this.scene, (i) => this.jumpTo(i));
 		this.began = Date.now();
-		if (this.headless) {
-			// Everything past this point is about being driven by someone.
-			this.goTo(this.startIndex(), { animate: false });
-			return;
-		}
 		// What was said about these cards last time.
 		//
 		// Read before anything can be typed, so pressing N on a card opens with
 		// the words already there rather than blank — and so the dot shows on
 		// every card that carries one, from the first slide.
+		//
+		// Read for a headless deck too, which is how a canvas is exported
+		// without being presented: the write-up that travels beside the export
+		// is made of exactly these, and exporting from the canvas produced a
+		// deck with no remarks at all — the one way anybody would do it.
 		if (this.settings.deckNotes) {
 			this.deckNotes = await readDeckNotes(this.app, this.file);
 			this.captures = capturesFrom(this.deckNotes, this.began);
+		}
+
+		if (this.headless) {
+			// Everything past this point is about being driven by someone.
+			this.goTo(this.startIndex(), { animate: false });
+			return;
 		}
 
 		// From here on, nothing typed or recorded is only in memory.
