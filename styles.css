@@ -2596,10 +2596,17 @@ textarea.atl-note-box:focus { outline: none; border-color: var(--accent, var(--i
 /* And the pane has to be given that height in the first place. The columns
    grid packs its rows to the top, so a pane was exactly as tall as its own
    text — which made "the foot of this column" the line under the last word,
-   and "the middle" the same place again. Stretching the row is only done when
-   a column actually holds a placed block, so every other card keeps its
-   columns sized to their content. */
-.atl-body[data-panes]:has(.atl-align) { align-content: stretch; }
+   and "the middle" the same place again.
+   The row of columns is the one that grows. Stretching the grid instead shared
+   the spare height with the band, which then floated in the middle of the card
+   with its columns pushed under it. Only a card that actually holds a placed
+   block is touched; every other keeps its columns sized to their content. */
+.atl-body[data-panes]:has(.atl-align):not(:has(.atl-pane-head)) {
+	grid-template-rows: minmax(0, 1fr);
+}
+.atl-body[data-panes]:has(.atl-align):has(.atl-pane-head) {
+	grid-template-rows: max-content minmax(0, 1fr);
+}
 
 /* A placement marker in Obsidian's own preview: still legible, no longer
    shouting. On the slide itself the marker is consumed and never drawn. */
