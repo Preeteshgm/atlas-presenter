@@ -2035,6 +2035,12 @@ button.atl-ref-copy {
 
 /* Split by `---`. The first block, if it is nothing but headings and something
    follows it, spans the whole card instead of becoming a column. */
+/* Asked of the body, not of the tag. Keyed on the role classes, this rule left
+   a #band card holding real panes and laying them out as blocks — columns
+   built, stacked anyway, the rules between them eaten. `data-panes` is set by
+   the code that builds the panes and by nothing else, so it is true exactly
+   when there are columns to place. */
+.atl-body[data-panes],
 .atl-node.atl-tag-two .atl-body,
 .atl-node.atl-tag-compare .atl-body,
 .atl-node.atl-tag-left .atl-body,
