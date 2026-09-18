@@ -487,6 +487,10 @@ settings:
 	padding: 8%;
 	color: var(--section-ink, var(--paper, var(--background-primary)));
 }
+/* h1 as well as h2: a divider carrying `# Reporting` is the obvious way to
+   write one, and it got the colour but neither the size nor the rule — the
+   card looked unstyled and the tag looked broken. */
+.atl-node.atl-tag-section h1,
 .atl-node.atl-tag-section h2 {
 	color: var(--section-ink, var(--paper, var(--background-primary)));
 	font-size: var(--scale-section, 3.2em);
@@ -494,6 +498,7 @@ settings:
 }
 /* The rule under a section name. --section is the per-section colour, so a
    theme with a section palette gets a different one on each divider. */
+.atl-node.atl-tag-section h1::after,
 .atl-node.atl-tag-section h2::after {
 	content: "";
 	display: block;

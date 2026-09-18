@@ -128,7 +128,7 @@ export function renderReference(containerEl: HTMLElement): void {
 		["#banner", "The #deck card’s opening slide. Added for you — write your own role to override it."],
 		["#band", "Split the card at its rules, with the first block running across the top of the columns, whatever is in it."],
 		["#noband", "Split the card at its rules, with every block a column — including the first, even when it is only a heading."],
-		["#title", "The opening card \u2014 a large heading with a line beneath it."],
+		["#title", "The opening card \u2014 a large heading with a line of smaller text under it."],
 		["#section", "A divider carrying only the section's name, inverted, with a rule under it."],
 		["#quote", "A pull quote, set large with an opening mark."],
 		["#stat", "One large number, centred, with a line about it."],
