@@ -122,6 +122,35 @@ Variants: `#skip-short` leaves a card out of the talk called *short*;
   `var(--ink)`, `var(--paper)`, `var(--accent)`, `var(--rule)` rather than
   literal colours, and it will follow the deck's theme.
 
+## Placing a block
+
+`:::pin <place>` puts a block against the card, out of the flow. `:::align
+<place>` puts it inside its column, still in the flow. Nine places for both —
+`top-left top top-right left centre right bottom-left bottom bottom-right` — and
+`row` lays the block across instead of down.
+
+```markdown
+:::pin top-right row
+![[a.png|90]] ![[b.png|90]]
+:::
+```
+
+Advanced Slides' `<grid drag="40 60" drop="topright">…</grid>` is accepted as
+written and means the same thing.
+
+## The deck card opens the talk
+
+Anything under the `#deck` card's settings is the **banner**: a real card, given
+the `#banner` role, presented first. Do not size it — Atlas does, from the first
+section. `#band` puts the first block across the top of any split card;
+`#noband` keeps it in its column.
+
+## Sizing a picture
+
+`![[plan.png|420]]` is 420 wide with the shape kept; `![[plan.png|420x260]]`
+forces that box. The number is pixels on the **card**. Several pictures on one
+line become a row.
+
 ## The rules worth repeating
 
 1. **Complete JSON, always.** Validate mentally: every node has all five

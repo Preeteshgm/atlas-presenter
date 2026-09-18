@@ -461,6 +461,13 @@ Because option A needs a survey we do not have.
 
 <h2 id="pictures">Pictures</h2>
 
+<p>
+	Obsidian's own sizing works on a card: <code>![[plan.png|420]]</code> is 420 wide
+	with the shape kept, <code>![[plan.png|420x260]]</code> is forced into that box,
+	and the number is pixels on the <b>card</b>, not on the screen. Several pictures
+	written on one line become a row rather than a stack.
+</p>
+
 <p>Three ways to put more than one picture on a card.</p>
 
 <figure>
@@ -543,8 +550,24 @@ The bit about the shutdown window starts around 40 seconds.
 		<tr><td><code>#end</code></td><td>The closing card — thanks, a contact, a next step</td></tr>
 		<tr><td><code>#full</code></td><td>A picture with no margin, filling the card</td></tr>
 		<tr><td><code>#split</code></td><td>Two <i>flowed</i> columns — text spills from one into the next</td></tr>
+		<tr><td><code>#banner</code></td><td>The <code>#deck</code> card's opening slide. Given to it automatically</td></tr>
 	</tbody>
 </table>
+
+<p>Two switches go with any card that splits into columns:</p>
+
+<table>
+	<thead><tr><th>Tag</th><th>What it does</th></tr></thead>
+	<tbody>
+		<tr><td><code>#band</code></td><td>The first block runs across the top, whatever is in it</td></tr>
+		<tr><td><code>#noband</code></td><td>The first block stays a column, even if it is only a heading</td></tr>
+	</tbody>
+</table>
+
+<p>
+	Say neither and the old rule holds: a first block of nothing but headings becomes
+	a band, anything else is a column.
+</p>
 
 <h2 id="layouts">Placed layouts</h2>
 
@@ -577,6 +600,44 @@ The right column.</code></pre>
 	<code>#right</code>, the order on the card is the order on the screen — write the
 	picture first for <code>#left</code>, second for <code>#right</code>.
 	<code>+++</code> reveals work inside a column.
+</p>
+
+<h2 id="placing">Placing a block yourself</h2>
+
+<p>
+	<code>:::pin</code> lifts a block out of the flow and puts it against the
+	<b>card</b>. <code>:::align</code> leaves it in the flow and places it inside its
+	<b>column</b>.
+</p>
+
+<pre><code>:::pin top-right row
+![[a.png|90]] ![[b.png|90]]
+:::
+
+:::align bottom-left
+The foot of this column.
+:::</code></pre>
+
+<p>
+	Nine places for both — <code>top-left top top-right left centre right
+	bottom-left bottom bottom-right</code> — and <code>row</code> lays the block
+	across instead of down. A block with no closing <code>:::</code> runs to the end
+	of its column, so the closer is only needed when something follows it there.
+</p>
+
+<p>
+	Advanced Slides' <code>&lt;grid&gt;</code> says the same thing and is accepted as
+	written, so a deck carried over keeps working:
+</p>
+
+<pre><code>&lt;grid drag="40 60" drop="topright"&gt;…&lt;/grid&gt;
+&lt;grid drag="30 20" drop="10 72"&gt;…&lt;/grid&gt;</code></pre>
+
+<p>
+	<code>drop</code> takes a name or an <code>x y</code> pair in percent,
+	<code>drag</code> is width and height in percent, and <code>flow="row"</code>
+	lays it across. Markers inside a code fence are left alone, so a card can
+	document them.
 </p>
 
 <h2 id="tables">Tables and lists</h2>
@@ -654,9 +715,20 @@ host.addEventListener('atlas:leave', stop);</code></pre>
 <h2 id="deckcard">The <code>#deck</code> card</h2>
 
 <p>
-	A card tagged <code>#deck</code> is never presented and never appears on the map.
-	It dresses this canvas alone, so a client deck and an internal one can look
-	different without anyone going into plugin settings.
+	A card tagged <code>#deck</code> configures this canvas alone — so a client deck
+	and an internal one can look different without anyone going into plugin settings
+	— and, if you write anything under its settings, <b>opens the talk</b>.
+</p>
+
+<p>
+	That content is the <b>banner</b>: a real card, rendered like any other,
+	presented first. It is sized for you — as wide as the first section, never wider
+	than the canvas, never flatter than 4:1, and as tall as the cards below it.
+	Dragging the card changes nothing; resize the <b>first group</b> and the banner
+	follows. It is given the <code>#banner</code> role; write a role of your own and
+	yours is used instead. The deck's line and the card number are hidden on it, and
+	the logo is shown at banner size. A <code>#deck</code> card carrying settings and
+	nothing else has no banner and no extra stop.
 </p>
 
 <pre><code>#deck
@@ -712,6 +784,9 @@ Controls plan, rev A · **Sam Avery**</code></pre>
 	<div><h4>Blueprint</h4><p>A drafting grid behind the cards, mono headings, cyan.</p></div>
 	<div><h4>Harbour</h4><p>Deep blue on warm white, with a colour for every section.</p></div>
 	<div><h4>Midnight</h4><p>Near-black with a vignette and an accent glow.</p></div>
+	<div><h4>Gold</h4><p>Near-black with a gold plate at the head of every card.</p></div>
+	<div><h4>Onyx</h4><p>A drafting grid behind flat black cards, one cold accent.</p></div>
+	<div><h4>Bronze</h4><p>Warm black, no card edges, big type, deep shadow.</p></div>
 </div>
 
 <p>
@@ -809,6 +884,41 @@ Controls plan, rev A · **Sam Avery**</code></pre>
 </div>
 
 <h2 id="minutes">Notes and minutes</h2>
+
+<p>
+	<b>One note per deck.</b> The deck's notes live in a single note beside the
+	canvas, with the canvas's own name and a section for each card. Presenting the
+	same canvas again opens the same words, so a remark can be edited or added to
+	rather than filed away in another dated file.
+</p>
+
+<pre><code>---
+type: deck-notes
+canvas: Talks/Northwind.canvas
+---
+
+# Northwind
+
+## The controls plan
+%%card: 3f9a21%%
+Lead with the programme, not the model.
+
+---
+Presented: 14 Sep 2026 &middot; 18 Sep 2026</code></pre>
+
+<p>
+	A card is identified by its canvas <b>node id</b>, never by its title. Rename a
+	card and its notes stay; delete the card and they move to <i>Cards no longer on
+	the canvas</i> rather than vanishing, so re-adding it puts them back. Anything you
+	edit by hand is left alone &mdash; only the card you just noted on is rewritten. A
+	card carrying a note wears a <b>dot</b> in its corner while you present, with a
+	ring round it when the note was spoken rather than typed.
+</p>
+
+<p>
+	Turn <b>Keep one note per deck</b> off in settings for the older behaviour: a new
+	dated write-up every session.
+</p>
 
 <p>
 	<kbd>N</kbd> writes a note against whichever card is on screen. One card holds

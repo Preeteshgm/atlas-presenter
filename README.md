@@ -313,8 +313,12 @@ These keys override the plugin settings **for this canvas alone**, so a client
 deck and an internal deck can differ entirely with nothing in settings:
 
 `theme:` `backdrop:` `logo:` `logo corner:` `logo height:` `accent:` `colour:`
-`image:` `dim:` `align:` `fit:` `transition:` `header on:` `header position:`
+`image:` `dim:` `align:` `fit:` `transition:` `header:` `header on:` `section:`
 `variant:` `advance:`
+
+`section:` says how a section overview is framed — `title` (the default) frames
+the section's name and its first cards, the same size on every section, and
+`contain` shows the whole section however wide it is.
 
 `backdrop:` takes any CSS background — a colour, or a gradient, which is what
 sits behind the cards:
@@ -453,7 +457,7 @@ wrong colours. Atlas restyles both for a slide: a ruled header row, banded rows,
 tabular numerals, markdown's `---:` and `:---:` alignment, accent-coloured
 bullets and real checkboxes for a task list.
 
-### Three themes, ready to use
+### Ten themes, ready to use
 
 | | |
 |---|---|
@@ -464,6 +468,9 @@ bullets and real checkboxes for a task list.
 | **Blueprint** | A drafting grid behind the cards, mono headings, cyan |
 | **Harbour** | Deep blue on warm white, with a colour for every section |
 | **Midnight** | Near-black with a vignette and an accent glow |
+| **Gold** | Near-black with a gold plate at the head of every card |
+| **Onyx** | A drafting grid behind flat black cards, one cold accent |
+| **Bronze** | Warm black, no card edges, big type, deep shadow |
 
 **Settings → Theme and background → Theme stylesheet**, which lists only
 stylesheets that are actually Atlas themes — a vault that has exported a reveal.js
@@ -640,6 +647,37 @@ turning that off leaves the presenter window fully fed.
 ---
 
 ## Notes, and minutes
+
+**The deck keeps one note.** It sits beside the canvas, takes the canvas's own
+name, and holds a section for each card — so presenting the same deck again
+opens the same words, ready to be edited or added to, rather than filing them
+away in another dated file.
+
+```markdown
+---
+type: deck-notes
+canvas: Talks/Northwind.canvas
+---
+
+# Northwind
+
+## The controls plan
+%%card: 3f9a21%%
+Lead with the programme, not the model.
+
+---
+Presented: 14 Sep 2026 · 18 Sep 2026
+```
+
+A card is identified by its canvas **node id**, never by its title. Rename a
+card and its notes stay; delete the card and they move to *Cards no longer on
+the canvas* rather than vanishing, so re-adding it puts them back. Anything you
+edit by hand is left alone — only the card you just noted on is rewritten. A
+card carrying a note wears a **dot** in its corner while you present, with a
+ring when the note was spoken rather than typed.
+
+Turn **Keep one note per deck** off in settings for the older behaviour: a new
+dated write-up every session.
 
 Two different things share the word "note".
 
