@@ -17,6 +17,23 @@ and come back.
 
 ---
 
+## What it needs
+
+**Obsidian 1.7.2 or newer, and nothing else.** Canvas is part of Obsidian, and
+everything Atlas does is its own code — no other plugin to install, no service to
+sign up to, no network call it makes by itself.
+
+Three things are optional, and each says so when it is missing:
+
+| | For | Without it |
+|---|---|---|
+| **Excalidraw** | cards that embed a `.excalidraw` drawing | that card says it needs the plugin; the deck runs on |
+| **A model you provide** | **Ask your notes** | the feature stays shut |
+| **Run scripts in HTML cards** | a card carrying a `<script>` | the card says the setting is off |
+
+It loads on mobile, but exporting and opening a file in a browser need the
+desktop app, and recording needs a microphone.
+
 ## Install
 
 ### From the community store

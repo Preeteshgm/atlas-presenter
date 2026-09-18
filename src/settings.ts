@@ -205,6 +205,18 @@ export class AtlasSettingTab extends PluginSettingTab {
 		const s = this.plugin.settings;
 
 		// --------------------------------------------------------- shortcut
+		// What somebody asks first, answered before the first heading rather than
+		// left to be discovered: Atlas needs no other plugin, and the three
+		// things that are optional each say so when they are missing.
+		containerEl.createDiv({
+			cls: "atl-ref-lead",
+			text:
+				"Atlas needs Obsidian 1.7.2 or newer and nothing else — no other " +
+				"plugin, no service, no network call it makes by itself. Excalidraw is " +
+				"used only by cards that embed a drawing, Ask needs a model you provide, " +
+				"and a card's script runs only if you turn it on below.",
+		});
+
 		new Setting(containerEl).setName("Presenting").setHeading();
 
 		// The reference at the foot of this panel is the same material, but a
