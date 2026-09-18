@@ -45,6 +45,15 @@ export interface ExportInput {
 	};
 	/** The plugin stylesheet plus the deck's own theme. */
 	css: string;
+	/**
+	 * The deck's theme alone, without the plugin's own rules.
+	 *
+	 * The write-up is a document, not a deck: it wants the theme's colours and
+	 * type and none of its layout. Handed the pair, the page inherited rules
+	 * written for a full-screen overlay and came out as white text on white
+	 * paper with a card floating in the middle of it.
+	 */
+	theme: string;
 	padding: number;
 	maxScale: number;
 	/** Camera flight, in milliseconds. The export used to hardcode its own. */
@@ -1362,6 +1371,11 @@ function notesPage(input: ExportInput, deckHref: string): string {
 		)
 		.join(BREAK);
 
+	// The theme's tokens are declared on `.atl-overlay`; here they belong to the
+	// page itself. Re-aimed at :root, so a document gets the deck's paper, ink,
+	// accent and type without the overlay they were written for.
+	const tokens = input.theme.replace(/\.atl-overlay\b/g, ":root");
+
 	return `<!doctype html>
 <html lang="en">
 <head>
@@ -1369,6 +1383,7 @@ function notesPage(input: ExportInput, deckHref: string): string {
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>${escapeHtml(input.title)} — notes</title>
 <style>
+${tokens}
   html, body { margin: 0; }
   body { background: var(--backdrop, var(--paper, #fff)); }
   .atl-notes {
@@ -1424,11 +1439,10 @@ function notesPage(input: ExportInput, deckHref: string): string {
     .atl-notes { max-width: none; padding: 0; }
     .atl-notes footer { display: none; }
   }
-${input.css}
 </style>
 </head>
 <body>
-<div class="atl-overlay atl-notes" style="position: static; inset: auto; overflow: visible; height: auto; background: none;">
+<div class="atl-notes">
 <header>
   <h1>${escapeHtml(input.title)}</h1>
   <div class="when">Presented ${today} · ${cards} card${cards === 1 ? "" : "s"} with remarks</div>

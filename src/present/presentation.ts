@@ -1359,6 +1359,9 @@ export class Presentation extends Component {
 			stage: this.stage,
 			css: `${pluginCss}
 ${this.themeCss}`,
+			// The theme by itself, for the write-up: a document wants the deck's
+			// colours and type, not its layout.
+			theme: this.themeCss,
 			padding: this.settings.padding,
 			maxScale: this.settings.maxScale,
 			duration: this.settings.duration,
