@@ -951,6 +951,27 @@ export async function buildDeckHtml(
   /* #view carries .atl-overlay so the theme's tokens reach the cards, and that
      class brings z-index:100 with it — which put the slide above the map and
      the blanking layer. An id beats a class, so the stack is stated here. */
+  /* Obsidian's font variables, which a theme's fallbacks point at and a
+     browser has never heard of. Left undefined, every font declaration in the
+     deck collapsed to the browser default — so the exported cards were set in
+     Segoe UI where the deck was set in Inter, and text that fitted a column in
+     Obsidian wrapped a word early here. Same names, same order Obsidian uses,
+     so a theme that names a real font still gets it and everything else lands
+     on the same stack at both ends. */
+  #view.atl-overlay, #print.atl-overlay {
+    --font-interface: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+      "Helvetica Neue", Arial, sans-serif;
+    --font-text: var(--font-interface);
+    --font-monospace: ui-monospace, "Cascadia Mono", "Source Code Pro", Menlo,
+      Consolas, monospace;
+    --text-normal: var(--ink, #14232a);
+    --text-muted: var(--ink-soft, #4e5f66);
+    --text-faint: var(--ink-faint, rgb(20 35 42 / 0.3));
+    --background-primary: var(--paper, #fff);
+    --background-secondary: var(--panel, #f6f6f4);
+    --background-modifier-border: var(--rule, #d7dbd7);
+    --interactive-accent: var(--accent, #1d5a78);
+  }
   #view { position: fixed; inset: 0; overflow: hidden; z-index: 0; }
   #stage { position: absolute; top: 0; left: 0; transform-origin: 0 0;
     transition: transform ${input.duration}ms cubic-bezier(0.6, 0, 0.2, 1); }
