@@ -1,0 +1,109 @@
+/* Gold — an Atlas Presenter theme.
+
+   Near-black with a gold plate at the head of every card.
+   Use it when: the deck should look like a company that charges properly.
+
+   Black #000000, gold #D4AF37, white — a palette, not a brand.
+
+   Settings → Atlas → Theme stylesheet, or put
+   `theme: Atlas/Themes/Gold.css` on a canvas's #deck card to use it for
+   that deck alone.
+
+   A theme is only the values below — the plugin's own stylesheet does the work
+   and reads every one of them with a fallback, so nothing here is required.
+   To make your own, copy _Template.css, which documents all of them. */
+
+.atl-overlay {
+	--backdrop: radial-gradient(130% 100% at 50% -10%, #17161A 0%, #0B0B0C 55%, #000000 100%);
+	--paper: #111114;
+	--panel: #17171C;
+	--ink: #F4F1EA;
+	--ink-soft: #A79F91;
+	--ink-faint: rgb(244 241 234 / 0.34);
+	--rule: #2C2A31;
+	--wash: rgb(212 175 55 / 0.08);
+
+	--accent: #D4AF37;
+	--accent-soft: #E7CC77;
+	--accent-ink: #0B0B0C;
+
+	--warn: #E0A13B;
+	--highlight: rgb(212 175 55 / 0.28);
+	--highlight-ink: #F4F1EA;
+
+	--radius: 14px;
+	--card: linear-gradient(168deg, #16161B 0%, #101013 100%);
+	--card-border: 1px solid #2C2A31;
+	--card-shadow: 0 18px 60px rgb(0 0 0 / 0.55);
+	--card-ring: none;
+	--atl-inactive: 0.16;
+
+	/* Gold at the top, cooling through bronze — one family, six voices. */
+	--section-1: #D4AF37;
+	--section-2: #C2903A;
+	--section-3: #A8763B;
+	--section-4: #8C5F38;
+	--section-5: #6E4B33;
+	--section-6: #56412F;
+
+	--group-size: 96px;
+	--group-weight: 700;
+	--group-tracking: -0.015em;
+	--group-transform: none;
+	--group-fill: rgb(212 175 55 / 0.03);
+	--group-border: 2px dashed #262429;
+	--group-radius: 16px;
+	--group-opacity: 0.55;
+
+	--display-font: 'Montserrat', 'Archivo Narrow', var(--font-interface), sans-serif;
+	--body-font: 'Montserrat', var(--font-interface), sans-serif;
+	--mono-font: 'IBM Plex Mono', var(--font-monospace), monospace;
+
+	--body-size: 19px;
+	--measure: 60ch;
+	--heading-weight: 700;
+	--tracking: -0.014em;
+
+	--scale-h1: 2.9em;
+	--scale-h2: 2.05em;
+	--scale-h3: 1.35em;
+	--scale-title: 4.1em;
+	--scale-section: 3.2em;
+	--scale-quote: 2.05em;
+	--scale-stat: 6.8em;
+
+	--code-bg: rgb(255 255 255 / 0.05);
+	--code-ink: #E7CC77;
+	--code-rule: #2C2A31;
+
+	/* The divider is the one card where the gold can take the whole surface. */
+	--section-bg: linear-gradient(135deg, #D4AF37 0%, #8C5F38 100%);
+	--section-ink: #0B0B0C;
+	--section-border: transparent;
+	--dark-bg: #000000;
+	--dark-ink: #F4F1EA;
+	--dark-border: 1px solid #2C2A31;
+	--stat-ink: #D4AF37;
+
+	--media-radius: 10px;
+	--atl-dim: 0.55;
+	--atl-band: 24;
+}
+
+/* The badge look: the company mark is a plate with a gold edge, so a card is
+   too. Every card carries a hairline of gold at its head. */
+.atl-node:not(.atl-node-group)::before {
+	content: "";
+	position: absolute;
+	inset: 0 0 auto 0;
+	height: 3px;
+	background: linear-gradient(90deg, #D4AF37 0%, #8C5F38 60%, transparent 100%);
+	border-radius: var(--radius) var(--radius) 0 0;
+}
+
+.atl-node.atl-tag-title h1 {
+	padding-bottom: 0.18em;
+	border-bottom: 2px solid var(--accent);
+}
+
+.atl-node.atl-tag-stat h1 { text-shadow: 0 0 40px rgb(212 175 55 / 0.25); }

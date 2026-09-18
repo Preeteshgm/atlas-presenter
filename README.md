@@ -183,6 +183,11 @@ work.
 
 <img src="docs/layouts.svg" alt="Gallery, slideshow and scroll compared" width="760">
 
+Obsidian's own sizing works on a card: `![[plan.png|420]]` is 420 wide with the
+shape kept, `![[plan.png|420x260]]` is forced into that box, and the number is
+pixels on the **card**, not on the screen. Several pictures written on one line
+become a row rather than a stack.
+
 Three layouts, all taking the same markup:
 
 ```html
@@ -266,31 +271,35 @@ cards present just that section.
 
 ## The `#deck` card
 
-One card, tagged `#deck`, is the deck's title block. **It is never presented** and
-never appears on the map.
+One card, tagged `#deck`, configures the deck — and, if you write anything under
+its settings, **opens the talk**.
 
 ```
 #deck
 
 theme: Atlas/Theme.css
 logo: Assets/client.png
-accent: #1D5A78
-transition: slide
+header: {deck} · {section} · {n}/{total}
 
-### Northwind Depot — controls plan
-**Sam Avery** · {section} · {date}
-```
-
-Anything that is not a `key: value` line is the **title block**, rendered as
-markdown into the band above a section overview — a heading at full size, a line
-of subtitle, and an image if you want one:
-
-```
 # Northwind Depot
-Controls plan, rev A · **Sam Avery** · *{section}*
-
-![[logo.png]]
+Controls plan, rev A · **Sam Avery**
+---
+![[logo.png|170]]
 ```
+
+`key: value` lines above the first blank line are settings. Everything below is
+the **banner**: a real card, rendered like any other, presented first.
+
+It is sized for you — as wide as the first section, never wider than the canvas,
+never flatter than 4:1, and as tall as the cards below it. Dragging the card
+changes nothing; resize the **first group** and the banner follows. It is given
+the `#banner` role, which sets the title large, centres everything against the
+height and aligns the right-hand column right; write a role of your own and
+yours is used instead. The standing header and the page number are hidden on it,
+and the deck's logo is shown at banner size.
+
+A `#deck` card carrying settings and nothing else has no banner and no extra
+stop, exactly as before.
 
 `#` is the talk's title, `##` a size down, `###` smaller again; a plain line
 becomes the subtitle. The band is 24% of the screen by default — adjust it in
@@ -334,7 +343,7 @@ is drawn, so it never reaches the slide.
 
 | | |
 |---|---|
-| `#deck` | The deck's title block. Never presented, never on the map |
+| `#deck` | The deck's settings, and the banner that opens the talk |
 | `#start` | Begin here, whatever the arrows say |
 | `#skip-short` | Leave this card out of the talk called *short* |
 | `#only-short` | Show it in *short* and nowhere else |
@@ -359,6 +368,17 @@ reaches the slide.
 | `#end` | The closing card — thanks, a contact, a next step |
 | `#full` | A picture with no margin |
 | `#split` | Two *flowed* columns — text spills from one into the next |
+| `#banner` | The deck card's own opening slide. Given to it automatically |
+
+Two switches go with the split layouts, on any card that has them:
+
+| Tag | What it does |
+|---|---|
+| `#band` | The first block runs across the top, whatever is in it |
+| `#noband` | The first block stays a column, even if it is only a heading |
+
+Saying neither keeps the old rule: a first block of nothing but headings
+becomes a band, anything else is a column.
 
 ### Layouts you place yourself
 
@@ -391,6 +411,39 @@ for `#right`. `+++` reveals work inside a column.
 
 Unlike the roles above, these are defined in the plugin's own stylesheet using
 each theme's tokens — so they work with any Atlas theme, and with none.
+
+### Placing a block yourself
+
+`:::pin` lifts a block out of the flow and puts it against the **card**.
+`:::align` leaves it in the flow and places it inside its **column**.
+
+```markdown
+:::pin top-right row
+![[a.png|90]] ![[b.png|90]]
+:::
+
+:::align bottom-left
+The foot of this column.
+:::
+```
+
+Nine places, for both: `top-left top top-right left centre right bottom-left
+bottom bottom-right`. Add `row` to lay the block across instead of down. A
+block with no closing `:::` runs to the end of its column — the `---` rule
+stops it — so the closer is only needed when something follows it in the same
+column.
+
+Advanced Slides' `<grid>` says the same thing and is accepted as written, so a
+deck carried over keeps working:
+
+```html
+<grid drag="40 60" drop="topright">…</grid>
+<grid drag="30 20" drop="10 72">…</grid>
+```
+
+`drop` takes a name or an `x y` pair in percent; `drag` is width and height in
+percent; `flow="row"` lays it across. Markers inside a code fence are left
+alone, so a card can document them.
 
 ### Tables and lists
 
@@ -849,7 +902,7 @@ plumbing holds. Every wrong interaction so far was found by presenting.
 
 A canvas is plain JSON, so an assistant can write one — the geometry, the
 sections, the running order and the cards — and you open the file it produces.
-[docs/authoring-with-claude.md](docs/authoring-with-claude.md) is the brief to
+[docs/authoring-with-an-assistant.md](docs/authoring-with-an-assistant.md) is the brief to
 hand it: the node shapes, the spacing that reads well, the `#deck` keys and the
 card roles. Put that and this README in front of it and the decks come back
 presentable rather than close.

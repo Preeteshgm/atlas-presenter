@@ -70,9 +70,7 @@ export type FitMode = "contain" | "cover";
 /** "obsidian" hands over to the real graph view; "builtin" stays in the deck. */
 export type BrowserMode = "obsidian" | "builtin";
 export type SlideshowTransition = "fade" | "slide" | "slide-up" | "zoom" | "flip";
-export type HeaderPosition = "top-left" | "top-centre" | "top-right";
 /** Where the deck header is worth showing. */
-export type HeaderScope = "sections" | "always" | "first";
 /** Where a framed card sits when it does not fill the height. */
 export type VerticalAlign = "centre" | "top";
 export type TimerMode = "off" | "elapsed" | "clock" | "both";
@@ -132,10 +130,17 @@ export interface AtlasSettings {
 	slideshowTransition: SlideshowTransition;
 	/** "contain" shows all of each picture; "cover" fills the frame and crops. */
 	slideshowFit: "contain" | "cover";
-	/** A standing line above the deck. Tokens: {deck} {section} {n} {total} {date} */
+	/** The deck's line in the bar. Tokens: {deck} {section} {n} {total} {date} */
 	headerText: string;
-	headerPosition: HeaderPosition;
-	headerScope: HeaderScope;
+	/**
+	 * The deck's line in the bar, on or off.
+	 *
+	 * It used to be a band across the top, shown on section overviews, with a
+	 * scope and a corner to choose. Both of those settings described a place
+	 * that no longer exists — the line lives in the bar now, where the deck's
+	 * name and the section already were.
+	 */
+	showHeader: boolean;
 	/** Show a group's name, large, while the camera frames the whole group. */
 	sectionTitles: boolean;
 	verticalAlign: VerticalAlign;
@@ -147,6 +152,16 @@ export interface AtlasSettings {
 	timer: TimerMode;
 	/** Where a written-up session is filed. Recordings go in a folder under it. */
 	minutesFolder: string;
+	/**
+	 * One note per canvas, beside it, or a new file every session.
+	 *
+	 * The per-session form is what Atlas did first: a dated write-up each time.
+	 * It reads as a log rather than a document, and a remark made last month is
+	 * in a different file from its follow-up — so a deck's notes are now one
+	 * living note by default, and this keeps the old behaviour for anyone whose
+	 * minutes are already filed that way.
+	 */
+	deckNotes: boolean;
 	/**
 	 * A speech server on this machine, which turns a recording into text.
 	 *
@@ -228,14 +243,14 @@ export const DEFAULT_SETTINGS: AtlasSettings = {
 	slideshowTransition: "slide",
 	slideshowFit: "contain",
 	headerText: "",
-	headerPosition: "top-centre",
-	headerScope: "sections",
+	showHeader: true,
 	sectionTitles: true,
 	verticalAlign: "centre",
 	showNext: false,
 	showProgress: true,
 	timer: "off",
 	minutesFolder: "Meetings",
+	deckNotes: true,
 	transcribeUrl: "",
 	askUrl: "",
 	askModel: "qwen2.5:3b",

@@ -313,9 +313,35 @@ async function resolveEmbeds(app: App, root: HTMLElement, sourcePath: string): P
 		}
 		if (replacement) {
 			replacement.addClass("atl-embed");
+			sizeFromEmbed(span, replacement);
 			span.replaceWith(replacement);
 		}
 	}
+}
+
+/**
+ * Keep the size written in the embed.
+ *
+ * `![[plan.png|400]]` and `![[plan.png|400x260]]` are how Obsidian sizes a
+ * picture, and everybody writing a note already knows it. Obsidian parses the
+ * suffix and leaves it on the placeholder span; Atlas replaces that span with
+ * an element of its own, and until now dropped the size with it — so the one
+ * thing people reached for to make a picture smaller did nothing at all.
+ *
+ * Width and height go on as attributes rather than as inline styles, so a theme
+ * or a layout can still override them.
+ */
+function sizeFromEmbed(span: Element, media: HTMLElement): void {
+	const alt = span.getAttribute("alt") ?? "";
+	const attr = span.getAttribute("width") ?? "";
+	const fromAlt = alt.match(/\|\s*(\d+)(?:\s*x\s*(\d+))?\s*$/);
+
+	const width = attr || fromAlt?.[1] || "";
+	const height = span.getAttribute("height") ?? fromAlt?.[2] ?? "";
+	if (width) media.setAttribute("width", width);
+	if (height) media.setAttribute("height", height);
+	// An embed that says one dimension means "this wide, keep the shape".
+	if (width && !height) media.style.height = "auto";
 }
 
 
@@ -541,6 +567,200 @@ export async function renderMarkdownInto(
 	await MarkdownRenderer.render(app, md, el, sourcePath, owner);
 	await resolveEmbeds(app, el, sourcePath);
 	resolveMedia(app, el, sourcePath);
+	rowsOfEmbeds(el);
+}
+
+/**
+ * Pictures written on one line are a row.
+ *
+ * Every embed is a block, so three marks written side by side came out stacked
+ * and touching — the opposite of what the line said. A paragraph holding more
+ * than one is marked, and the stylesheet lays that paragraph out as a row with
+ * a gap. A paragraph with a single picture is untouched.
+ */
+function rowsOfEmbeds(root: ParentNode): void {
+	root.querySelectorAll("p").forEach((p) => {
+		if (p.querySelectorAll(".atl-embed").length > 1) p.addClass("atl-embed-row");
+	});
+}
+
+/**
+ * Put a block where you want it on the card.
+ *
+ * ```
+ * :::pin top-right
+ * ![[logo.png|160]]
+ * :::
+ * ```
+ *
+ * Everything between the markers is lifted out of the flow and pinned to that
+ * corner, edge or centre of the card. `row` after the position lays the block
+ * out across instead of down.
+ *
+ * The markers are read back off the rendered DOM rather than out of the
+ * markdown, because a block of raw HTML would stop Obsidian resolving the
+ * embeds inside it — and an embed is the main thing anybody pins.
+ *
+ * The position is a class, never inline CSS, so a theme can still restyle it
+ * and a deck stays portable between themes.
+ */
+const PIN =
+	/^:::\s*(pin|align)\s+([a-z-]+|-?[\d.]+,-?[\d.]+)(?:\s+([\d.]+x[\d.]+))?(?:\s+(row|column))?\s*$/i;
+
+/**
+ * Advanced Slides' `<grid>` says the same thing, so it is accepted as written.
+ *
+ * ```
+ * <grid drag="40 60" drop="topright">…</grid>
+ * ```
+ *
+ * `drop` is a named place or an `x y` percentage from the top left; `drag` is
+ * a width and height in percent. Both become the marker form and are handled
+ * by the same code below, so a deck carried over from Advanced Slides keeps
+ * working as written — and rewriting it later changes nothing.
+ *
+ * Done on the markdown rather than on the DOM because Obsidian treats a block
+ * of HTML as HTML: an `![[embed]]` inside `<grid>` would never be resolved.
+ */
+const DROP: Record<string, string> = {
+	topleft: "top-left",
+	top: "top",
+	topright: "top-right",
+	left: "left",
+	center: "centre",
+	centre: "centre",
+	right: "right",
+	bottomleft: "bottom-left",
+	bottom: "bottom",
+	bottomright: "bottom-right",
+};
+
+function gridToMarkers(md: string): string {
+	return md
+		.replace(/<grid\b([^>]*)>/gi, (_whole, attrs: string) => {
+			const drop = /drop\s*=\s*"([^"]*)"/i.exec(attrs)?.[1].trim().toLowerCase() ?? "centre";
+			const drag = /drag\s*=\s*"([^"]*)"/i.exec(attrs)?.[1].trim() ?? "";
+			const flow = /flow\s*=\s*"([^"]*)"/i.exec(attrs)?.[1].trim().toLowerCase() ?? "";
+			const coords = drop.match(/^(-?[\d.]+)\s+(-?[\d.]+)$/);
+			const place = coords
+				? `${coords[1]},${coords[2]}`
+				: (DROP[drop.replace(/[\s-]/g, "")] ?? "centre");
+			const size = drag.match(/^([\d.]+)\s+([\d.]+)$/);
+			const dims = size ? ` ${size[1]}x${size[2]}` : "";
+			return `:::pin ${place}${dims}${flow === "row" ? " row" : ""}`;
+		})
+		.replace(/<\/grid>/gi, ":::");
+}
+
+
+const PLACES = new Set([
+	"top-left", "top", "top-right",
+	"left", "centre", "center", "right",
+	"bottom-left", "bottom", "bottom-right",
+]);
+
+
+/**
+ * Cut a card into its pinned and aligned blocks, before anything renders.
+ *
+ * Returns the card in order: plain stretches with no box, and marked stretches
+ * with the box they belong in. Each is rendered separately by the caller, so a
+ * marker is never handed to Obsidian and no other plugin can claim it.
+ */
+interface Part {
+	md: string;
+	box: HTMLElement | null;
+}
+
+function splitAtMarkers(md: string): Part[] {
+	const lines = md.split("\n");
+	const parts: Part[] = [];
+	let plain: string[] = [];
+	let box: HTMLElement | null = null;
+	let held: string[] = [];
+
+	const flush = (buffer: string[], into: HTMLElement | null) => {
+		const text = buffer.join("\n").trim();
+		if (text || into) parts.push({ md: text, box: into });
+	};
+
+	// A marker shown inside a code fence is documentation, not an instruction.
+	// The card in the samples deck that *explains* :::pin would otherwise be cut
+	// to pieces by its own example — the same trap the tag lines already avoid.
+	let fence = "";
+
+	for (const line of lines) {
+		const edge = line.match(/^[ \t]*(`{3,}|~{3,})/);
+		if (fence) {
+			if (edge && edge[1].startsWith(fence[0]) && edge[1].length >= fence.length) fence = "";
+			(box ? held : plain).push(line);
+			continue;
+		}
+		if (edge) {
+			fence = edge[1];
+			(box ? held : plain).push(line);
+			continue;
+		}
+
+		const m = gridToMarkers(line).trim().match(PIN);
+		if (m) {
+			if (box) flush(held, box);
+			else flush(plain, null);
+			plain = [];
+			held = [];
+			box = boxFor(m);
+			continue;
+		}
+		if (gridToMarkers(line).trim() === ":::" && box) {
+			flush(held, box);
+			held = [];
+			box = null;
+			continue;
+		}
+		// A column rule closes an open block and then goes on being a column
+		// rule. Swallowed into the block instead, it stops splitting the card:
+		// the rule ends up inside the box, the columns come out wrong, and the
+		// content lands one column along from where it was written.
+		if (box && /^\s*(-{3,}|\*{3,}|_{3,})\s*$/.test(line)) {
+			flush(held, box);
+			held = [];
+			box = null;
+			plain.push(line);
+			continue;
+		}
+		(box ? held : plain).push(line);
+	}
+	// A block left open runs to the end of the card, which is what it looks like.
+	flush(box ? held : plain, box);
+	return parts.filter((p) => p.md || p.box);
+}
+
+/** The box a marker asks for: pinned to the card, or aligned in its column. */
+function boxFor(m: RegExpMatchArray): HTMLElement {
+	const kind = m[1].toLowerCase();
+	const place = m[2].toLowerCase();
+	const at = place.match(/^(-?[\d.]+),(-?[\d.]+)$/);
+	const where = place === "center" ? "centre" : place;
+
+	const box = createDiv();
+	box.className = kind === "align" ? "atl-align" : "atl-pin";
+	if (at) {
+		// A coordinate, the way Advanced Slides' drop="x y" gives one.
+		box.style.left = `${at[1]}%`;
+		box.style.top = `${at[2]}%`;
+	} else if (PLACES.has(where)) {
+		box.addClass(`atl-${kind}-${where}`);
+	} else {
+		box.addClass(`atl-${kind}-centre`);
+	}
+	const size = m[3]?.split("x");
+	if (size) {
+		box.style.width = `${size[0]}%`;
+		box.style.height = `${size[1]}%`;
+		box.style.maxWidth = "none";
+	}
+	if (m[4]?.toLowerCase() === "row") box.addClass("is-row");
+	return box;
 }
 
 async function renderMarkdown(
@@ -557,9 +777,22 @@ async function renderMarkdown(
 		renderRawHtml(app, body, fence[1], sourcePath, themeCss, allowScripts);
 		return;
 	}
-	await MarkdownRenderer.render(app, stripComments(md), body, sourcePath, owner);
-	await resolveEmbeds(app, body, sourcePath);
-	resolveMedia(app, body, sourcePath);
+	// Split before rendering, not after.
+	//
+	// Reading the markers back off the DOM worked here and failed in a real
+	// vault: Advanced Slides registers its own processor for `:::` blocks and
+	// eats them, so by the time we looked there was nothing left to find and
+	// the block stayed in the flow. Anything that post-processes markdown can
+	// do that. Cutting the card up first means no other plugin is ever asked
+	// about our markers, and each piece is still rendered by Obsidian, so
+	// embeds and links inside a pinned block keep working.
+	for (const part of splitAtMarkers(stripComments(md))) {
+		const into = part.box ? body.appendChild(part.box) : body;
+		await MarkdownRenderer.render(app, part.md, into, sourcePath, owner);
+		await resolveEmbeds(app, into, sourcePath);
+		resolveMedia(app, into, sourcePath);
+		rowsOfEmbeds(into);
+	}
 }
 
 async function renderFileNode(
@@ -725,7 +958,7 @@ export function slideshowsIn(body: HTMLElement): HTMLElement[] {
  * children in two columns, but it cannot say which children go in which. So the
  * card says, with a rule.
  */
-const PANED = ["atl-tag-two", "atl-tag-compare", "atl-tag-left", "atl-tag-right"];
+const PANED = ["atl-tag-two", "atl-tag-compare", "atl-tag-left", "atl-tag-right", "atl-tag-banner"];
 
 /**
  * Make a lone `---` mean a rule, whatever precedes it.
@@ -819,6 +1052,22 @@ function isHeading(el: Element): boolean {
  * band across the top instead. Anything else is left exactly as it was — a card
  * that happens to contain a rule and is not tagged for columns must not move.
  */
+/**
+ * A pin belongs to the card, not to whichever column it was written in.
+ *
+ * Splitting a card into columns moves every block into a pane, a pinned block
+ * with it — and then `right: 6%` is measured from the edge of that column
+ * rather than the edge of the card, so a block asked for the right-hand side
+ * lands in the middle. Worse, it is measured against whichever ancestor is
+ * positioned, which is a detail of the pane CSS and could change under it.
+ *
+ * Lifting them back to the body after the panes are built settles it: a pin is
+ * placed against the card, wherever in the card it was written.
+ */
+function hoistPins(body: HTMLElement): void {
+	body.querySelectorAll(":scope > * .atl-pin").forEach((pin) => body.appendChild(pin));
+}
+
 function layOutPanes(card: HTMLElement, body: HTMLElement): void {
 	if (!PANED.some((c) => card.hasClass(c))) return;
 
@@ -831,8 +1080,25 @@ function layOutPanes(card: HTMLElement, body: HTMLElement): void {
 	const blocks = parts.filter((p) => p.length > 0);
 	if (blocks.length < 2) return;
 
-	// A first block of nothing but headings is a title for the whole card.
-	const head = blocks.length > 2 && blocks[0].every(isHeading) ? blocks.shift() : null;
+	// Whether the first block is a band across the top, or a column.
+	//
+	// It used to be inferred: a first block of nothing but headings became a
+	// band. That reads well until you want a title *and* a subtitle up there,
+	// or a heading that stays in its column — at which point the rule is
+	// something to work around rather than something to use. So it can now be
+	// said outright, and the inference is only the default.
+	//
+	//   #band     the first block is a band, whatever is in it
+	//   #noband   the first block is a column, even if it is only a heading
+	//
+	// A banner defaults to no band, because the deck's name belongs beside what
+	// sits next to it rather than across the top of its own opening slide.
+	const banner = card.hasClass("atl-tag-banner");
+	const wants = card.hasClass("atl-tag-band");
+	const refuses = card.hasClass("atl-tag-noband");
+	const byDefault = !banner && blocks[0].every(isHeading);
+	const head =
+		!refuses && blocks.length > 2 && (wants || byDefault) ? blocks.shift() : null;
 	if (blocks.length < 2) return;
 
 	body.empty();
@@ -1032,5 +1298,6 @@ export async function renderNode(
 	// rule rather than gathering its images.
 	if (PANED.some((c) => el.hasClass(c))) layOutPanes(el, body);
 	else layOutPictures(el, body);
+	hoistPins(body);
 	return el;
 }

@@ -282,7 +282,14 @@ settings:
 	   at about 42px tall. A flat 20px of vertical padding would eat the whole
 	   card and squash the player to nothing. */
 	padding: min(20px, 10cqh) min(24px, 3cqw);
-	font-size: var(--atl-card-font, 16px);
+	/* Proportional to the card, not a flat pixel size.
+	   A card is drawn at its own width and then scaled to the screen, so 16px
+	   on a 1600-wide card reads at about 19px in the room and the same 16px on
+	   a 3280-wide banner reads at 9px — small print, for no reason anybody
+	   writing the card could see. 1cqw is 1% of the card's own width, which is
+	   16px at 1600: the same as today for a normal card, twice that for a
+	   banner. */
+	font-size: max(var(--atl-card-font, 16px), 1cqw);
 	line-height: 1.5;
 	color: var(--ink, var(--text-normal));
 	/* A card taller than its box scrolls in place, so one long thought stays
@@ -349,7 +356,7 @@ settings:
 	right: 0;
 	height: 64px;
 	margin: 0 calc(-1 * min(24px, 3cqw)) calc(-1 * min(20px, 10cqh));
-	background: linear-gradient(to top, var(--background-secondary) 20%, transparent);
+	background: linear-gradient(to top, var(--card, var(--panel, var(--background-secondary))) 20%, transparent);
 	pointer-events: none;
 }
 
@@ -611,9 +618,14 @@ settings:
 	gap: 16px;
 	padding: 10px 18px;
 	font-size: 13px;
-	color: var(--ink-faint, var(--text-faint));
+	/* The deck's own paper and its soft ink, not Obsidian's.
+	   The bar sits on the deck, so a themed deck with a light Obsidian theme
+	   was drawing a pale gradient under a near-black slide. And --ink-faint is
+	   24% opacity in the dark themes — right for a watermark, unreadable for
+	   the deck name, the clock and the card count, which are read on purpose. */
+	color: var(--ink-soft, var(--text-muted));
 	pointer-events: none;
-	background: linear-gradient(to top, var(--background-primary), transparent);
+	background: linear-gradient(to top, var(--paper, var(--background-primary)), transparent);
 }
 
 .atl-hud.is-hidden { display: none; }
@@ -639,20 +651,30 @@ settings:
 
 /* The HUD ignores clicks so it never eats a click-to-advance; the one control
    inside it has to opt back in. */
-.atl-map-btn {
+.atl-overlay button.atl-map-btn {
 	pointer-events: auto;
 	cursor: pointer;
 	display: flex;
 	align-items: center;
 	gap: 6px;
-	padding: 3px 10px 3px 5px;
+	padding: 3px 6px;
 	border-radius: 999px;
-	border: 1px solid var(--rule, var(--background-modifier-border));
-	background: var(--panel, var(--background-secondary));
+	/* No chip.
+	   A filled pill has to be lighter or darker than the deck behind it, which
+	   means picking a side — and on a dark theme the bar ended up the brightest
+	   thing on the slide. The control is the word and the key; the ground is
+	   whatever the deck is. Nothing here can disagree with a theme because
+	   nothing here paints. */
+	border: 1px solid transparent;
+	background: transparent;
+	box-shadow: none;
 	color: var(--ink-soft, var(--text-muted));
+	font-family: inherit;
 	font-size: 12px;
+	font-weight: 400;
 	line-height: 1.6;
 	white-space: nowrap;
+	height: auto;
 }
 
 /* The key leads, because in a talk it is the key you use — the word is there
@@ -664,25 +686,35 @@ settings:
 	min-width: 20px;
 	padding: 0 4px;
 	border-radius: 999px;
-	background: var(--wash, var(--background-modifier-hover));
-	color: var(--ink, var(--text-normal));
+	/* Contrast that cannot be argued with.
+	   This pill used to take its background from one token and its letter from
+	   another, and a theme only has to disagree about those two for the letter
+	   to vanish into the pill — which is what happened on the dark themes: a
+	   pale ring with nothing in it. Now it borrows the bar's own colour for
+	   both the ring and the letter, so whatever the bar is legible against,
+	   the key is legible against. */
+	background: transparent;
+	color: inherit;
+	border: 1px solid currentColor;
+	opacity: 0.85;
 	font-size: 10.5px;
 	font-weight: 600;
 	font-variant-numeric: tabular-nums;
 }
 
-.atl-map-btn:hover {
+.atl-overlay button.atl-map-btn:hover {
 	color: var(--ink, var(--text-normal));
-	border-color: var(--atl-accent);
+	border-color: color-mix(in srgb, var(--accent, var(--atl-accent)) 55%, transparent);
+	background: color-mix(in srgb, var(--accent, var(--atl-accent)) 12%, transparent);
 }
 
 /* Recording. The bar says so as well as the pip: one of them can be missed. */
-.atl-map-btn.is-live {
+.atl-overlay button.atl-map-btn.is-live {
 	color: var(--ink, var(--text-normal));
 	border-color: #E5484D;
 }
 
-.atl-map-btn.is-live .atl-btn-key {
+.atl-overlay button.atl-map-btn.is-live .atl-btn-key {
 	background: #E5484D;
 	color: #fff;
 }
@@ -691,7 +723,7 @@ settings:
    still works: by then you know what N does. */
 @media (max-width: 1100px) {
 	.atl-btn-text { display: none; }
-	.atl-map-btn { padding: 3px 5px; }
+	.atl-overlay button.atl-map-btn { padding: 3px 5px; }
 	.atl-hud-right { gap: 12px; }
 }
 
@@ -724,7 +756,7 @@ settings:
 .atl-ask-out > .atl-ask-q:first-child { margin-top: 0; }
 
 .atl-ask-where {
-	color: var(--ink-faint, var(--text-faint));
+	color: var(--ink-soft, var(--text-muted));
 	font-size: 12px;
 	margin-bottom: 12px;
 }
@@ -853,7 +885,7 @@ settings:
 	flex-direction: column;
 	gap: 14px;
 	padding: 5vh 5vw;
-	background: color-mix(in srgb, var(--background-primary) 88%, transparent);
+	background: color-mix(in srgb, var(--paper, var(--background-primary)) 88%, transparent);
 	backdrop-filter: blur(6px);
 	z-index: 2;
 }
@@ -869,7 +901,7 @@ settings:
 
 .atl-minimap-hint {
 	font-size: 13px;
-	color: var(--ink-faint, var(--text-faint));
+	color: var(--ink-soft, var(--text-muted));
 	flex: 0 0 auto;
 }
 
@@ -1005,7 +1037,7 @@ settings:
 	color: var(--ink-faint, var(--text-faint));
 }
 
-.atl-peek-close {
+button.atl-peek-close {
 	cursor: pointer;
 	padding: 3px 10px;
 	border-radius: 6px;
@@ -1166,8 +1198,8 @@ settings:
 	height: 9px;
 	padding: 0;
 	border-radius: 50%;
-	border: 1px solid color-mix(in srgb, var(--text-normal) 45%, transparent);
-	background: color-mix(in srgb, var(--background-primary) 55%, transparent);
+	border: 1px solid color-mix(in srgb, var(--ink, var(--text-normal)) 45%, transparent);
+	background: color-mix(in srgb, var(--paper, var(--background-primary)) 55%, transparent);
 	box-shadow: none;
 	cursor: pointer;
 	transition: background 200ms ease, transform 200ms ease;
@@ -1188,7 +1220,7 @@ settings:
 	align-items: center;
 	justify-content: center;
 	padding: 4vh 3vw;
-	background: color-mix(in srgb, var(--background-primary) 86%, transparent);
+	background: color-mix(in srgb, var(--paper, var(--background-primary)) 86%, transparent);
 	backdrop-filter: blur(7px);
 	z-index: 4;
 }
@@ -1215,7 +1247,7 @@ settings:
 	border-bottom: 1px solid var(--rule, var(--background-modifier-border));
 }
 
-.atl-browse-input {
+input.atl-browse-input {
 	flex: 1 1 auto;
 	font-size: 17px;
 	padding: 8px 12px;
@@ -1281,7 +1313,7 @@ settings:
 .atl-browse-canvas:active { cursor: grabbing; }
 .atl-browse-canvas.is-over { cursor: pointer; }
 
-.atl-browse-fit {
+button.atl-browse-fit {
 	cursor: pointer;
 	padding: 5px 14px;
 	border-radius: 8px;
@@ -1291,14 +1323,14 @@ settings:
 	font-size: 12px;
 }
 
-.atl-browse-fit:hover { color: var(--ink, var(--text-normal)); border-color: var(--atl-accent); }
+button.atl-browse-fit:hover { color: var(--ink, var(--text-normal)); border-color: var(--atl-accent); }
 
 .atl-browse-row.is-linked .atl-browse-name { color: var(--ink-soft, var(--text-muted)); font-weight: 400; }
 
 .atl-browse-hint {
 	padding: 10px 18px;
 	font-size: 12px;
-	color: var(--ink-faint, var(--text-faint));
+	color: var(--ink-soft, var(--text-muted));
 	border-top: 1px solid var(--rule, var(--background-modifier-border));
 }
 
@@ -1347,69 +1379,18 @@ settings:
    block, not a caption — so it is a band with the text set in it, rather than
    a line pinned to the top edge. */
 
-.atl-overlay { --atl-band: 24vh; }
 
-.atl-header {
-	position: absolute;
-	top: 0;
-	left: 0;
-	right: 0;
-	height: var(--atl-band);
-	z-index: 3;
-	display: flex;
-	flex-direction: column;
-	justify-content: center;
-	gap: 2px;
-	padding: 0 6vw;
-	pointer-events: none;
-	opacity: 0;
-	transition: opacity 420ms ease;
-	font-size: clamp(15px, 1.5vh, 22px);
-	line-height: 1.35;
-	color: var(--ink-soft, var(--text-muted));
-	font-family: var(--atl-heading-font, var(--font-interface));
-}
 
-.atl-header.is-shown { opacity: 1; }
 
-.atl-header[data-position="top-left"] { align-items: flex-start; text-align: left; }
-.atl-header[data-position="top-centre"] { align-items: center; text-align: center; }
-.atl-header[data-position="top-right"] { align-items: flex-end; text-align: right; }
 
 /* A real type scale: a heading in the deck card should read as the title of
    the talk, not as small print. */
-.atl-header h1,
-.atl-header h2,
-.atl-header h3 {
-	margin: 0;
-	line-height: 1.04;
-	letter-spacing: -0.015em;
-	color: var(--ink, var(--text-normal));
-	font-weight: 700;
-}
 
-.atl-header h1 { font-size: 3.2em; }
-.atl-header h2 { font-size: 2.5em; }
-.atl-header h3 { font-size: 1.9em; }
 
-.atl-header p {
-	margin: 0.35em 0 0;
-	max-width: 70ch;
-	font-size: 1em;
-}
 
-.atl-header strong { color: var(--ink, var(--text-normal)); font-weight: 600; }
-.atl-header em { font-style: normal; color: var(--ink-faint, var(--text-faint)); }
 
 /* A logo or a mark in the deck card, rather than only in the corner. */
-.atl-header img {
-	max-height: 5em;
-	width: auto;
-	margin: 0 0 0.3em;
-}
 
-.atl-header > :first-child { margin-top: 0; }
-.atl-header > :last-child { margin-bottom: 0; }
 
 /* --- Progress rail ------------------------------------------------------ */
 
@@ -1420,7 +1401,7 @@ settings:
 	right: 0;
 	height: 3px;
 	z-index: 5;
-	background: color-mix(in srgb, var(--text-faint) 30%, transparent);
+	background: color-mix(in srgb, var(--ink-faint, var(--text-faint)) 30%, transparent);
 	pointer-events: none;
 }
 
@@ -1551,6 +1532,18 @@ settings:
 	border-radius: 8px;
 }
 
+/* Three marks written on one line came out stacked and touching, because every
+   embed is a block. A paragraph holding more than one becomes a row instead,
+   which is what writing them on one line plainly meant. */
+.atl-embed-row {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 1.2em;
+}
+
+.atl-embed-row > .atl-embed { margin: 0; }
+
 /* --- The authoring reference in the settings tab ------------------------ */
 /* Not inside the overlay: these render in Obsidian's own settings pane. */
 
@@ -1616,7 +1609,7 @@ settings:
 	overflow-x: auto;
 }
 
-.atl-ref-copy {
+button.atl-ref-copy {
 	position: absolute;
 	top: 8px;
 	right: 8px;
@@ -1780,12 +1773,6 @@ settings:
 /* B blanks the screen: attention on the room, not the slide. */
 .atl-overlay.is-blank .atl-viewport,
 .atl-overlay.is-blank .atl-hud,
-.atl-overlay.is-blank .atl-header,
-.atl-overlay.is-blank .atl-band,
-.atl-overlay.is-blank .atl-logos {
-	opacity: 0;
-	transition: opacity 220ms ease;
-}
 
 .atl-overlay.is-blank {
 	background: #000;
@@ -1853,11 +1840,10 @@ settings:
 .atl-was-shadow > div { width: 100%; height: 100%; }
 
 /* The Remark button, when this card already carries a note. */
-.atl-map-btn.has-note {
+.atl-overlay button.atl-map-btn.has-note {
 	color: var(--ink, var(--text-normal));
 	border-color: var(--atl-accent);
 }
-
 /* --- Reviewing a session before it becomes a note ----------------------- */
 
 .atl-review-modal {
@@ -2221,7 +2207,7 @@ settings:
 	color: var(--ink-soft, var(--text-muted));
 }
 
-.atl-notice-btn {
+button.atl-notice-btn {
 	margin-top: 9px;
 	padding: 4px 12px;
 	font-size: 0.88em;
@@ -2409,10 +2395,13 @@ settings:
 	color: var(--ink, var(--text-normal));
 }
 
-.atl-note-box {
+textarea.atl-note-box {
 	width: 100%;
 	padding: 10px 12px;
-	resize: vertical;
+	/* The height is set as you type, so nothing here should fight it. */
+	resize: none;
+	overflow-y: auto;
+	min-height: 4.4em;
 	font-family: var(--font-text);
 	font-size: 1em;
 	line-height: 1.5;
@@ -2422,7 +2411,14 @@ settings:
 	border-radius: 9px;
 }
 
-.atl-note-box:focus { outline: none; border-color: var(--accent, var(--interactive-accent)); }
+textarea.atl-note-box:focus { outline: none; border-color: var(--accent, var(--interactive-accent)); }
+
+.atl-note-buttons {
+	display: flex;
+	justify-content: flex-end;
+	gap: 8px;
+	margin-top: 10px;
+}
 
 .atl-note-hint {
 	margin-top: 8px;
@@ -2489,4 +2485,294 @@ settings:
 	width: 100%;
 	border: 0;
 	background: #fff;
+}
+
+/* ---- the deck's banner ---------------------------------------------------
+   The #deck card's own content, presented first: a header across the top of
+   the canvas, the way one sits on a profile. The logo is the deck's, so here
+   it is shown at its own scale rather than as the small standing mark. */
+
+.atl-overlay.is-banner .atl-logos .atl-logo {
+	height: calc(var(--atl-logo-height, 30px) * 2.4);
+}
+
+.atl-overlay.is-banner .atl-rail {
+	opacity: 0;
+}
+
+.atl-node.is-banner .atl-body {
+	align-content: center;
+	justify-content: center;
+}
+
+.atl-node.is-banner .atl-pane { align-self: center; }
+
+/* ---- :::pin — a block placed where you want it -------------------------
+   Lifted out of the flow and pinned to a corner, an edge or the middle of the
+   card. The card body is already position:relative, so these are measured
+   against the card rather than the screen, and they scale with it. */
+
+.atl-pin {
+	position: absolute;
+	z-index: 2;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: 0.7em;
+	margin: 0;
+	max-width: 46%;
+}
+
+.atl-pin.is-row { flex-direction: row; align-items: center; }
+.atl-pin > * { margin: 0; }
+
+.atl-pin-top-left { top: 7%; left: 6%; }
+.atl-pin-top { top: 7%; left: 50%; transform: translateX(-50%); }
+.atl-pin-top-right { top: 7%; right: 6%; }
+.atl-pin-left { top: 50%; left: 6%; transform: translateY(-50%); }
+.atl-pin-centre { top: 50%; left: 50%; transform: translate(-50%, -50%); }
+.atl-pin-right { top: 50%; right: 6%; transform: translateY(-50%); }
+.atl-pin-bottom-left { bottom: 7%; left: 6%; }
+.atl-pin-bottom { bottom: 7%; left: 50%; transform: translateX(-50%); }
+.atl-pin-bottom-right { bottom: 7%; right: 6%; }
+
+/* ---- :::align — where a block sits inside its column --------------------
+   Unlike :::pin, this stays in the flow. It fills the column it is in and
+   places its own content, so a column can hold something at its foot or in
+   its middle without the card knowing anything about it. */
+
+.atl-align {
+	display: flex;
+	flex-direction: column;
+	flex: 1;
+	min-height: 0;
+	gap: 0.7em;
+}
+
+.atl-align.is-row { flex-direction: row; align-items: center; gap: 1.2em; }
+.atl-align > * { margin: 0; }
+
+.atl-align-top-left { justify-content: flex-start; align-items: flex-start; text-align: left; }
+.atl-align-top { justify-content: flex-start; align-items: center; text-align: center; }
+.atl-align-top-right { justify-content: flex-start; align-items: flex-end; text-align: right; }
+.atl-align-left { justify-content: center; align-items: flex-start; text-align: left; }
+.atl-align-centre { justify-content: center; align-items: center; text-align: center; }
+.atl-align-right { justify-content: center; align-items: flex-end; text-align: right; }
+.atl-align-bottom-left { justify-content: flex-end; align-items: flex-start; text-align: left; }
+.atl-align-bottom { justify-content: flex-end; align-items: center; text-align: center; }
+.atl-align-bottom-right { justify-content: flex-end; align-items: flex-end; text-align: right; }
+
+/* A pane holding one of these has to give it the height to work against. */
+.atl-pane:has(> .atl-align) { display: flex; flex-direction: column; }
+
+/* A placement marker in Obsidian's own preview: still legible, no longer
+   shouting. On the slide itself the marker is consumed and never drawn. */
+.atl-marker-line {
+	font-family: var(--font-monospace);
+	font-size: 0.72em;
+	letter-spacing: 0.02em;
+	color: var(--text-faint);
+	opacity: 0.7;
+	margin: 0.15em 0;
+}
+
+/* ---- #banner — the deck card's own role ---------------------------------
+   The opening slide, on a card far wider than it is tall. Title and its lines
+   down the left, anything after a rule beside it, everything centred against
+   the height. No band: the deck's name belongs in the column, not across the
+   top of its own first slide. */
+
+.atl-node.atl-tag-banner .atl-body {
+	display: grid;
+	grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr);
+	align-content: center;
+	align-items: center;
+	column-gap: 5%;
+	padding: 6% 5%;
+}
+
+.atl-node.atl-tag-banner .atl-body[data-panes="1"],
+.atl-node.atl-tag-banner .atl-body:not([data-panes]) {
+	grid-template-columns: minmax(0, 1fr);
+}
+
+/* Two blocks is the banner shape — the title wider than what sits beside it.
+   Three or four are equal columns, because at that point none of them is the
+   title any more. The banner rule above is more specific than the general
+   [data-panes] ones, so each count has to say so here. */
+/* The band on a banner: the deck's name across the top, the columns beneath.
+   Wider than the body's own padding allows, so it lines up with the columns. */
+.atl-node.atl-tag-banner .atl-pane-head {
+	align-self: end;
+	margin-bottom: 0.6em;
+}
+
+.atl-node.atl-tag-banner .atl-pane-head h1 { margin-bottom: 0.1em; }
+
+.atl-node.atl-tag-banner .atl-body[data-panes="3"] {
+	grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.atl-node.atl-tag-banner .atl-body[data-panes="4"] {
+	grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.atl-node.atl-tag-banner .atl-pane { align-self: center; }
+
+.atl-node.atl-tag-banner h1 {
+	font-size: var(--scale-title, 3.6em);
+	line-height: 1.02;
+	letter-spacing: -0.02em;
+	margin: 0 0 0.24em;
+	max-width: 20ch;
+}
+
+.atl-node.atl-tag-banner h2 { font-size: 1.9em; margin: 0 0 0.3em; }
+
+.atl-node.atl-tag-banner p {
+	font-size: 1.1em;
+	color: var(--ink-soft, var(--text-muted));
+	margin: 0 0 0.5em;
+	max-width: 52ch;
+}
+
+/* The last line of the first column is the by-line: smaller, quieter, and
+   sat down a little from what it follows. */
+.atl-node.atl-tag-banner .atl-pane:first-child > p:last-child {
+	margin-top: 0.9em;
+	font-size: 0.92em;
+	color: var(--ink-faint, var(--text-faint));
+}
+
+/* Cap the height, never seize the width: `width: auto` here overrode the
+   width an embed asked for with |170, so every picture on a banner grew to
+   42% of the card's height, wrapped, and pushed the title off the top. */
+.atl-node.atl-tag-banner .atl-pane img { max-height: 42cqh; max-width: 100%; }
+.atl-node.atl-tag-banner .atl-pane:last-child { justify-self: end; text-align: right; }
+.atl-node.atl-tag-banner .atl-pane:last-child .atl-embed-row { justify-content: flex-end; }
+
+/* ---- controls inside the deck --------------------------------------------
+   Everything that opens over a talk — the note box, ask, the write-up, peek,
+   the graph — puts real <button>, <input> and <textarea> elements on screen,
+   and Obsidian styles those for its own interface. Its selectors reach inside
+   a view, so a bare class of ours loses: a themed dark deck came up with pale
+   interface buttons sitting in its panels.
+
+   The class is doubled on purpose. `.atl-overlay button` is one class and one
+   element; Obsidian's rules for a control inside a view carry two classes and
+   an element, so they win. Saying the overlay twice costs nothing, changes
+   nothing about which elements match, and puts these rules above them. */
+
+.atl-overlay.atl-overlay button,
+.atl-overlay.atl-overlay input,
+.atl-overlay.atl-overlay textarea,
+.atl-overlay.atl-overlay select {
+	font-family: inherit;
+	font-size: 0.95em;
+	color: var(--ink, var(--text-normal));
+	/* The caret is not inherited from `color` in every engine, and Obsidian's
+	   own control styling sets it. On a dark theme that left a black bar on a
+	   black box: nothing told you where you were about to type. */
+	caret-color: var(--ink, var(--text-normal));
+	background: var(--panel, var(--background-secondary));
+	border: 1px solid var(--rule, var(--background-modifier-border));
+	border-radius: 8px;
+	box-shadow: none;
+}
+
+.atl-overlay.atl-overlay button {
+	padding: 6px 14px;
+	cursor: pointer;
+	background: color-mix(in srgb, var(--ink, var(--text-normal)) 8%, transparent);
+	color: var(--ink, var(--text-normal));
+}
+
+.atl-overlay.atl-overlay button:hover {
+	background: color-mix(in srgb, var(--accent, var(--atl-accent)) 16%, transparent);
+	border-color: color-mix(in srgb, var(--accent, var(--atl-accent)) 55%, transparent);
+}
+
+/* The one button on a panel that is the point of the panel. */
+.atl-overlay.atl-overlay button.mod-cta {
+	background: var(--accent, var(--atl-accent));
+	border-color: var(--accent, var(--atl-accent));
+	color: var(--accent-ink, var(--text-on-accent));
+	font-weight: 600;
+}
+
+.atl-overlay.atl-overlay button.mod-cta:hover {
+	background: var(--accent-soft, var(--accent, var(--atl-accent)));
+	border-color: var(--accent-soft, var(--accent, var(--atl-accent)));
+}
+
+.atl-overlay.atl-overlay input::placeholder,
+.atl-overlay.atl-overlay textarea::placeholder {
+	color: var(--ink-faint, var(--text-faint));
+}
+
+.atl-overlay.atl-overlay input:focus,
+.atl-overlay.atl-overlay textarea:focus {
+	outline: none;
+	border-color: var(--accent, var(--atl-accent));
+}
+
+/* The bar over the deck is chrome, not a panel: it keeps its own unpainted
+   look rather than the panel treatment above. */
+.atl-overlay.atl-overlay button.atl-map-btn {
+	padding: 3px 6px;
+	background: transparent;
+	border-color: transparent;
+	border-radius: 999px;
+	color: var(--ink-soft, var(--text-muted));
+	font-size: 12px;
+}
+
+.atl-overlay.atl-overlay button.atl-map-btn:hover {
+	background: color-mix(in srgb, var(--accent, var(--atl-accent)) 12%, transparent);
+	border-color: color-mix(in srgb, var(--accent, var(--atl-accent)) 55%, transparent);
+	color: var(--ink, var(--text-normal));
+}
+
+/* ---- a card with a note on it -------------------------------------------
+   A dot in the corner, in the deck's accent. Small enough to ignore from the
+   back of a room, and the one thing you want to see on the overview: which
+   cards were talked about. Groups are not cards and never carry one. */
+
+
+.atl-node.has-note:not(.atl-node-group)::after {
+	content: "";
+	position: absolute;
+	top: 16px;
+	right: 16px;
+	width: 16px;
+	height: 16px;
+	border-radius: 50%;
+	background: var(--accent, var(--atl-accent));
+	/* A halo in the card's own paper, so the dot reads on a dark card and on a
+	   picture that happens to be the same colour as the accent. */
+	box-shadow:
+		0 0 0 4px color-mix(in srgb, var(--paper, var(--background-primary)) 80%, transparent),
+		0 0 22px color-mix(in srgb, var(--accent, var(--atl-accent)) 70%, transparent);
+	pointer-events: none;
+	z-index: 3;
+}
+
+/* A note that was spoken rather than typed: the same dot, with a ring.
+   Every colour here is the deck's own — accent for the mark, paper for the gap
+   that lifts it off whatever is behind it — so it follows the theme like the
+   rest of the card. */
+.atl-node.has-note.has-audio:not(.atl-node-group)::after {
+	box-shadow:
+		0 0 0 4px color-mix(in srgb, var(--paper, var(--background-primary)) 80%, transparent),
+		0 0 0 6px color-mix(in srgb, var(--accent, var(--atl-accent)) 55%, transparent),
+		0 0 22px color-mix(in srgb, var(--accent, var(--atl-accent)) 70%, transparent);
+}
+
+/* Off-camera cards fade to --atl-inactive and the dot fades with them, so the
+   overview shows at a glance which cards were talked about. */
+
+.atl-overlay.atl-overlay input::selection,
+.atl-overlay.atl-overlay textarea::selection {
+	background: color-mix(in srgb, var(--accent, var(--atl-accent)) 35%, transparent);
+	color: var(--ink, var(--text-normal));
 }

@@ -130,6 +130,78 @@ export function variantsIn(data: CanvasData): string[] {
 	return [...found].sort();
 }
 
+/**
+ * The #deck card as a slide, sized to the deck it belongs to.
+ *
+ * Width follows the first section, because a banner as wide as the talk below
+ * it reads as a header rather than as another card — never wider than the
+ * canvas, and never flatter than 4:1. Height is a card's height, so the banner
+ * lines up with the row beneath it however wide it turns out to be.
+ *
+ * The node is synthetic: it carries the body alone, so the settings lines never
+ * reach the renderer, and it keeps the deck card's id so notes and the journal
+ * still recognise it.
+ */
+function bannerNode(nodes: CanvasNode[], meta: Record<string, string>): CanvasNode | null {
+	const card = deckCardsIn(nodes)[0];
+	if (!card || !meta.__body) return null;
+
+	const groups = nodes.filter((n) => n.type === "group");
+	const widest = groups.reduce((w, g) => Math.max(w, g.width), 0);
+	const first = groups
+		.slice()
+		.sort((a, b) => a.y - b.y || a.x - b.x)[0];
+
+	const wide = Math.min(first?.width ?? card.width, widest || card.width) || card.width;
+	// As tall as the cards it sits above, not as tall as it is wide.
+	const inFirst = first
+		? nodes.filter(
+				(n) =>
+					n.type !== "group" &&
+					n.x >= first.x &&
+					n.y >= first.y &&
+					n.x + n.width <= first.x + first.width &&
+					n.y + n.height <= first.y + first.height
+			)
+		: [];
+	const height = inFirst.reduce((h, n) => Math.max(h, n.height), 0) || card.height;
+	// Never flatter than 4:1. A first section of six cards is 9000 units wide,
+	// and a banner that shape is a 90-pixel strip across a 16:9 screen — past
+	// four times its height there is nothing left to look at.
+	const width = Math.min(wide, height * 4);
+	const x = first?.x ?? card.x;
+
+	// Themed like every other card, rather than left as bare markdown.
+	//
+	// A card with no role tag is an ordinary card: text from the top left, at
+	// body size, which on a banner-shaped card leaves most of it empty.
+	// #banner is the role written for this card in particular: the title and
+	// its lines down the left, whatever follows a rule beside it, the whole
+	// thing centred against a card that is far wider than it is tall — and no
+	// band, because the deck's name belongs in the column, not across the top
+	// of its own opening slide. Writing a role of your own on the #deck card
+	// wins, so #title, #dark or #two still work.
+	// `#band` and `#noband` say where the first block goes; they do not say what
+	// kind of card this is. Counting them as a role meant writing `#band` on the
+	// deck card quietly took the banner layout away and left the card looking
+	// blank — the switch turned off the thing it was meant to steer.
+	const MODIFIERS = /^#(band|noband|dark)$/i;
+	const tags = [...meta.__body.matchAll(/(^|\n)[ \t]*((?:#[\w-]+[ \t]*)+)$/gm)]
+		.flatMap((m) => m[2].trim().split(/[ \t]+/));
+	const tagged = tags.some((t) => !MODIFIERS.test(t));
+	const text = tagged ? meta.__body : `#banner\n\n${meta.__body}`;
+
+	return {
+		...card,
+		text,
+		x,
+		// Sat above the first section, with a card's worth of air below it.
+		y: (first?.y ?? card.y) - height - 240,
+		width,
+		height,
+	};
+}
+
 export function buildScene(
 	data: CanvasData,
 	sectionOverviews: boolean,
@@ -160,6 +232,22 @@ export function buildScene(
 	const stops: Stop[] = [];
 	const visited = new Set<string>();
 	const openedGroups = new Set<string>();
+
+	// The banner: the #deck card's own content, presented first.
+	//
+	// Everything under the settings used to be squeezed into the thin band over
+	// a section overview and seen for two seconds a talk. Written as a card it
+	// is the opening slide, and the card sits across the top of the canvas the
+	// way a header sits on a profile. A #deck card carrying only settings has
+	// no banner and no extra stop, so decks that already exist are untouched.
+	const banner = bannerNode(data.nodes, meta);
+	if (banner) {
+		slides.unshift(banner);
+		stops.push({ kind: "node", node: banner });
+		// Placed by hand, so the sweep that picks up cards no edge reached must
+		// not pick it up again — it did, and the banner closed the talk twice.
+		visited.add(banner.id);
+	}
 
 	const push = (node: CanvasNode) => {
 		const group = groupOf.get(node.id);

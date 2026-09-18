@@ -590,8 +590,19 @@ const RUNTIME = `
       svg += '<rect class="atl-mm-group" x="' + gr.x + '" y="' + gr.y + '" width="' + gr.width +
         '" height="' + gr.height + '" rx="' + stroke * 12 + '" stroke-width="' + stroke + '"></rect>';
       if (gr.label) {
-        svg += '<text class="atl-mm-grouplabel" x="' + (gr.x + stroke * 8) + '" y="' +
-          (gr.y - stroke * 8) + '" font-size="' + stroke * 22 + '">' + esc(gr.label) + '</text>';
+        /* Sized to the gap above it, not to the canvas: a name taller than the
+           space between two sections is drawn over the section above. */
+        var above = b.y;
+        for (var q = 0; q < mapData.groups.length; q++) {
+          var o = mapData.groups[q];
+          if (o.y + o.height <= gr.y + 1) above = Math.max(above, o.y + o.height);
+        }
+        var gap = Math.max(gr.y - above, 0);
+        var gs = Math.min(stroke * 22, Math.max(gap * 0.55, 1), gr.height * 0.16);
+        var inside = gap < gs * 1.3;
+        svg += '<text class="atl-mm-grouplabel" x="' + (gr.x + gs * 0.5) + '" y="' +
+          (inside ? gr.y + gs * 1.15 : gr.y - gs * 0.38) + '" font-size="' + gs + '">' +
+          esc(gr.label) + '</text>';
       }
     }
 
@@ -611,7 +622,7 @@ const RUNTIME = `
         '" stroke-width="' + stroke + '"' +
         (t.colour ? ' data-color="' + esc(t.colour) + '"' : '') + '></rect>';
 
-      var size = Math.max(Math.min(t.height * 0.15, t.width * 0.08, 44), 9);
+      var size = Math.max(Math.min(t.height * 0.15, t.width * 0.08), stroke * 6, 9);
       var lines = wrap(t.title, Math.floor(t.width / (size * 0.54)), 3);
       var top = t.y + t.height / 2 - ((lines.length - 1) * size * 1.25) / 2 + size * 0.34;
       svg += '<text class="atl-mm-label" text-anchor="middle" font-size="' + size + '">';
@@ -932,9 +943,9 @@ export async function buildDeckHtml(
     transition: transform ${input.duration}ms cubic-bezier(0.6, 0, 0.2, 1); }
   #bar { z-index: 30; position: fixed; left: 0; right: 0; bottom: 0; display: flex;
     justify-content: space-between; padding: 10px 18px; font-size: 13px;
-    color: #6b7a80; pointer-events: none; }
+    color: var(--ink-soft, #6b7a80); pointer-events: none; }
   #rail { z-index: 30; position: fixed; left: 0; right: 0; top: 0; height: 3px; background: rgb(0 0 0 / 0.08); }
-  #railfill { height: 100%; width: 0; background: #1d5a78; transition: width 420ms ease; }
+  #railfill { height: 100%; width: 0; background: var(--accent, #1d5a78); transition: width 420ms ease; }
   #blank { position: fixed; inset: 0; background: #000; display: none; z-index: 40; }
   #blank.on { display: block; }
   /* The map carries .atl-minimap, so the plugin's own stylesheet — which
@@ -951,11 +962,11 @@ export async function buildDeckHtml(
   #view.is-overview.is-dragging .atl-node { cursor: grabbing; }
   #view.is-overview .atl-node:not(.atl-node-group) { outline: 2px solid transparent;
     outline-offset: 3px; transition: outline-color 140ms ease; }
-  #view.is-overview .atl-node:not(.atl-node-group):hover { outline-color: #1d5a78; }
-  #view.is-overview .atl-node.is-active { outline-color: #1d5a78; outline-style: dashed; }
+  #view.is-overview .atl-node:not(.atl-node-group):hover { outline-color: var(--accent, #1d5a78); }
+  #view.is-overview .atl-node.is-active { outline-color: var(--accent, #1d5a78); outline-style: dashed; }
   #hint { position: fixed; left: 50%; bottom: 22px; transform: translateX(-50%);
     z-index: 31; display: none; padding: 7px 15px; border-radius: 999px;
-    font-size: 13px; color: #6b7a80; background: #fff; border: 1px solid #dfe4dd;
+    font-size: 13px; color: var(--ink-soft, #6b7a80); background: var(--panel, #fff); border: 1px solid var(--rule, #dfe4dd);
     box-shadow: 0 4px 18px rgb(0 0 0 / 0.18); pointer-events: none; }
   #view.is-overview ~ #hint { display: block; }
   /* The keys, for someone who was sent this file and has never seen the

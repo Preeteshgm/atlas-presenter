@@ -1,0 +1,114 @@
+/* Bronze — an Atlas Presenter theme.
+
+   Warm black, no card edges, big type, deep shadow.
+   Use it when: the room is large and the deck is read from the back of it.
+
+   Settings → Atlas → Theme stylesheet, or put
+   `theme: Atlas/Themes/Bronze.css` on a canvas's #deck card to use it for
+   that deck alone.
+
+   A theme is only the values below — the plugin's own stylesheet does the work
+   and reads every one of them with a fallback, so nothing here is required.
+   To make your own, copy _Template.css, which documents all of them. */
+
+.atl-overlay {
+	--backdrop: radial-gradient(120% 95% at 22% 0%, #2A1A10 0%, #150D07 55%, #0A0604 100%);
+	--paper: #1A1109;
+	--panel: #23170D;
+	--ink: #F7EFE6;
+	--ink-soft: #BFA48A;
+	--ink-faint: rgb(247 239 230 / 0.30);
+	--rule: #3D2A19;
+	--wash: rgb(233 113 50 / 0.10);
+
+	/* Bronze: the company deck's orange, pulled back to a metal rather than a
+	   highlighter. */
+	--accent: #C1732F;
+	--accent-soft: #E97132;
+	--accent-ink: #1A1109;
+
+	--warn: #E97132;
+	--highlight: rgb(193 115 47 / 0.30);
+	--highlight-ink: #1A1109;
+
+	--radius: 18px;
+	--card: linear-gradient(160deg, #21160C 0%, #160E07 100%);
+	--card-border: 1px solid #3D2A19;
+	--card-shadow: 0 22px 70px rgb(0 0 0 / 0.6);
+	--card-ring: none;
+	--atl-inactive: 0.18;
+
+	/* Copper cooling into the deck's green and teal. */
+	--section-1: #E97132;
+	--section-2: #C1732F;
+	--section-3: #96602F;
+	--section-4: #6F5330;
+	--section-5: #4EA72E;
+	--section-6: #156082;
+
+	--group-size: 104px;
+	--group-weight: 700;
+	--group-tracking: -0.02em;
+	--group-transform: none;
+	--group-fill: rgb(233 113 50 / 0.04);
+	--group-border: 2px dashed #342415;
+	--group-radius: 20px;
+	--group-opacity: 0.6;
+
+	--display-font: 'Montserrat', 'Archivo Narrow', var(--font-interface), sans-serif;
+	--body-font: 'Montserrat', var(--font-interface), sans-serif;
+	--mono-font: 'IBM Plex Mono', var(--font-monospace), monospace;
+
+	--body-size: 19px;
+	--measure: 58ch;
+	--heading-weight: 700;
+	--tracking: -0.018em;
+
+	--scale-h1: 3em;
+	--scale-h2: 2.1em;
+	--scale-h3: 1.4em;
+	--scale-title: 4.3em;
+	--scale-section: 3.4em;
+	--scale-quote: 2.1em;
+	--scale-stat: 7em;
+
+	--code-bg: rgb(255 255 255 / 0.05);
+	--code-ink: #E9A16A;
+	--code-rule: #3D2A19;
+
+	--section-bg: linear-gradient(135deg, #1A1109 0%, #C1732F 210%);
+	--section-ink: #F7EFE6;
+	--section-border: 1px solid #3D2A19;
+	--dark-bg: #0A0604;
+	--dark-ink: #F7EFE6;
+	--dark-border: transparent;
+	--stat-ink: #E97132;
+
+	--media-radius: 12px;
+	--atl-dim: 0.55;
+	--atl-band: 26;
+}
+
+/* The cinematic look: no edges at all. A card is a slab of near-black lifted
+   off a vignette by its shadow, the type is large, and a section divider takes
+   the whole surface. Read from the back of a room, not from a desk. */
+.atl-node:not(.atl-node-group) {
+	border: none;
+}
+
+.atl-node.is-active {
+	box-shadow: 0 30px 90px rgb(0 0 0 / 0.7), 0 0 0 1px rgb(224 184 64 / 0.18);
+}
+
+.atl-node.atl-tag-section:not(.atl-node-group) .atl-body {
+	align-items: flex-start;
+	justify-content: flex-end;
+	padding-bottom: 12%;
+}
+
+.atl-node.atl-tag-title h1,
+.atl-node.atl-tag-banner h1 {
+	text-shadow: 0 2px 30px rgb(0 0 0 / 0.6);
+}
+
+.atl-group-label { opacity: 0.35; }

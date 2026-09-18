@@ -55,10 +55,10 @@ export function renderReference(containerEl: HTMLElement): void {
 	for (const [tag, what] of [
 		[
 			"#deck",
-			"This card is the deck's title block. It is never presented and never " +
-				"appears on the map. Its key: value lines set options for this canvas " +
-				"alone; anything that is not a key becomes the band drawn over a section " +
-				"overview, and every key is also a {token} you can use in it.",
+			"This card configures the deck, and opens it. Its key: value lines set " +
+				"options for this canvas alone, and every key is also a {token} you can " +
+				"use in the header. Anything written below the first blank line is the " +
+				"banner: a real card, sized from the first section, presented first.",
 		],
 		["#start", "Begin the deck here, whatever the arrows say."],
 		["#skip-short", "Leave this card out of the talk called \u201cshort\u201d. It stays in every other one."],
@@ -85,10 +85,11 @@ export function renderReference(containerEl: HTMLElement): void {
 		["colour:", "A flat colour behind the cards."],
 		["logo:", "A vault image on every slide. Several, separated by commas, sit in a row — a joint venture, or a client mark beside your own. logo corner:, logo height: place it."],
 		["accent:", "Overrides the theme's accent for this deck. Usually better left to the theme, which chose one that goes with the rest."],
-		["header:", "The standing line above the deck. {deck} {section} {n} {total} {date} are filled in, as is any key of your own."],
+		["header:", "The line at the foot of the deck: {deck} {section} {n} {total} {date} are filled in, as is any key of your own. {n}/{total} counts cards."],
 		["variant:", "Present this talk by default — the one its #only- and #skip- tags name."],
 		["advance:", "Run the deck by itself, a card every so often: advance: 8s. Any keypress stops it, because someone has arrived."],
 		["fit:", "contain shows the whole card; cover fills the screen and crops."],
+		["section:", "How a section overview is framed. title (the default) frames the section's name and the first cards, the same size on every section; contain shows the whole section however wide; whole is the same thing said plainly."],
 		["align:", "centre or top, for a card that does not fill the height."],
 		["transition:", "How one picture gives way to the next inside a card."],
 	] as [string, string][]) {
@@ -124,6 +125,9 @@ export function renderReference(containerEl: HTMLElement): void {
 
 	for (const [tag, what] of [
 		["(no tag)", "An ordinary card: a heading and some text."],
+		["#banner", "The #deck card’s opening slide. Added for you — write your own role to override it."],
+		["#band", "The first block runs across the top of a split card, whatever is in it."],
+		["#noband", "The first block stays a column, even when it is only a heading."],
 		["#title", "The opening card \u2014 a large heading with a line beneath it."],
 		["#section", "A divider carrying only the section's name, inverted, with a rule under it."],
 		["#quote", "A pull quote, set large with an opening mark."],
@@ -184,6 +188,46 @@ export function renderReference(containerEl: HTMLElement): void {
 	});
 
 	// ------------------------------------------------- on the canvas
+	const placing = section("Placing a block yourself");
+
+	placing.createDiv({
+		cls: "atl-ref-lead",
+		text:
+			"pin lifts a block out of the flow and puts it against the card; align " +
+			"leaves it in the flow and places it inside its column. Nine places for " +
+			"both: top-left, top, top-right, left, centre, right, bottom-left, bottom, " +
+			"bottom-right. Add row to lay the block across instead of down. A block " +
+			"with no closing ::: runs to the end of its column.",
+	});
+
+	entry(
+		placing,
+		":::pin",
+		"Against the card, over whatever else is there.",
+		[":::pin top-right row", "![[a.png|90]] ![[b.png|90]]", ":::"].join("\n")
+	);
+	entry(
+		placing,
+		":::align",
+		"Inside its own column, still in the flow.",
+		[":::align bottom-left", "The foot of this column.", ":::"].join("\n")
+	);
+	entry(
+		placing,
+		"<grid>",
+		"Advanced Slides' spelling, accepted as written. drop takes a name or an " +
+			"x y pair in percent; drag is width and height in percent.",
+		['<grid drag="40 60" drop="topright">', "![[a.png]]", "</grid>"].join("\n")
+	);
+	entry(
+		placing,
+		"![[a.png|420]]",
+		"Obsidian's own sizing, honoured on a card: 420 wide keeping the shape, or " +
+			"420x260 forced into that box. Pixels are on the card. Several pictures " +
+			"on one line become a row.",
+		"![[plan.png|420]]   ![[plan.png|420x260]]"
+	);
+
 	const canvas = section("On the canvas");
 
 	entry(canvas, "Arrows set the order",

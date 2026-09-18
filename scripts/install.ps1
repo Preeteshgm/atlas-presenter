@@ -127,4 +127,7 @@ if (-not (Test-Path (Join-Path $target ".hotreload"))) {
 Write-Host ""
 Write-Host "Installed to $target" -ForegroundColor Green
 Write-Host "In Obsidian: Settings -> Community plugins -> enable 'Atlas'."
-Write-Host "If it was already enabled, reload with Ctrl+R to pick up the new build."
+Write-Host "To pick up this build, do one of:"
+Write-Host "  - nothing, if the Hot Reload plugin is installed (this folder has its marker)"
+Write-Host "  - Settings -> Community plugins -> toggle Atlas off and on"
+Write-Host "  - Ctrl+P -> 'Reload app without saving'"

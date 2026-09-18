@@ -28,9 +28,8 @@ export interface Passage {
 	/**
 	 * What to call this when offering it to the model, if not its filename.
 	 *
-	 * The deck being presented is a candidate like any other, but "ECC Digital
-	 * Initiatives" in a list of notes does not read as "the thing on screen" —
-	 * so it says so.
+	 * The deck being presented is a candidate like any other, but its file name
+	 * in a list of notes does not read as "the thing on screen" — so it says so.
 	 */
 	label?: string;
 }

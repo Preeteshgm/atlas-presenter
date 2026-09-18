@@ -1,0 +1,109 @@
+/* Onyx — an Atlas Presenter theme.
+
+   A drafting grid behind flat black cards, gold on the accent alone.
+   Use it when: the content is dense and the deck should get out of its way.
+
+   Settings → Atlas → Theme stylesheet, or put
+   `theme: Atlas/Themes/Onyx.css` on a canvas's #deck card to use it for
+   that deck alone.
+
+   A theme is only the values below — the plugin's own stylesheet does the work
+   and reads every one of them with a fallback, so nothing here is required.
+   To make your own, copy _Template.css, which documents all of them. */
+
+.atl-overlay {
+	--backdrop:
+		repeating-linear-gradient(0deg, rgb(120 175 205 / 0.045) 0 1px, transparent 1px 64px),
+		repeating-linear-gradient(90deg, rgb(120 175 205 / 0.045) 0 1px, transparent 1px 64px),
+		linear-gradient(180deg, #0A1A26 0%, #04161F 55%, #020A0F 100%);
+	--paper: #042433;
+	--panel: #07303F;
+	--ink: #E8F0F4;
+	--ink-soft: #92AAB8;
+	--ink-faint: rgb(232 240 244 / 0.32);
+	--rule: #123A4C;
+	--wash: rgb(15 158 213 / 0.08);
+
+	/* Onyx is black with a cold sheen, so the accent is the deck's own teal. */
+	--accent: #0F9ED5;
+	--accent-soft: #6FCBEB;
+	--accent-ink: #042433;
+
+	--warn: #E97132;
+	--highlight: rgb(15 158 213 / 0.24);
+	--highlight-ink: #E8F0F4;
+
+	--radius: 10px;
+	--card: #042433;
+	--card-border: 1px solid #123A4C;
+	--card-shadow: 0 14px 44px rgb(0 0 0 / 0.5);
+	--card-ring: none;
+	--atl-inactive: 0.14;
+
+	/* The six accents from the company deck, in its own order. */
+	--section-1: #0F9ED5;
+	--section-2: #156082;
+	--section-3: #4EA72E;
+	--section-4: #E97132;
+	--section-5: #A02B93;
+	--section-6: #196B24;
+
+	--group-size: 86px;
+	--group-weight: 600;
+	--group-tracking: 0.02em;
+	--group-transform: uppercase;
+	--group-fill: transparent;
+	--group-border: 1px solid #0E3244;
+	--group-radius: 12px;
+	--group-opacity: 0.5;
+
+	--display-font: 'Archivo Narrow', 'Arial Narrow', var(--font-interface), sans-serif;
+	--body-font: 'IBM Plex Sans', var(--font-interface), sans-serif;
+	--mono-font: 'IBM Plex Mono', var(--font-monospace), monospace;
+
+	--body-size: 18px;
+	--measure: 64ch;
+	--heading-weight: 600;
+	--tracking: -0.01em;
+
+	--scale-h1: 2.7em;
+	--scale-h2: 1.95em;
+	--scale-h3: 1.3em;
+	--scale-title: 3.8em;
+	--scale-section: 3em;
+	--scale-quote: 1.95em;
+	--scale-stat: 6.2em;
+
+	--code-bg: rgb(255 255 255 / 0.04);
+	--code-ink: #6FCBEB;
+	--code-rule: #123A4C;
+
+	--section-bg: #020F16;
+	--section-ink: #0F9ED5;
+	--section-border: 1px solid #123A4C;
+	--dark-bg: #020F16;
+	--dark-ink: #E8F0F4;
+	--dark-border: transparent;
+	--stat-ink: #0F9ED5;
+
+	--media-radius: 8px;
+	--atl-dim: 0.5;
+	--atl-band: 22;
+}
+
+/* The technical look: a drafting grid behind the deck, hairline edges, and
+   section names set as small uppercase eyebrows rather than huge display type.
+   Nothing floats — every card sits flat on the grid. */
+
+.atl-node:not(.atl-node-group) { box-shadow: none; }
+
+.atl-node.is-active { box-shadow: 0 0 0 1px var(--accent); }
+
+.atl-group-label {
+	font-size: 0.34em;
+	letter-spacing: 0.22em;
+	border-bottom: 1px solid var(--rule);
+	padding-bottom: 0.4em;
+}
+
+.atl-node.atl-tag-stat h1 { font-weight: 500; }

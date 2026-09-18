@@ -18,8 +18,6 @@ import {
 	BrowserMode,
 	Corner,
 	FitMode,
-	HeaderPosition,
-	HeaderScope,
 	SlideshowTransition,
 	TimerMode,
 	VerticalAlign,
@@ -563,7 +561,7 @@ export class AtlasSettingTab extends PluginSettingTab {
 		new Setting(containerEl)
 			.setName("Header line")
 			.setDesc(
-				"A standing line above the deck, for a welcome, a presenter or a date. " +
+				"The line at the foot of the deck, for a welcome, a presenter or a date. " +
 					"Tokens: {deck} {section} {n} {total} {date}. Leave blank for none."
 			)
 			.addText((c) =>
@@ -577,36 +575,18 @@ export class AtlasSettingTab extends PluginSettingTab {
 			);
 
 		new Setting(containerEl)
-			.setName("Header position")
-			.addDropdown((c) =>
-				c
-					.addOptions({ "top-left": "Top left", "top-centre": "Top centre", "top-right": "Top right" })
-					.setValue(s.headerPosition)
-					.onChange(async (v) => {
-						s.headerPosition = v as HeaderPosition;
-						await this.save();
-					})
-			);
-
-		new Setting(containerEl)
-			.setName("Show the header")
+			.setName("Show the deck line")
 			.setDesc(
-				"On a card the camera fills the screen, so a header can only overlap it. " +
-					"On a section overview the space above the group is empty and a title " +
-					"reads well there."
+				"The line at the foot of the deck: the deck's name, the section and the " +
+					"card number, or whatever the #deck card's header: line says. It used " +
+					"to be a band across the top, which said the same things the bar " +
+					"already said and covered the slide to do it."
 			)
-			.addDropdown((c) =>
-				c
-					.addOptions({
-						sections: "On section overviews",
-						first: "On the first card only",
-						always: "On every card",
-					})
-					.setValue(s.headerScope)
-					.onChange(async (v) => {
-						s.headerScope = v as HeaderScope;
-						await this.save();
-					})
+			.addToggle((c) =>
+				c.setValue(s.showHeader).onChange(async (v) => {
+					s.showHeader = v;
+					await this.save();
+				})
 			);
 
 		new Setting(containerEl)
@@ -679,11 +659,28 @@ export class AtlasSettingTab extends PluginSettingTab {
 		new Setting(containerEl).setName("Notes and minutes").setHeading();
 
 		new Setting(containerEl)
+			.setName("Keep one note per deck")
+			.setDesc(
+				"On by default. The deck's notes live in one note beside the canvas, with a " +
+					"section for each card, and presenting the same canvas again opens the " +
+					"same words — so a remark can be edited or added to rather than filed " +
+					"away in another dated file. Turn it off for a new write-up every " +
+					"session, which is what Atlas did before."
+			)
+			.addToggle((c) =>
+				c.setValue(s.deckNotes).onChange(async (v) => {
+					s.deckNotes = v;
+					await this.save();
+				})
+			);
+
+		new Setting(containerEl)
 			.setName("Where minutes are filed")
 			.setDesc(
 				"Press N while presenting to note something against the card on screen, or "
-					+ "R to speak it. The write-up lands here, one note per session, and "
-					+ "recordings in a Recordings folder beside it."
+					+ "R to speak it. With one note per deck this folder holds the recordings "
+					+ "and anything written up per session; without it, the write-up lands "
+					+ "here too."
 			)
 			.addText((c) =>
 				c

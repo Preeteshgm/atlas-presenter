@@ -27,6 +27,21 @@ export default class AtlasPlugin extends Plugin {
 		const saved = ((await this.loadData()) ?? {}) as Partial<AtlasSettings>;
 		this.settings = { ...DEFAULT_SETTINGS, ...saved };
 		registerIcons();
+
+		// The placement markers, quietened wherever Obsidian renders markdown.
+		//
+		// `:::pin top-right` is an instruction to Atlas, not a line of the talk.
+		// On a canvas card Obsidian draws it as ordinary text, so a card you
+		// have laid out reads with its scaffolding showing. Marked here, the
+		// stylesheet sets it small and faint — still visible, because a block
+		// you cannot see the start of is a block you cannot edit, but no longer
+		// competing with the words.
+		this.registerMarkdownPostProcessor((el) => {
+			el.querySelectorAll("p").forEach((p) => {
+				const text = p.textContent?.trim() ?? "";
+				if (/^:::/.test(text) && text.length < 60) p.addClass("atl-marker-line");
+			});
+		});
 		this.registerView(PRESENTER_VIEW, (leaf) => new PresenterView(leaf));
 		this.registerView(DECK_VIEW, (leaf) => new DeckView(leaf));
 		this.registerView(

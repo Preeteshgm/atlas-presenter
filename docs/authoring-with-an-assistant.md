@@ -1,11 +1,12 @@
-# Writing decks with Claude
+# Writing decks with an assistant
 
 A brief for an assistant asked to produce Atlas decks on demand: what to write,
 in what shape, and the handful of rules that make the difference between a
 canvas that presents and one that has to be fixed by hand.
 
-Paste this into a Claude Project's **Instructions**, and put `README.md` and one
-demo canvas in its **Context**. The README is the full reference; this is what
+Paste this into whatever the assistant reads before it starts — a project's
+standing instructions, a system prompt, the top of the conversation — and give it
+`README.md` and one demo canvas as well. The README is the full reference; this is what
 to do with it.
 
 ---

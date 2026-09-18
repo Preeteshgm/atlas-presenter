@@ -8,9 +8,10 @@ import {
 	normalizePath,
 } from "obsidian";
 import { isElement } from "../dom";
-import { AtlasSettings, Scene, Stop } from "../types";
+import { AtlasSettings, CanvasNode, Rect, Scene, Stop } from "../types";
 import { hhmm, mmss, safeFileName } from "../format";
 import { fileAt, readFileAt } from "../vault";
+import { AUDIO_EXT } from "../media";
 import { parseCanvas, rectOf } from "../canvas/parse";
 import { buildScene, readDeckVariant } from "../canvas/path";
 import { Camera } from "./camera";
@@ -20,7 +21,6 @@ import { Browser } from "./browse";
 import {
 	buildSteps,
 	renderNode,
-	renderMarkdownInto,
 	resourcePath,
 	slideshowsIn,
 	speakerNotes,
@@ -40,6 +40,7 @@ import {
 } from "./capture";
 import { Clip, Recorder, transcribe } from "./recorder";
 import { Journal } from "./journal";
+import { DeckNotes, capturesFrom, readDeckNotes, saveDeckNotes } from "./deck-notes";
 import {
 	askBest,
 	chooseNotes,
@@ -72,8 +73,6 @@ export class Presentation extends Component {
 	private peek!: Peek;
 	private browser!: Browser;
 	private hud!: HTMLElement;
-	private header: HTMLElement | null = null;
-	private headerRendered = "";
 	private nextEl: HTMLElement | null = null;
 	private railFill: HTMLElement | null = null;
 	private timerEl: HTMLElement | null = null;
@@ -108,6 +107,8 @@ export class Presentation extends Component {
 	/** The talk as it actually happened, detours included. */
 	private visits: Visit[] = [];
 	private captures: Capture[] = [];
+	/** The deck's own note file, read at the start and written back on W. */
+	private deckNotes: DeckNotes | null = null;
 	/** Set while the note box owns the keyboard. */
 	private capturing = false;
 	private written = false;
@@ -207,6 +208,16 @@ export class Presentation extends Component {
 			this.goTo(this.startIndex(), { animate: false });
 			return;
 		}
+		// What was said about these cards last time.
+		//
+		// Read before anything can be typed, so pressing N on a card opens with
+		// the words already there rather than blank — and so the dot shows on
+		// every card that carries one, from the first slide.
+		if (this.settings.deckNotes) {
+			this.deckNotes = await readDeckNotes(this.app, this.file);
+			this.captures = capturesFrom(this.deckNotes, this.began);
+		}
+
 		// From here on, nothing typed or recorded is only in memory.
 		this.journal = new Journal(this.app, this.settings.minutesFolder || "Meetings", {
 			deck: this.file.basename,
@@ -281,10 +292,9 @@ export class Presentation extends Component {
 		if (m.transition) {
 			next.slideshowTransition = m.transition as AtlasSettings["slideshowTransition"];
 		}
-		if (m.headeron) next.headerScope = m.headeron as AtlasSettings["headerScope"];
-		if (m.headerposition) {
-			next.headerPosition = m.headerposition as AtlasSettings["headerPosition"];
-		}
+		// `header on: no` still turns the line off, which is what anyone who
+		// wrote the old key meant by it.
+		if (m.headeron) next.showHeader = !/^(no|off|never|false)$/i.test(m.headeron);
 		return next;
 	}
 
@@ -389,10 +399,14 @@ export class Presentation extends Component {
 			const row = this.overlay.createDiv({ cls: "atl-logos" });
 			row.dataset.corner = s.logoCorner;
 			row.style.opacity = String(s.logoOpacity);
+			// Through a custom property rather than straight onto the element,
+			// so the banner can show the same logo larger without fighting an
+			// inline style.
+			row.style.setProperty("--atl-logo-height", `${s.logoHeight}px`);
 			for (const path of logos) {
 				const logo = row.createEl("img", { cls: "atl-logo" });
 				logo.src = resourcePath(this.app, path);
-				logo.style.height = `${s.logoHeight}px`;
+				logo.style.height = "var(--atl-logo-height)";
 			}
 		}
 	}
@@ -414,15 +428,6 @@ export class Presentation extends Component {
 			align: this.settings.verticalAlign,
 		});
 
-		if (
-			this.settings.headerText ||
-			this.scene.meta.header ||
-			this.scene.meta.__body ||
-			this.scene.meta.title
-		) {
-			this.header = this.overlay.createDiv({ cls: "atl-header" });
-			this.header.dataset.position = this.settings.headerPosition;
-		}
 		if (this.settings.showProgress) {
 			const rail = this.overlay.createDiv({ cls: "atl-rail" });
 			this.railFill = rail.createDiv({ cls: "atl-rail-fill" });
@@ -657,6 +662,29 @@ export class Presentation extends Component {
 			// here would either steal the keystroke or let it through to the deck.
 			if (this.capturing || this.child) return;
 
+			// The note box's own keys, handled from here.
+			//
+			// They were on the textarea, and a modified Enter never arrived:
+			// some other plugin in the vault stops the event at the document
+			// before it can reach an element that deep. stopPropagation only
+			// stops an event travelling to *other* nodes, though — handlers on
+			// the same node and phase still run, and this one is on the
+			// document in the capture phase, which is exactly where the event
+			// is being stopped. So it is the one place in the plugin that can
+			// still hear them.
+			if (this.noteBox && e.target === this.noteBox && key === "Enter") {
+				// Plain Enter makes a line, and nothing here touches it.
+				//
+				// Every modified Enter was tried and none of them arrive: some
+				// plugin in this vault claims Ctrl/Alt/Shift+Enter and ends the
+				// event with stopImmediatePropagation, which no other handler
+				// can hear past — not even this one, on the same node and phase
+				// as the blocker. Plain Enter does arrive, so that is the key
+				// the box uses, and saving moved to something that cannot be
+				// intercepted at all: a button.
+				return;
+			}
+
 			// Anything being typed into belongs to whatever is being typed into.
 			//
 			// This listens on the document in the capture phase, so that the
@@ -690,8 +718,16 @@ export class Presentation extends Component {
 				handled();
 				if (this.siteEl) this.closeSite();
 				else if (this.review?.isOpen) this.review.close();
-				else this.noteBox?.closest(".atl-note")?.remove();
-				this.noteBox = null;
+				else if (this.noteSave) {
+					// Escape on the note box saves it. This branch runs before
+					// the box's own handler — it is on the document, in the
+					// capture phase — so leaving it to remove the panel threw
+					// away whatever had just been typed.
+					this.noteSave();
+				} else {
+					this.noteBox?.closest(".atl-note")?.remove();
+					this.noteBox = null;
+				}
 				return;
 			}
 
@@ -960,6 +996,45 @@ export class Presentation extends Component {
 		body.toggleClass("at-end", max <= 8 || body.scrollTop >= max - 4);
 	}
 
+	/**
+	 * What the camera frames when the talk enters a section.
+	 *
+	 * Containing the whole group works on a section of one card and fails on a
+	 * section of five: a group five cards wide is pushed so far back that the
+	 * cards are smudges and the section's own name — the thing the stop exists
+	 * to announce — shrinks with them. One rule was doing two jobs, *show me
+	 * this section* and *announce this section*, and the second is the one that
+	 * matters here.
+	 *
+	 * So the camera frames a window anchored at the section's top-left corner,
+	 * where the name is: the section's own height, and as wide as the section
+	 * or two cards, whichever is smaller. A narrow section is framed whole,
+	 * exactly as before. A wide one is framed at its start — the name large,
+	 * the first cards behind it, the rest off to the right where the talk is
+	 * about to go. The name then reads at the same size on every section,
+	 * because the window is the same size on every section.
+	 *
+	 * `section:` on the #deck card overrules it: `contain` for the old
+	 * behaviour, `whole` to force the entire section into view however wide.
+	 */
+	private sectionFrame(group: CanvasNode): Rect {
+		const r = rectOf(group);
+		const how = (this.scene.meta.section ?? "title").toLowerCase();
+		if (how === "contain" || how === "whole") return r;
+
+		// A card's width, taken from the section rather than assumed: a deck of
+		// 1600-wide cards and a deck of 800-wide cards should both get a window
+		// of two of their own cards.
+		const cards = this.scene.slides.filter((n) => this.scene.groupOf.get(n.id)?.id === group.id);
+		const card = cards.reduce((w, n) => Math.max(w, n.width), 0) || r.width / 2;
+		const window = Math.min(r.width, card * 2 + 240);
+		// A section only a little wider than the window is shown whole. Cutting
+		// a hand's width off the last card to save nothing is worse than the
+		// slightly smaller name it costs.
+		const width = window > r.width * 0.85 ? r.width : window;
+		return { x: r.x, y: r.y, width, height: r.height };
+	}
+
 	private goTo(i: number, opts: { animate?: boolean } = {}): void {
 		const clamped = Math.max(0, Math.min(i, this.scene.stops.length - 1));
 		const backwards = clamped < this.index;
@@ -972,7 +1047,7 @@ export class Presentation extends Component {
 			this.signal(previous.node.id, "leave");
 		}
 
-		const target = rectOf(stop.node);
+		const target = stop.kind === "group" ? this.sectionFrame(stop.node) : rectOf(stop.node);
 		if (opts.animate === false) this.camera.snapTo(target);
 		else void this.camera.flyTo(target, this.settings.duration);
 
@@ -1436,8 +1511,17 @@ ${this.themeCss}`,
 
 		if (this.onKey) this.doc.removeEventListener("keydown", this.onKey, true);
 		if (this.onResize) this.win.removeEventListener("resize", this.onResize);
+		// The theme travels too. A constructed stylesheet belongs to the window
+		// that made it and can only be adopted by that window's document, so a
+		// deck dragged into a window of its own arrived unthemed — the CSS was
+		// still adopted, into the document it had just left. Dropped from the
+		// old one and rebuilt in the new one, because the sheet itself cannot
+		// cross.
+		this.dropTheme();
 		this.doc = doc;
 		this.win = doc.defaultView;
+		this.adoptTheme();
+		this.applyTheme();
 		if (this.onKey) this.doc.addEventListener("keydown", this.onKey, true);
 		if (this.onResize) this.win.addEventListener("resize", this.onResize);
 		this.goTo(this.index, { animate: false });
@@ -2114,6 +2198,8 @@ ${this.themeCss}`,
 	}
 
 	private noteBox: HTMLTextAreaElement | null = null;
+	/** Saving the open note, callable from the deck's own key handler. */
+	private noteSave: (() => void) | null = null;
 	/** The session review, built into the deck so fullscreen can show it. */
 	private review: ReviewPanel | null = null;
 
@@ -2131,7 +2217,19 @@ ${this.themeCss}`,
 		const panel = this.overlay.createDiv({ cls: "atl-note" });
 		panel.createDiv({ cls: "atl-note-title", text: `Note on “${title}”` });
 		const box = panel.createEl("textarea", { cls: "atl-note-box" });
-		box.rows = 4;
+		box.rows = 3;
+
+		// Grows with what is in it, like the ask panel.
+		//
+		// A fixed four rows means a long note is typed through a letterbox with
+		// the start of it scrolled out of sight — and the thing you most want
+		// while talking is to see what you have already written. It stops at
+		// 40% of the deck's height so the card underneath is never buried.
+		const grow = () => {
+			box.style.height = "auto";
+			box.style.height = `${Math.min(box.scrollHeight, this.overlay.clientHeight * 0.4)}px`;
+		};
+		box.addEventListener("input", grow);
 		box.placeholder =
 			"What was said, what was asked, what to do next.\n" +
 			"A line starting - [ ] becomes an action.";
@@ -2140,11 +2238,13 @@ ${this.themeCss}`,
 
 		panel.createDiv({
 			cls: "atl-note-hint",
-			text: "Enter saves · Shift+Enter for a new line · Esc closes · empty it to delete",
+			text: "Enter makes a new line · Esc or Save note keeps it · Close discards it · empty it to delete",
 		});
+		const buttons = panel.createDiv({ cls: "atl-note-buttons" });
 
 		const close = () => {
 			this.noteBox = null;
+			this.noteSave = null;
 			panel.remove();
 			this.stage.focus();
 		};
@@ -2164,21 +2264,35 @@ ${this.themeCss}`,
 			close();
 		};
 
+		this.noteSave = save;
+
+		// A button, so no key combination is load-bearing.
+		const cancel = buttons.createEl("button", { text: "Close" });
+		cancel.addEventListener("click", () => close());
+		const keep = buttons.createEl("button", { cls: "mod-cta", text: "Save note" });
+		keep.addEventListener("click", () => save());
+
 		box.addEventListener("keydown", (e) => {
 			// Whatever happens, the deck does not also hear it.
 			e.stopPropagation();
-			if (e.key === "Enter" && !e.shiftKey) {
+			// Enter is left alone: it makes a new line, the way a textarea
+			// already does. Saving is Esc or a button, because every modified
+			// Enter is claimed by something else in this vault and never
+			// arrives here at all.
+			if (e.key === "Escape") {
+				// Saving, not discarding. A box that throws away what you typed
+				// because you reached for the key that closes things is a trap,
+				// and this one is opened mid-sentence while talking.
 				e.preventDefault();
 				save();
-			} else if (e.key === "Escape") {
-				e.preventDefault();
-				close();
 			}
 		});
 
 		this.win.setTimeout(() => {
 			box.focus();
 			box.setSelectionRange(box.value.length, box.value.length);
+			// A note reopened on a card already has text in it.
+			grow();
 		}, 0);
 	}
 
@@ -2257,17 +2371,50 @@ ${this.themeCss}`,
 	 * The talk, written up as one note — and then opened, so it is not a file
 	 * you have to go looking for.
 	 */
+	/**
+	 * The deck's one note, written back.
+	 *
+	 * Every card that has something written on it, in the order the talk runs,
+	 * merged into the file the deck opened with. A card whose notes were not
+	 * touched this time keeps exactly the words it had — including anything
+	 * edited by hand between talks, which is the point of there being one file.
+	 */
+	private async saveToDeckNote(): Promise<TFile | null> {
+		const notes = this.deckNotes ?? (await readDeckNotes(this.app, this.file));
+		const order = this.scene.stops
+			.filter((stop) => stop.kind === "node")
+			.map((stop) => ({ id: stop.node.id, title: titleOf(stop.node) }));
+
+		const entries = new Map<string, string>();
+		for (const capture of this.captures) entries.set(capture.nodeId, capture.text);
+		// A card whose note was emptied has to say so, or the old text stays.
+		for (const id of notes.byCard.keys()) {
+			if (!entries.has(id)) entries.set(id, "");
+		}
+
+		const file = await saveDeckNotes(this.app, this.file, notes, order, entries);
+		if (file) {
+			this.deckNotes = await readDeckNotes(this.app, this.file);
+			new Notice(`Atlas: notes kept in ${file.path}`, 6000);
+		} else {
+			new Notice("Atlas: could not write the deck's notes.");
+		}
+		return file;
+	}
+
 	async writeUp(): Promise<void> {
 		if (this.captures.length === 0 && this.visits.length === 0) {
 			new Notice("Atlas: nothing to write up yet.");
 			return;
 		}
-		const file = await writeMinutes(
-			this.app,
-			this.session(),
-			this.settings.minutesFolder,
-			this.minutesOptions()
-		);
+		const file = this.settings.deckNotes
+			? await this.saveToDeckNote()
+			: await writeMinutes(
+					this.app,
+					this.session(),
+					this.settings.minutesFolder,
+					this.minutesOptions()
+				);
 		this.written = true;
 		if (!file) return;
 		// The journal existed to survive a crash. The minutes now say everything
@@ -2506,40 +2653,37 @@ ${this.themeCss}`,
 		}
 	}
 
-	/** {deck} {section} {n} {total} {date} in the header line. */
+	/**
+	 * The deck's line, as text.
+	 *
+	 * `{deck} {section} {n} {total} {date}` and any key from the #deck card.
+	 * It used to be drawn as markdown into a band across the top of the screen,
+	 * shown on section overviews only — which put the deck's name, the section
+	 * and the position on screen twice, since the bar carries all three, and
+	 * the two disagreed: the band counted stops, the bar counts cards. One
+	 * line, in the place that is always visible and never over the slide.
+	 */
+	private headerLine(stop: Stop): string {
+		const meta = this.scene.meta;
+		const template = meta.header ?? this.settings.headerText;
+		if (!template.trim()) return "";
+		return template
+			.replace(/\{(\w[\w -]*)\}/g, (whole, key: string) => {
+				const value = meta[key.toLowerCase()];
+				return value === undefined ? whole : value;
+			})
+			.replace(/\{deck\}/g, this.file.basename)
+			.replace(/\{section\}/g, stop.group?.label ?? "")
+			// Cards, the way the bar has always counted, rather than stops —
+			// which included the section overviews and made the same slide 6/17
+			// here and 4/12 an inch below.
+			.replace(/\{n\}/g, String(this.cardNumber(this.index)))
+			.replace(/\{total\}/g, String(this.cardTotal))
+			.replace(/\{date\}/g, new Date().toLocaleDateString())
+			.trim();
+	}
+
 	private renderHeader(stop: Stop): void {
-		if (this.header) {
-			// A card fills the screen, so a header over it can only overlap. A
-			// group overview leaves the band above it empty, which is exactly
-			// where a title belongs.
-			const scope = this.settings.headerScope;
-			const visible =
-				scope === "always" ||
-				(scope === "first" && this.index === 0) ||
-				(scope === "sections" && (stop.kind === "group" || this.index === 0));
-			this.header.toggleClass("is-shown", visible);
-
-			const meta = this.scene.meta;
-			const template = meta.header ?? meta.__body ?? this.settings.headerText;
-			const filled = template
-				.replace(/\{(\w[\w -]*)\}/g, (whole, key: string) => {
-					const value = meta[key.toLowerCase()];
-					return value === undefined ? whole : value;
-				})
-				.replace(/\{deck\}/g, this.file.basename)
-				.replace(/\{section\}/g, stop.group?.label ?? "")
-				.replace(/\{n\}/g, String(this.index + 1))
-				.replace(/\{total\}/g, String(this.scene.stops.length))
-				.replace(/\{date\}/g, new Date().toLocaleDateString());
-			// Rendered rather than set as text, so the deck card can carry a
-			// heading, emphasis, a link or a small image in its header.
-			if (filled !== this.headerRendered) {
-				this.headerRendered = filled;
-				this.header.empty();
-				void renderMarkdownInto(this.app, this, this.header, filled, this.file.path);
-			}
-		}
-
 		// The section name lives on the group itself, above it and to the
 		// left, so it sits in the map rather than floating over it.
 		for (const group of this.scene.groups) {
@@ -2568,8 +2712,46 @@ ${this.themeCss}`,
 		return this.scene.stops[index]?.kind === "node" ? seen : Math.min(seen + 1, this.cardTotal);
 	}
 
+	/**
+	 * Is this stop the deck's banner?
+	 *
+	 * The banner is a synthetic node built from the #deck card, so it is the
+	 * only stop whose node is not in the canvas file. Matching on the id is
+	 * enough, and it survives a rebuild of the scene.
+	 */
+	private isBanner(stop: Stop): boolean {
+		return stop.kind === "node" && stop.node.id === this.scene.stops[0]?.node.id
+			&& !!this.scene.meta.__body;
+	}
+
+	/**
+	 * Which cards have a note on them, marked on the cards themselves.
+	 *
+	 * The Remark button lights up on a card that has one, but that says nothing
+	 * about the card you are about to reach — and on the overview the whole
+	 * deck is on screen at once. One dot, on the card itself, answers both.
+	 */
+	private markNotedCards(): void {
+		const noted = new Set(this.captures.map((c) => c.nodeId));
+		// A note that carries an audio embed was spoken rather than typed. R
+		// stores a spoken note as an ordinary note with the clip embedded in
+		// it, so this is the only thing that tells the two apart — and it is
+		// the same mark either way, with a ring round it, rather than a second
+		// indicator meaning something adjacent.
+		const spoken = new Set(
+			this.captures.filter((c) => AUDIO_EXT.test(c.text)).map((c) => c.nodeId)
+		);
+		for (const [id, el] of this.nodeEls) {
+			el.toggleClass("has-note", noted.has(id));
+			el.toggleClass("has-audio", spoken.has(id));
+		}
+	}
+
 	private updateHud(stop: Stop, stepCount: number): void {
 		this.renderHeader(stop);
+		// The logo belongs to the deck, so on the deck's own card it is shown
+		// at its own size rather than as the small standing mark.
+		this.overlay.toggleClass("is-banner", this.isBanner(stop));
 
 		if (this.railFill) {
 			const through = this.index / Math.max(1, this.scene.stops.length - 1);
@@ -2581,6 +2763,7 @@ ${this.themeCss}`,
 			remark.setText(this.captures.length ? `Remark ${this.captures.length}` : "Remark");
 			remark.toggleClass("has-note", this.captures.some((c) => c.nodeId === stop.node.id));
 		}
+		this.markNotedCards();
 
 		if (this.nextEl) {
 			const upcoming = this.scene.stops[this.index + 1];
@@ -2591,9 +2774,17 @@ ${this.themeCss}`,
 		const crumbs = this.hud.querySelector<HTMLElement>(".atl-crumbs");
 		const counter = this.hud.querySelector<HTMLElement>(".atl-counter");
 		if (crumbs) {
-			const parts = [this.file.basename];
-			if (stop.group && stop.group.label) parts.push(stop.group.label);
-			crumbs.setText(parts.join("  ›  "));
+			// What the deck card asked for, or the breadcrumbs when it asked for
+			// nothing. Hidden on the banner, where a position and a section name
+			// make an opening slide look unfinished.
+			const line = this.settings.showHeader && !this.isBanner(stop) ? this.headerLine(stop) : "";
+			if (line) {
+				crumbs.setText(line);
+			} else {
+				const parts = [this.file.basename];
+				if (stop.group && stop.group.label) parts.push(stop.group.label);
+				crumbs.setText(this.isBanner(stop) ? this.file.basename : parts.join("  ›  "));
+			}
 		}
 		if (counter) {
 			const reveal = stepCount > 0 ? ` · ${this.stepIndex}/${stepCount}` : "";

@@ -13,3 +13,21 @@
 export function isElement(node: unknown): node is HTMLElement {
 	return !!node && typeof node === "object" && (node as Node).nodeType === 1;
 }
+
+/**
+ * Put a new line in, ourselves.
+ *
+ * A browser inserts one for plain Enter and for nothing else — Ctrl+Enter and
+ * Alt+Enter do nothing at all in a textarea, and Shift+Enter is swallowed here
+ * by something outside this plugin. So the box claims Enter for saving, and
+ * every other Enter writes the line break itself: at the caret, caret moved
+ * after it, and an input event so anything listening for edits sees it the same
+ * as a typed character.
+ */
+export function newlineAt(box: HTMLTextAreaElement): void {
+	const start = box.selectionStart ?? box.value.length;
+	const end = box.selectionEnd ?? start;
+	box.value = `${box.value.slice(0, start)}\n${box.value.slice(end)}`;
+	box.setSelectionRange(start + 1, start + 1);
+	box.dispatchEvent(new Event("input", { bubbles: true }));
+}

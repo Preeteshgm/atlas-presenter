@@ -101,10 +101,25 @@ export class Minimap {
 			this.svg.appendChild(el);
 
 			if (g.label) {
+				// A section name is written in the gap above its box. The gap is
+				// what decides how big it can be: sized from the canvas width
+				// instead, a name on a tall deck came out taller than the space
+				// between two sections and was drawn straight over the cards of
+				// the section above.
+				const above = this.scene.groups
+					.map((o) => rectOf(o))
+					.filter((o) => o.y + o.height <= r.y + 1)
+					.reduce((top, o) => Math.max(top, o.y + o.height), rectOf(this.scene.bounds).y);
+				const gap = Math.max(r.y - above, 0);
+				const size = Math.min(stroke * 22, Math.max(gap * 0.55, 1), r.height * 0.16);
+				// No room above at all: sit it inside the box instead of over
+				// whatever is up there.
+				const inside = gap < size * 1.3;
+
 				const label = document.createElementNS(NS, "text");
-				label.setAttribute("x", String(r.x + stroke * 8));
-				label.setAttribute("y", String(r.y - stroke * 8));
-				label.setAttribute("font-size", String(stroke * 22));
+				label.setAttribute("x", String(r.x + size * 0.5));
+				label.setAttribute("y", String(inside ? r.y + size * 1.15 : r.y - size * 0.38));
+				label.setAttribute("font-size", String(size));
 				label.addClass("atl-mm-grouplabel");
 				label.textContent = g.label;
 				this.svg.appendChild(label);
@@ -189,7 +204,10 @@ export class Minimap {
 			img.addClass("atl-mm-thumb");
 			group.appendChild(img);
 		} else {
-			const size = Math.max(Math.min(r.height * 0.15, r.width * 0.08, 44), 9);
+			// Proportional to the card, with no absolute ceiling: a fixed cap of
+			// 44 units is a reasonable title on a 300-unit card and invisible on
+			// a 900-unit one, which is every card in a real deck.
+			const size = Math.max(Math.min(r.height * 0.15, r.width * 0.08), stroke * 6, 9);
 			const lines = wrap(titleOf(node), Math.floor(r.width / (size * 0.54)), 3);
 			const text = document.createElementNS(NS, "text");
 			text.setAttribute("x", String(r.x + r.width / 2));
@@ -241,6 +259,7 @@ export class Minimap {
 		this.open = true;
 		this.root.addClass("is-open");
 	}
+
 
 	hide(): void {
 		this.open = false;
