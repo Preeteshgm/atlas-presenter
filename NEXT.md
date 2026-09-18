@@ -1,7 +1,9 @@
-# Atlas Presenter — state at 0.31.0
+# Atlas Presenter — state at 0.34.1
 
-Live in the Obsidian community store. Lint, type-check and all four audits clean;
-CI green on every release.
+**Not yet in the community store**: the review tool passes, but nothing has been
+submitted — that is a pull request to obsidianmd/obsidian-releases, and there is
+no such PR. Installed by BRAT or by hand until then. Lint, type-check and all
+four audits clean; CI green on every release.
 [Preeteshgm/atlas-presenter](https://github.com/Preeteshgm/atlas-presenter) ·
 [handbook](https://preeteshgm.github.io/atlas-presenter/)
 
@@ -122,3 +124,30 @@ npm run install:vault -- -WithDemo
 Releasing: bump `package.json`, `manifest.json` and `versions.json` together,
 commit, tag with the bare version (`0.29.0`, never `v0.29.0`), push the tag. CI
 lints, verifies the tag matches the manifest, builds, attests and attaches.
+
+
+## Getting into the community store
+
+Passing Obsidian's review tool is a pre-flight check, not a submission. Listing
+is a pull request against
+[obsidianmd/obsidian-releases](https://github.com/obsidianmd/obsidian-releases),
+adding one entry to `community-plugins.json`:
+
+```json
+{
+  "id": "atlas-presenter",
+  "name": "Atlas Presenter",
+  "author": "Preetesh",
+  "description": "Present a Canvas as a map you fly across: edges set the running order, groups become sections, and you can jump to any card — or any note in your vault — mid-talk and land back exactly where you were.",
+  "repo": "Preeteshgm/atlas-presenter"
+}
+```
+
+The entry goes at the **end** of that array. What the reviewers check is already
+in place: a release tagged with the bare version (no `v`), carrying `main.js`,
+`manifest.json` and `styles.css` as loose assets — which the release workflow
+does on every tag — plus `manifest.json` at the repo root, a README that says
+what the plugin is, and a licence.
+
+After the PR: a bot validates it within minutes, then a human review that can
+take weeks. Until then BRAT installs it from the repo.
