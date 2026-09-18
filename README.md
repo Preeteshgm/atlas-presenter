@@ -374,12 +374,13 @@ reaches the slide.
 | `#split` | Two *flowed* columns — text spills from one into the next |
 | `#banner` | The deck card's own opening slide. Given to it automatically |
 
-Two switches go with the split layouts, on any card that has them:
+Two more split the card themselves, and say what becomes of the first block.
+Add either to a split layout, or write one on its own:
 
 | Tag | What it does |
 |---|---|
-| `#band` | The first block runs across the top, whatever is in it |
-| `#noband` | The first block stays a column, even if it is only a heading |
+| `#band` | The first block runs across the top of the columns, whatever is in it |
+| `#noband` | Every block is a column, including the first, even if it is only a heading |
 
 Saying neither keeps the old rule: a first block of nothing but headings
 becomes a band, anything else is a column.

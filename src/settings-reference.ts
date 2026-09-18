@@ -126,8 +126,8 @@ export function renderReference(containerEl: HTMLElement): void {
 	for (const [tag, what] of [
 		["(no tag)", "An ordinary card: a heading and some text."],
 		["#banner", "The #deck card’s opening slide. Added for you — write your own role to override it."],
-		["#band", "The first block runs across the top of a split card, whatever is in it."],
-		["#noband", "The first block stays a column, even when it is only a heading."],
+		["#band", "Split the card at its rules, with the first block running across the top of the columns, whatever is in it."],
+		["#noband", "Split the card at its rules, with every block a column — including the first, even when it is only a heading."],
 		["#title", "The opening card \u2014 a large heading with a line beneath it."],
 		["#section", "A divider carrying only the section's name, inverted, with a rule under it."],
 		["#quote", "A pull quote, set large with an opening mark."],

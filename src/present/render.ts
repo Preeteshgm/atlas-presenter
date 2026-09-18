@@ -958,7 +958,22 @@ export function slideshowsIn(body: HTMLElement): HTMLElement[] {
  * children in two columns, but it cannot say which children go in which. So the
  * card says, with a rule.
  */
-const PANED = ["atl-tag-two", "atl-tag-compare", "atl-tag-left", "atl-tag-right", "atl-tag-banner"];
+// The roles that split a card at its `---` rules.
+//
+// `#band` and `#noband` are in here because a card tagged with nothing else
+// did nothing at all: they were written as switches to put *beside* a column
+// role, and a deck written with `#band` on every card came out as a stack of
+// rows with rules between them. Nobody writes "the first block is a band"
+// about a card that does not split, so the tag now says both things.
+const PANED = [
+	"atl-tag-two",
+	"atl-tag-compare",
+	"atl-tag-left",
+	"atl-tag-right",
+	"atl-tag-banner",
+	"atl-tag-band",
+	"atl-tag-noband",
+];
 
 /**
  * Make a lone `---` mean a rule, whatever precedes it.
