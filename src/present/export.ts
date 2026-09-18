@@ -407,8 +407,11 @@ const RUNTIME = `
        came from, slide for slide. */
     var total = cardTotal();
     var name = s.label || s.title;
-    counter.textContent =
-      '? for keys  \\u00b7  ' + (s.order ? s.order + ' / ' + total : '') + (name ? '  \\u00b7  ' + name : '');
+    /* Joined from the parts there are, not concatenated around them: the
+       banner carries no number, and the line printed its separator anyway. */
+    counter.textContent = ['? for keys', s.order ? s.order + ' / ' + total : '', name]
+      .filter(function (part) { return part; })
+      .join('  \\u00b7  ');
     railfill.style.width = (stops.length < 2 ? 100 : (i / (stops.length - 1)) * 100) + '%';
     if (map.classList.contains('is-open')) markMap();
   }
