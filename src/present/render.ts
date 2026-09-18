@@ -353,14 +353,16 @@ function sizeFromEmbed(span: Element, media: HTMLElement): void {
 	// width was quietly dropped — a picture asked for a 420x160 box came out
 	// 213 wide with its shape kept, which is the one thing that box means to
 	// override.
-	if (width) media.style.width = `${width}px`;
-	if (height) media.style.height = `${height}px`;
-	// An embed that says one dimension means "this wide, keep the shape".
-	if (width && !height) media.style.height = "auto";
-	if (height && !width) media.style.width = "auto";
-	// Both: fill the box and crop. Stretching a photograph to fit a number
-	// somebody typed is never what they meant by it.
-	if (width && height) media.style.objectFit = "cover";
+	media.setCssStyles({
+		...(width ? { width: `${width}px` } : {}),
+		...(height ? { height: `${height}px` } : {}),
+		// An embed that says one dimension means "this wide, keep the shape".
+		...(width && !height ? { height: "auto" } : {}),
+		...(height && !width ? { width: "auto" } : {}),
+		// Both: fill the box and crop. Stretching a photograph to fit two
+		// numbers somebody typed is never what they meant by them.
+		...(width && height ? { objectFit: "cover" } : {}),
+	});
 }
 
 
@@ -749,9 +751,11 @@ function boxFor(m: RegExpMatchArray): HTMLElement {
 	}
 	const size = m[3]?.split("x");
 	if (size) {
-		box.style.width = `${size[0]}%`;
-		box.style.height = `${size[1]}%`;
-		box.style.maxWidth = "none";
+		box.setCssStyles({
+			width: `${size[0]}%`,
+			height: `${size[1]}%`,
+			maxWidth: "none",
+		});
 	}
 	if (m[4]?.toLowerCase() === "row") box.addClass("is-row");
 	return box;

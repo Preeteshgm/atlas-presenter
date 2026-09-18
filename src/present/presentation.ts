@@ -404,7 +404,7 @@ export class Presentation extends Component {
 		if (logos.length > 0) {
 			const row = this.overlay.createDiv({ cls: "atl-logos" });
 			row.dataset.corner = s.logoCorner;
-			row.style.opacity = String(s.logoOpacity);
+			row.setCssStyles({ opacity: String(s.logoOpacity) });
 			// Through a custom property rather than straight onto the element,
 			// so the banner can show the same logo larger without fighting an
 			// inline style.

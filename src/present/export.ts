@@ -1151,13 +1151,24 @@ export async function buildDeckHtml(
      written for cards and must not reach a document, and this must not reach
      them either — which is the mistake that made the first version of this
      page white on white. */
+  /* Two layers, because a theme's --paper can itself be translucent: glass
+     themes build their cards out of transparency, so a panel painted with it
+     showed the deck straight through the words. The deck's own backdrop goes
+     underneath, and the write-up sits on a sheet over it. */
   #writeup { position: fixed; inset: 0; z-index: 55; display: none;
-    background: color-mix(in srgb, var(--paper, #fff) 92%, transparent);
+    background: var(--backdrop, var(--paper, #fff));
+    background-size: cover; background-position: center;
     overflow: auto; }
   #writeup.on { display: block; }
-  #writeup-page { max-width: 44rem; margin: 0 auto; padding: 6vh 22px 12vh;
+  #writeup-page { max-width: 44rem; margin: 6vh auto 10vh; padding: 40px 42px 48px;
+    background: var(--panel, var(--paper, #fff));
+    border: 1px solid var(--rule, rgb(0 0 0 / 0.12));
+    border-radius: var(--radius, 14px);
+    box-shadow: 0 24px 80px rgb(0 0 0 / 0.45);
     color: var(--ink, #14232a); font-family: var(--body-font, var(--font-interface));
     font-size: 17px; line-height: 1.62; }
+  /* Whatever the theme's panel is made of, this one is opaque: it is a page. */
+  #writeup-page { backdrop-filter: blur(24px) saturate(1.2); }
   #writeup-page header { border-bottom: 1px solid var(--rule, #d7dbd7);
     padding-bottom: 16px; margin-bottom: 26px; }
   #writeup-page h1 { font-family: var(--display-font, var(--body-font));
