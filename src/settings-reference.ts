@@ -137,6 +137,7 @@ export function renderReference(containerEl: HTMLElement): void {
 		["#end", "The closing card — thanks, a contact, a next step, centred."],
 		["#full", "A picture with no margin, filling the card. Words on it take their line; the picture fills what is left and crops."],
 		["#focus-left", "Keep the left of a cropped picture. #focus-right and #focus-centre are the other two; centred is what happens anyway."],
+		["#fade-left", "Dissolve the picture’s left edge into the card instead of cutting it off. #fade-right and #fade-both are the others. Pairs with #focus-right."],
 		["#split", "Two flowed columns — text spills out of the first into the second. For a deliberate split, use #two."],
 	] as [string, string][]) {
 		entry(roles, tag, what, tag === "(no tag)" ? undefined : tag);

@@ -22,14 +22,18 @@
 		{"id":"p3_1","type":"text","text":"#left #focus-right\n![[Assets/site-4.svg|420]]\n---\n### P23 · `#focus-right`\nThe same picture, the same pane, keeping the **right** edge instead. The label should now be the part that goes.\n","x":1600,"y":3860,"width":1280,"height":860},
 		{"id":"p3_2","type":"text","text":"#left\n![[Assets/site-4.svg|420]]\n---\n### P24 · No focus tag\nCentred, which is what happens when nothing is said: both sides lose the same amount.\n","x":3120,"y":3860,"width":1280,"height":860},
 		{"id":"g3","type":"group","label":"C2 · Which part is kept","x":0,"y":3780,"width":4480,"height":1020},
-		{"id":"p4_0","type":"text","text":"# P16 · A picture and a caption\nThe text under a picture is ordinary text; nothing special is needed.\n\n![[Assets/site-1.svg|320]]\n*Tower 1, level 01 — the model as issued.*\n","x":80,"y":5120,"width":1280,"height":860},
-		{"id":"p4_1","type":"text","text":"# P17 · Words, picture, words\nA picture is a block: it breaks the text around it rather than sitting inside\na line.\n\nBefore the picture.\n\n![[Assets/site-3.svg|280]]\n\nAfter the picture.\n","x":1600,"y":5120,"width":1280,"height":860},
-		{"id":"p4_2","type":"text","text":"#band\n# P18 · Icons beside lines\nA small picture on the same line as text reads as an icon.\n---\n![[Assets/site-1.svg|48]] **Tower 1** — issued\n---\n![[Assets/site-2.svg|48]] **Tower 2** — in progress\n---\n![[Assets/site-3.svg|48]] **Podium** — on hold\n","x":3120,"y":5120,"width":1280,"height":860},
-		{"id":"g4","type":"group","label":"D · With words","x":0,"y":5040,"width":4480,"height":1020},
-		{"id":"p5_0","type":"text","text":"# P19 · A drawing\nAn SVG is a picture like any other, and stays sharp at any size.\n\n![[Assets/motion.svg|420]]\n","x":80,"y":6380,"width":1280,"height":860},
-		{"id":"p5_1","type":"text","text":"# P20 · Sound\nAn audio file becomes a player sized for the card.\n\n![[Assets/tone.wav]]\n","x":1600,"y":6380,"width":1280,"height":860},
-		{"id":"p5_2","type":"text","text":"#two\n# P21 · A picture against a drawing\n---\n### Photograph\n![[Assets/site-2.svg|300]]\n---\n### Drawing\n![[Assets/motion.svg|300]]\n","x":3120,"y":6380,"width":1280,"height":860},
-		{"id":"g5","type":"group","label":"E · Other media","x":0,"y":6300,"width":4480,"height":1020},
+		{"id":"p4_0","type":"text","text":"#right #focus-left #fade-left\n### P25 · `#fade-left` with `#focus-right`\nThe picture keeps its far edge and dissolves into the card on the side facing these words — no hard vertical line between the two.\n---\n![[Assets/site-4.svg|420]]\n","x":80,"y":5120,"width":1280,"height":860},
+		{"id":"p4_1","type":"text","text":"#right\n### P26 · The same card, no fade\nFor comparison: the picture ends in a straight cut.\n---\n![[Assets/site-4.svg|420]]\n","x":1600,"y":5120,"width":1280,"height":860},
+		{"id":"p4_2","type":"text","text":"#full #fade-both\n# P27 · `#fade-both`\nBoth edges dissolved, for a picture used as a backdrop to a line of words.\n![[Assets/site-2.svg]]\n","x":3120,"y":5120,"width":1280,"height":860},
+		{"id":"g4","type":"group","label":"C3 · Softening the edge","x":0,"y":5040,"width":4480,"height":1020},
+		{"id":"p5_0","type":"text","text":"# P16 · A picture and a caption\nThe text under a picture is ordinary text; nothing special is needed.\n\n![[Assets/site-1.svg|320]]\n*Tower 1, level 01 — the model as issued.*\n","x":80,"y":6380,"width":1280,"height":860},
+		{"id":"p5_1","type":"text","text":"# P17 · Words, picture, words\nA picture is a block: it breaks the text around it rather than sitting inside\na line.\n\nBefore the picture.\n\n![[Assets/site-3.svg|280]]\n\nAfter the picture.\n","x":1600,"y":6380,"width":1280,"height":860},
+		{"id":"p5_2","type":"text","text":"#band\n# P18 · Icons beside lines\nA small picture on the same line as text reads as an icon.\n---\n![[Assets/site-1.svg|48]] **Tower 1** — issued\n---\n![[Assets/site-2.svg|48]] **Tower 2** — in progress\n---\n![[Assets/site-3.svg|48]] **Podium** — on hold\n","x":3120,"y":6380,"width":1280,"height":860},
+		{"id":"g5","type":"group","label":"D · With words","x":0,"y":6300,"width":4480,"height":1020},
+		{"id":"p6_0","type":"text","text":"# P19 · A drawing\nAn SVG is a picture like any other, and stays sharp at any size.\n\n![[Assets/motion.svg|420]]\n","x":80,"y":7640,"width":1280,"height":860},
+		{"id":"p6_1","type":"text","text":"# P20 · Sound\nAn audio file becomes a player sized for the card.\n\n![[Assets/tone.wav]]\n","x":1600,"y":7640,"width":1280,"height":860},
+		{"id":"p6_2","type":"text","text":"#two\n# P21 · A picture against a drawing\n---\n### Photograph\n![[Assets/site-2.svg|300]]\n---\n### Drawing\n![[Assets/motion.svg|300]]\n","x":3120,"y":7640,"width":1280,"height":860},
+		{"id":"g6","type":"group","label":"E · Other media","x":0,"y":7560,"width":4480,"height":1020},
 		{"id":"deck","type":"text","text":"#deck\n\ntheme: Atlas/Themes/Paper.css\nheader: {deck}  ·  {section}\n\n# Pictures and media\n**Every way a picture can be put on a card, in one place**\n\nAdd to this canvas rather than starting another: a new case belongs in the\nsection it tests, numbered after the last one.\n","x":0,"y":-1100,"width":7520,"height":860}
 	],
 	"edges":[
@@ -55,7 +59,10 @@
 		{"id":"e20","fromNode":"p4_1","toNode":"p4_2","label":"20."},
 		{"id":"e21","fromNode":"p4_2","toNode":"p5_0","label":"21."},
 		{"id":"e22","fromNode":"p5_0","toNode":"p5_1","label":"22."},
-		{"id":"e23","fromNode":"p5_1","toNode":"p5_2","label":"23."}
+		{"id":"e23","fromNode":"p5_1","toNode":"p5_2","label":"23."},
+		{"id":"e24","fromNode":"p5_2","toNode":"p6_0","label":"24."},
+		{"id":"e25","fromNode":"p6_0","toNode":"p6_1","label":"25."},
+		{"id":"e26","fromNode":"p6_1","toNode":"p6_2","label":"26."}
 	],
 	"metadata":{
 		"version":"1.0-1.0",

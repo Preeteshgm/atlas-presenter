@@ -1665,6 +1665,28 @@ button.atl-browse-fit:hover { color: var(--ink, var(--text-normal)); border-colo
 .atl-node.atl-tag-focus-centre .atl-embed,
 .atl-node.atl-tag-focus-center .atl-embed { object-position: center; }
 
+/* Soften the edge where a picture meets the card.
+   A picture pulled to one side ends in a hard vertical line, which on an
+   opening slide looks like a photograph pasted onto a page rather than part of
+   it. #fade-left dissolves the picture's left edge into the card, #fade-right
+   its right, and they go with #focus-right and #focus-left respectively: keep
+   the far end, let the near end go. The mask is on the picture alone, so text
+   beside it is untouched. */
+.atl-node.atl-tag-fade-left .atl-embed {
+	-webkit-mask-image: linear-gradient(to right, transparent 0%, #000 26%);
+	mask-image: linear-gradient(to right, transparent 0%, #000 26%);
+}
+
+.atl-node.atl-tag-fade-right .atl-embed {
+	-webkit-mask-image: linear-gradient(to left, transparent 0%, #000 26%);
+	mask-image: linear-gradient(to left, transparent 0%, #000 26%);
+}
+
+.atl-node.atl-tag-fade-both .atl-embed {
+	-webkit-mask-image: linear-gradient(to right, transparent 0%, #000 18%, #000 82%, transparent 100%);
+	mask-image: linear-gradient(to right, transparent 0%, #000 18%, #000 82%, transparent 100%);
+}
+
 /* --- The authoring reference in the settings tab ------------------------ */
 /* Not inside the overlay: these render in Obsidian's own settings pane. */
 

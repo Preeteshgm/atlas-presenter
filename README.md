@@ -372,6 +372,7 @@ reaches the slide.
 | `#end` | The closing card — thanks, a contact, a next step |
 | `#full` | A picture with no margin. Words take their line; the picture fills the rest and crops |
 | `#focus-left` | Keep the left of a cropped picture. `#focus-right` and `#focus-centre` are the others |
+| `#fade-left` | Dissolve the picture's left edge into the card. `#fade-right`, `#fade-both` |
 | `#split` | Two *flowed* columns — text spills from one into the next |
 | `#banner` | The deck card's own opening slide. Given to it automatically |
 

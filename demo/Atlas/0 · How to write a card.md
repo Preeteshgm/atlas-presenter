@@ -124,6 +124,10 @@ the screen afterwards, so the same card looks the same on any projector.
   side by side use `#left`, `#right`, or a `:::pin`.
 - **A cropped picture is cropped from the middle.** To keep one end, tag the
   card `#focus-left` or `#focus-right`. `#focus-centre` is the default.
+- **A picture pulled to one side ends in a hard line.** To dissolve that edge
+  into the card instead, tag the card `#fade-left`, `#fade-right` or
+  `#fade-both`. `#fade-left` goes with `#focus-right`: keep the far end of the
+  picture, let the near end fade out. Works on the `#deck` card's banner too.
 - A caption is just a line of italic text under the picture.
 - An SVG stays sharp at any size; prefer one for diagrams and marks.
 
