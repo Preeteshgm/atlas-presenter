@@ -34,13 +34,6 @@ export interface Passage {
 	label?: string;
 }
 
-export interface Answer {
-	/** What the model said, or null when nothing was found to answer from. */
-	text: string | null;
-	/** The notes the answer was drawn from, in the order they were offered. */
-	sources: TFile[];
-}
-
 /** Only ever this machine. The whole promise of the feature is in this line. */
 export function isLocal(url: string): boolean {
 	return /^https?:\/\/(127\.0\.0\.1|localhost|\[::1\])(:\d+)?(\/|$)/i.test(url);

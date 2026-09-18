@@ -1,4 +1,4 @@
-# Atlas Presenter — state at 0.29.3
+# Atlas Presenter — state at 0.31.0
 
 Live in the Obsidian community store. Lint, type-check and all four audits clean;
 CI green on every release.

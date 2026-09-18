@@ -560,24 +560,6 @@ function runCardScripts(shadow: ShadowRoot, host: HTMLElement, wrap: HTMLElement
 }
 
 /**
- * Markdown the way a card gets it: rendered, then its embeds and relative media
- * turned into real elements. The header needs the same treatment — a deck card
- * with a logo in it was producing an empty span.
- */
-export async function renderMarkdownInto(
-	app: App,
-	owner: Component,
-	el: HTMLElement,
-	md: string,
-	sourcePath: string
-): Promise<void> {
-	await MarkdownRenderer.render(app, md, el, sourcePath, owner);
-	await resolveEmbeds(app, el, sourcePath);
-	resolveMedia(app, el, sourcePath);
-	rowsOfEmbeds(el);
-}
-
-/**
  * Pictures written on one line are a row.
  *
  * Every embed is a block, so three marks written side by side came out stacked

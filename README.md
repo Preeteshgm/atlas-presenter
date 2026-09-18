@@ -1,5 +1,10 @@
 # Atlas Presenter
 
+[![Release](https://img.shields.io/github/v/release/Preeteshgm/atlas-presenter?sort=semver&label=release)](https://github.com/Preeteshgm/atlas-presenter/releases/latest)
+[![Obsidian](https://img.shields.io/badge/Obsidian-1.7.2%2B-6c4ed9)](https://obsidian.md)
+[![Licence](https://img.shields.io/github/license/Preeteshgm/atlas-presenter)](LICENSE)
+[![Handbook](https://img.shields.io/badge/handbook-read-1d5a78)](https://preeteshgm.github.io/atlas-presenter/)
+
 Turn an Obsidian **Canvas** into a presentation. Not a stack of slides — a camera
 flying across a map of your notes.
 

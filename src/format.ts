@@ -19,14 +19,6 @@ export function hhmm(at: number | Date = Date.now()): string {
 	return new Date(at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
 }
 
-/** A date a person would write: 29 Oct 2025. */
-export function datestamp(at: number | Date = Date.now()): string {
-	return new Date(at).toLocaleDateString(undefined, {
-		day: "numeric",
-		month: "short",
-		year: "numeric",
-	});
-}
 
 /**
  * A name safe to write to disk, on the strictest of the platforms we run on.

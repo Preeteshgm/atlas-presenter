@@ -1,4 +1,4 @@
-import { App, TFile, TFolder, normalizePath } from "obsidian";
+import { App, TFile, normalizePath } from "obsidian";
 
 /**
  * Looking things up in the vault by path.
@@ -13,12 +13,6 @@ export function fileAt(app: App, path: string): TFile | null {
 	if (!path) return null;
 	const found = app.vault.getAbstractFileByPath(normalizePath(path));
 	return found instanceof TFile ? found : null;
-}
-
-export function folderAt(app: App, path: string): TFolder | null {
-	if (!path) return null;
-	const found = app.vault.getAbstractFileByPath(normalizePath(path));
-	return found instanceof TFolder ? found : null;
 }
 
 /** The contents of a file, or null if it is not there or will not be read. */
