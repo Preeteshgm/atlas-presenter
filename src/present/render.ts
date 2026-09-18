@@ -340,8 +340,22 @@ function sizeFromEmbed(span: Element, media: HTMLElement): void {
 	const height = span.getAttribute("height") ?? fromAlt?.[2] ?? "";
 	if (width) media.setAttribute("width", width);
 	if (height) media.setAttribute("height", height);
+
+	// Said again as style, because an attribute is the weakest thing in the
+	// cascade: any rule anywhere beats it, and one of Obsidian's own rules for
+	// a rendered image does. `|420` survived only because the height was set
+	// inline beside it; `|420x160` set neither, so the height took and the
+	// width was quietly dropped — a picture asked for a 420x160 box came out
+	// 213 wide with its shape kept, which is the one thing that box means to
+	// override.
+	if (width) media.style.width = `${width}px`;
+	if (height) media.style.height = `${height}px`;
 	// An embed that says one dimension means "this wide, keep the shape".
 	if (width && !height) media.style.height = "auto";
+	if (height && !width) media.style.width = "auto";
+	// Both: fill the box and crop. Stretching a photograph to fit a number
+	// somebody typed is never what they meant by it.
+	if (width && height) media.style.objectFit = "cover";
 }
 
 
