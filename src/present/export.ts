@@ -95,6 +95,15 @@ export interface ExportInput {
 	 * where every export landed before there was a setting for it.
 	 */
 	exportFolder: string;
+	/**
+	 * The remarks typed on each card, in running order.
+	 *
+	 * Written as a page of its own beside the deck rather than into it: a
+	 * remark belongs to the talk, not to the slide, and somebody reading the
+	 * deck afterwards wants all of them at once. Empty unless the deck was
+	 * exported with the setting on.
+	 */
+	notes: { title: string; text: string }[];
 }
 
 /** A sound or a film, copied beside the deck rather than into it. */
@@ -972,6 +981,7 @@ function reveal(
 	path: string,
 	inlined: number,
 	carried: number,
+	noted: number,
 	openAfter: boolean
 ): void {
 	const open = launcher(app);
@@ -982,7 +992,11 @@ function reveal(
 		carried > 0
 			? ` ${carried} recording${carried === 1 ? "" : "s"} beside it — send the folder.`
 			: "";
-	const files = `${inlined} picture${inlined === 1 ? "" : "s"} inside it.${beside}`;
+	const written =
+		noted > 0
+			? ` The write-up beside it, ${noted} card${noted === 1 ? "" : "s"}.`
+			: "";
+	const files = `${inlined} picture${inlined === 1 ? "" : "s"} inside it.${beside}${written}`;
 
 	if (openAfter && open) {
 		try {
@@ -1085,6 +1099,11 @@ export async function buildDeckHtml(
   #bar { z-index: 30; position: fixed; left: 0; right: 0; bottom: 0; display: flex;
     justify-content: space-between; padding: 10px 18px; font-size: 13px;
     color: var(--ink-soft, #6b7a80); pointer-events: none; }
+  /* The one way in from the deck, and only when there is something to open. */
+  #bar a { pointer-events: auto; color: var(--accent, #1d5a78); text-decoration: none;
+    border: 1px solid color-mix(in srgb, var(--accent, #1d5a78) 45%, transparent);
+    border-radius: 999px; padding: 2px 10px; margin-left: 10px; font-size: 12px; }
+  #bar a:hover { border-color: var(--accent, #1d5a78); }
   #rail { z-index: 30; position: fixed; left: 0; right: 0; top: 0; height: 3px; background: rgb(0 0 0 / 0.08); }
   #railfill { height: 100%; width: 0; background: var(--accent, #1d5a78); transition: width 420ms ease; }
   #blank { position: fixed; inset: 0; background: #000; display: none; z-index: 40; }
@@ -1176,7 +1195,11 @@ ${input.css}
 <div id="rail"><div id="railfill"></div></div>
 <div id="blank"></div>
 <div id="map" class="atl-minimap atl-overlay"><div class="atl-minimap-hint">Click a card to fly to it &middot; M or Esc to close</div></div>
-<div id="bar"><span>${input.title}</span><span id="counter"></span></div>
+<div id="bar"><span>${input.title}${
+	input.notes.length > 0
+		? ` <a id="notes" href="./${encodeURIComponent(notesFileName(input.title))}" target="_blank" rel="noopener">Notes</a>`
+		: ""
+}</span><span id="counter"></span></div>
 <div id="keys"><table>
 <caption>Keys</caption>
 <tr><td>→  Space</td><td>Reveal, then the pictures, then the next card</td></tr>
@@ -1254,6 +1277,169 @@ async function ensureFolder(app: App, path: string): Promise<void> {
  * sound or film next to it under a relative link. Share the folder and the deck
  * is complete; there is nothing else to gather and nothing to lose track of.
  */
+/** A newline, named: the literal keeps being mangled on its way in here. */
+const BREAK = String.fromCharCode(10);
+
+/** The name the write-up takes, beside the deck it came from. */
+function notesFileName(title: string): string {
+	return `${safeFileName(title)} — notes.html`;
+}
+
+const HTML_ESCAPES: Record<string, string> = {
+	"&": "&amp;",
+	"<": "&lt;",
+	">": "&gt;",
+	'"': "&quot;",
+};
+
+function escapeHtml(text: string): string {
+	return text.replace(/[&<>"]/g, (c) => HTML_ESCAPES[c]);
+}
+
+/**
+ * A remark, as HTML.
+ *
+ * Not a markdown renderer: a remark typed on a card is prose, sometimes with a
+ * list in it and the odd bold word. Everything else — a heading, a table, an
+ * embed — would be a surprise in a page that is meant to read like minutes, and
+ * is left as the characters that were typed.
+ */
+function remarkHtml(text: string): string {
+	const out: string[] = [];
+	let list: string[] = [];
+
+	const inline = (line: string) =>
+		escapeHtml(line)
+			.replace(/`([^`]+)`/g, "<code>$1</code>")
+			.replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>")
+			.replace(/(^|[^*])\*([^*]+)\*/g, "$1<em>$2</em>");
+
+	const closeList = () => {
+		if (list.length === 0) return;
+		out.push(`<ul>${list.map((li) => `<li>${li}</li>`).join("")}</ul>`);
+		list = [];
+	};
+
+	for (const raw of text.split("\n")) {
+		const line = raw.trim();
+		if (!line) {
+			closeList();
+			continue;
+		}
+		const bullet = line.match(/^[-*+]\s+(.*)$/);
+		if (bullet) {
+			list.push(inline(bullet[1]));
+			continue;
+		}
+		closeList();
+		out.push(`<p>${inline(line)}</p>`);
+	}
+	closeList();
+	return out.join(BREAK);
+}
+
+/**
+ * The write-up, as a page that reads like the deck it came from.
+ *
+ * It carries the same stylesheet and the same theme, inside `.atl-overlay` so
+ * the theme's tokens reach it — the page is the deck's paper and ink, at
+ * reading size rather than presenting size.
+ */
+function notesPage(input: ExportInput, deckHref: string): string {
+	const today = new Date().toLocaleDateString(undefined, {
+		day: "numeric",
+		month: "long",
+		year: "numeric",
+	});
+	const cards = input.notes.length;
+	const entries = input.notes
+		.map(
+			(n) =>
+				`<section class="atl-note">
+	<h2>${escapeHtml(n.title)}</h2>
+	${remarkHtml(n.text)}
+</section>`
+		)
+		.join(BREAK);
+
+	return `<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>${escapeHtml(input.title)} — notes</title>
+<style>
+  html, body { margin: 0; }
+  body { background: var(--backdrop, var(--paper, #fff)); }
+  .atl-notes {
+    max-width: 44rem;
+    margin: 0 auto;
+    padding: 5vh 20px 12vh;
+    color: var(--ink, #14232a);
+    font-family: var(--body-font, var(--font-interface));
+    font-size: 17px;
+    line-height: 1.62;
+  }
+  .atl-notes header {
+    border-bottom: 1px solid var(--rule, #d7dbd7);
+    padding-bottom: 18px;
+    margin-bottom: 30px;
+  }
+  .atl-notes h1 {
+    font-family: var(--display-font, var(--body-font));
+    font-size: 2.1em;
+    line-height: 1.1;
+    margin: 0 0 6px;
+    color: var(--ink, #14232a);
+  }
+  .atl-notes .atl-when { color: var(--ink-soft, #4e5f66); font-size: 0.9em; }
+  .atl-note { margin: 0 0 30px; }
+  .atl-note h2 {
+    font-family: var(--display-font, var(--body-font));
+    font-size: 1.06em;
+    letter-spacing: 0.01em;
+    margin: 0 0 6px;
+    color: var(--accent, #1d5a78);
+  }
+  .atl-note p { margin: 0 0 10px; }
+  .atl-note ul { margin: 0 0 10px; padding-left: 1.3em; }
+  .atl-note li { margin: 0 0 5px; }
+  .atl-note li::marker { color: var(--accent, #1d5a78); }
+  .atl-note code {
+    font-family: var(--mono-font, var(--font-monospace), monospace);
+    font-size: 0.86em;
+    background: var(--wash, rgb(0 0 0 / 0.06));
+    border-radius: 4px;
+    padding: 0.1em 0.35em;
+  }
+  .atl-notes footer {
+    border-top: 1px solid var(--rule, #d7dbd7);
+    margin-top: 40px;
+    padding-top: 16px;
+    font-size: 0.86em;
+    color: var(--ink-soft, #4e5f66);
+  }
+  .atl-notes a { color: var(--accent, #1d5a78); }
+  @media print {
+    .atl-notes { max-width: none; padding: 0; }
+    .atl-notes footer { display: none; }
+  }
+${input.css}
+</style>
+</head>
+<body>
+<div class="atl-overlay atl-notes" style="position: static; inset: auto; overflow: visible; height: auto; background: none;">
+<header>
+  <h1>${escapeHtml(input.title)}</h1>
+  <div class="atl-when">Presented ${today} · ${cards} card${cards === 1 ? "" : "s"} with remarks</div>
+</header>
+${entries}
+<footer>Written while presenting, and read-only here. <a href="${deckHref}">Open the deck</a></footer>
+</div>
+</body>
+</html>`;
+}
+
 export async function exportDeck(app: App, input: ExportInput): Promise<string | null> {
 	const { html: out, inlined, carried } = await buildDeckHtml(app, input);
 	const name = `${safeFileName(input.title)} — deck`;
@@ -1276,9 +1462,21 @@ export async function exportDeck(app: App, input: ExportInput): Promise<string |
 			else await app.vault.createBinary(to, data);
 		}
 
+		// The write-up, as a page of its own beside the deck.
+		let notes = "";
+		if (input.notes.length > 0) {
+			notes = normalizePath(`${folder}/${notesFileName(input.title)}`);
+			const page = notesPage(input, `./${encodeURIComponent(`${name}.html`)}`);
+			const was = app.vault.getAbstractFileByPath(notes);
+			if (was instanceof TFile) await app.vault.modify(was, page);
+			else await app.vault.create(notes, page);
+		}
+
 		// Yesterday's clips, in this deck's own folder and nowhere else: a deck
 		// that dropped a recording should not keep handing it out.
-		const keep = new Set([path, ...carried.map((c) => normalizePath(`${folder}/${c.name}`))]);
+		const keep = new Set(
+			[path, notes, ...carried.map((c) => normalizePath(`${folder}/${c.name}`))].filter(Boolean)
+		);
 		const here = app.vault.getAbstractFileByPath(folder);
 		if (here instanceof TFolder) {
 			for (const child of here.children) {
@@ -1292,7 +1490,7 @@ export async function exportDeck(app: App, input: ExportInput): Promise<string |
 			}
 		}
 
-		reveal(app, path, inlined, carried.length, input.openAfter);
+		reveal(app, path, inlined, carried.length, input.notes.length, input.openAfter);
 		return path;
 	} catch (e) {
 		new Notice(`Atlas: could not write the export — ${String(e)}`);

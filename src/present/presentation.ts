@@ -1370,6 +1370,20 @@ ${this.themeCss}`,
 			},
 			openAfter: this.settings.openExport,
 			exportFolder: this.settings.exportFolder,
+			// The remarks, in the order the talk runs them, so the page beside the
+			// deck reads as the talk did. Empty when the setting is off: the
+			// export should not carry what nobody asked it to carry.
+			notes: this.settings.exportNotes
+				? this.scene.stops
+						.filter((stop) => stop.kind === "node")
+						.map((stop) => ({
+							title: titleOf(stop.node),
+							text: (
+								this.captures.find((c) => c.nodeId === stop.node.id)?.text ?? ""
+							).trim(),
+						}))
+						.filter((n) => n.text)
+				: [],
 			logo: this.settings.logo
 				? {
 						srcs: this.settings.logo

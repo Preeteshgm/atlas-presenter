@@ -154,6 +154,8 @@ export interface AtlasSettings {
 	minutesFolder: string;
 	/** Where an exported deck's folder is written. Blank means the vault root. */
 	exportFolder: string;
+	/** Write the deck's remarks as a second file beside the exported deck. */
+	exportNotes: boolean;
 	/**
 	 * One note per canvas, beside it, or a new file every session.
 	 *
@@ -253,6 +255,7 @@ export const DEFAULT_SETTINGS: AtlasSettings = {
 	timer: "off",
 	minutesFolder: "Meetings",
 	exportFolder: "Atlas/Exports",
+	exportNotes: false,
 	deckNotes: true,
 	transcribeUrl: "",
 	askUrl: "",

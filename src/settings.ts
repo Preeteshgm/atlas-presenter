@@ -710,6 +710,21 @@ export class AtlasSettingTab extends PluginSettingTab {
 			);
 
 		new Setting(containerEl)
+			.setName("Export the write-up beside the deck")
+			.setDesc(
+				"Off by default. Writes the remarks you typed on each card as a second " +
+					"file in the export folder — one page, every card, in the order you " +
+					"presented, read-only. They are written for you, so they leave the " +
+					"vault only when you say so."
+			)
+			.addToggle((c) =>
+				c.setValue(s.exportNotes).onChange(async (v) => {
+					s.exportNotes = v;
+					await this.save();
+				})
+			);
+
+		new Setting(containerEl)
 			.setName("Local speech server")
 			.setDesc(
 				"Optional, and empty by default. Recording works entirely offline: R speaks a " +
