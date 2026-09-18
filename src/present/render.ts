@@ -1070,9 +1070,16 @@ function layOutPictures(card: HTMLElement, body: HTMLElement): void {
 		// nothing to control. A paragraph carrying words as well as pictures is
 		// left whole, so a caption stays with what it captions.
 		const pictures = Array.from(el.querySelectorAll<HTMLElement>("img, video"));
-		if (el.tagName === "P" && pictures.length > 1 && !el.textContent?.trim()) {
+		if (el.tagName === "P" && pictures.length > 1) {
 			for (const picture of pictures) box.appendChild(picture);
-			el.remove();
+			for (const br of Array.from(el.querySelectorAll("br"))) br.remove();
+			// A line of words written above the pictures is about the card, not
+			// about any one picture: it goes back above the container. Requiring
+			// the paragraph to hold nothing but pictures was too careful — one
+			// sentence of introduction put every picture back into a single
+			// frame, which is the fault this was written to fix.
+			if (el.textContent?.trim()) body.insertBefore(el, box);
+			else el.remove();
 		} else {
 			box.appendChild(el);
 		}
