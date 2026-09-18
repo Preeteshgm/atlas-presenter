@@ -37,6 +37,8 @@ never reaches the screen.
 | A block at the foot of its column | `:::align` |
 | One line at a time | `+++` |
 | Several pictures | `#gallery`, `#scroll` or `#slideshow` |
+| A cropped picture to keep one side | `#focus-left` / `#focus-right` |
+| A picture edge to fade into the card | `#fade-left` / `#fade-right` |
 
 ---
 
@@ -130,6 +132,41 @@ the screen afterwards, so the same card looks the same on any projector.
   picture, let the near end fade out. Works on the `#deck` card's banner too.
 - A caption is just a line of italic text under the picture.
 - An SVG stays sharp at any size; prefer one for diagrams and marks.
+
+### Cropping, and the edge where it meets the card
+
+A picture that fills a pane or a box is **cropped**, and by default the crop is
+taken from the middle. Two tags on the card change that, and two more soften
+the edge. All four apply to every picture on the card, and all four work on the
+`#deck` card's banner.
+
+| Tag | What it does |
+|---|---|
+| `#focus-left` | Keep the **left** of the picture; lose the right |
+| `#focus-right` | Keep the **right**; lose the left |
+| `#focus-centre` | Keep the middle. This is what happens if you say nothing |
+| `#fade-left` | Dissolve the picture's **left** edge into the card |
+| `#fade-right` | Dissolve its **right** edge |
+| `#fade-both` | Dissolve both ends |
+
+They are meant to be used together: **keep the far end, fade the near one.**
+
+```
+#right #focus-right #fade-left
+
+### The controls plan
+What we are proposing, and why now.
+---
+![[site.jpg|420]]
+```
+
+Picture on the right, cropped so its right-hand side survives, and its inner
+edge dissolving into the card instead of stopping at a straight vertical cut.
+Mirror the three tags for a picture on the left:
+
+```
+#left #focus-left #fade-right
+```
 
 ### Several pictures
 
