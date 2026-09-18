@@ -425,7 +425,9 @@ const RUNTIME = `
     var name = s.label || s.title;
     /* Joined from the parts there are, not concatenated around them: the
        banner carries no number, and the line printed its separator anyway. */
-    counter.textContent = ['? for keys', s.order ? s.order + ' / ' + total : '', name]
+    /* No "? for keys": the key list is one press away and the bar is on screen
+       for the whole talk. What is on it is the deck, the position and the card. */
+    counter.textContent = [s.order ? s.order + ' / ' + total : '', name]
       .filter(function (part) { return part; })
       .join('  \\u00b7  ');
     railfill.style.width = (stops.length < 2 ? 100 : (i / (stops.length - 1)) * 100) + '%';

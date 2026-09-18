@@ -2654,7 +2654,19 @@ textarea.atl-note-box:focus { outline: none; border-color: var(--accent, var(--i
 	justify-content: center;
 }
 
-.atl-node.is-banner .atl-pane { align-self: center; }
+/* Each pane centres its own content, rather than the grid centring its rows.
+   Centring the rows depends on the row being taller than what is in it, and on
+   a banner one of those panes usually holds a picture — so the row was as tall
+   as the picture and the words beside it sat whereever that left them. This
+   holds wherever the deck is shown, including an exported file. */
+.atl-node.is-banner .atl-pane:not(.has-picture) {
+	align-self: stretch;
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
+}
+
+.atl-node.is-banner .atl-pane.has-picture { align-self: stretch; }
 
 /* ---- :::pin — a block placed where you want it -------------------------
    Lifted out of the flow and pinned to a corner, an edge or the middle of the
