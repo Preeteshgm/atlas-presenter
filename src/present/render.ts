@@ -473,32 +473,25 @@ function renderRawHtml(
 			transform 200ms ease; }
 		.atl-show-dot.is-current { opacity: 1; transform: scale(1.25); }
 	`;
-	// Adopted stylesheets rather than <style> elements: the same CSS, without
-	// putting a style element into the document, which the plugin guidelines
-	// ask us not to do. The vault's own theme is adopted too — otherwise it
-	// could never reach inside a shadow root and touch an HTML card — and it
-	// comes first, so a card that styles itself still wins.
-	const win = host.ownerDocument.defaultView ?? window;
-	const sheets: CSSStyleSheet[] = [];
+	// <style> elements inside the shadow root, not adopted stylesheets.
+	//
+	// Adopting was the tidier way round — no style element, as the plugin
+	// guidelines prefer — but a constructed stylesheet belongs to the window
+	// that made it, and the deck can be dragged into a window of its own. The
+	// cards move with it; their adopted sheets do not. So `.atl-step { opacity:
+	// 0 }` stopped applying the moment the deck was popped out, and an HTML
+	// card built to reveal itself a step at a time showed everything at once
+	// while the bar still counted 1/3. It looked like a theme deciding whether
+	// reveals worked.
+	//
+	// A <style> inside a shadow root is scoped to the card and travels with it,
+	// which is the property that matters here. The card's own <style> is in
+	// there already; these two come first, so a card that styles itself wins.
 	for (const css of [RESET, themeCss]) {
 		if (!css) continue;
-		try {
-			const sheet = new (win as unknown as { CSSStyleSheet: typeof CSSStyleSheet })
-				.CSSStyleSheet();
-			sheet.replaceSync(css);
-			sheets.push(sheet);
-		} catch {
-			// A realm without constructable stylesheets: the card renders with
-			// the plugin's own rules and without the vault theme, rather than
-			// not rendering.
-		}
-	}
-	try {
-		shadow.adoptedStyleSheets = sheets;
-	} catch {
-		// Sheets built in one realm cannot always be adopted in another. The
-		// card's own <style> travels inside it, so losing these costs the
-		// plugin's reset and the vault theme — not the card.
+		const style = host.ownerDocument.createElement("style");
+		style.textContent = css;
+		shadow.append(style);
 	}
 
 	const wrap = parseCardHtml(host.ownerDocument, html);
