@@ -1153,31 +1153,32 @@ export async function buildDeckHtml(
      written for cards and must not reach a document, and this must not reach
      them either — which is the mistake that made the first version of this
      page white on white. */
-  /* Two layers, because a theme's --paper can itself be translucent: glass
-     themes build their cards out of transparency, so a panel painted with it
-     showed the deck straight through the words. The deck's own backdrop goes
-     underneath, and the write-up sits on a sheet over it. */
-  #writeup { position: fixed; inset: 0; z-index: 55; display: none;
-    background: var(--backdrop, var(--paper, #fff));
-    background-size: cover; background-position: center;
+  /* Inside #view, so the theme's tokens reach it, and translucent on purpose:
+     the deck stays visible behind a scrim while the words sit on a frosted
+     sheet. The entries carry a class of their own: atl-note is the deck's note
+     box, absolutely positioned, and borrowing that name stacked every entry on
+     top of the heading. (No backticks in here — this CSS lives inside a
+     template literal, and one would end it.) */
+  #writeup { position: absolute; inset: 0; z-index: 55; display: none;
+    background: color-mix(in srgb, var(--ink, #101317) 42%, transparent);
+    backdrop-filter: blur(4px);
     overflow: auto; }
   #writeup.on { display: block; }
-  #writeup-page { max-width: 44rem; margin: 6vh auto 10vh; padding: 40px 42px 48px;
-    background: var(--panel, var(--paper, #fff));
-    border: 1px solid var(--rule, rgb(0 0 0 / 0.12));
+  #writeup-page { max-width: 44rem; margin: 7vh auto 10vh; padding: 38px 40px 44px;
+    background: color-mix(in srgb, var(--panel, #fff) 88%, transparent);
+    backdrop-filter: blur(22px) saturate(1.25);
+    border: 1px solid color-mix(in srgb, var(--accent, #1d5a78) 30%, transparent);
     border-radius: var(--radius, 14px);
-    box-shadow: 0 24px 80px rgb(0 0 0 / 0.45);
+    box-shadow: 0 26px 90px rgb(0 0 0 / 0.5);
     color: var(--ink, #14232a); font-family: var(--body-font, var(--font-interface));
     font-size: 17px; line-height: 1.62; }
-  /* Whatever the theme's panel is made of, this one is opaque: it is a page. */
-  #writeup-page { backdrop-filter: blur(24px) saturate(1.2); }
   #writeup-page header { border-bottom: 1px solid var(--rule, #d7dbd7);
     padding-bottom: 16px; margin-bottom: 26px; }
   #writeup-page h1 { font-family: var(--display-font, var(--body-font));
     font-size: 2em; line-height: 1.1; margin: 0 0 6px; }
   #writeup-page .when { color: var(--ink-soft, #4e5f66); font-size: 0.9em; }
-  #writeup-page .atl-note { margin: 0 0 26px; }
-  #writeup-page .atl-note h2 { font-family: var(--display-font, var(--body-font));
+  #writeup-page .wu-entry { margin: 0 0 26px; }
+  #writeup-page .wu-entry h2 { font-family: var(--display-font, var(--body-font));
     font-size: 1.05em; margin: 0 0 6px; color: var(--accent, #1d5a78); }
   #writeup-page p { margin: 0 0 10px; }
   #writeup-page ul { margin: 0 0 10px; padding-left: 1.3em; }
@@ -1271,13 +1272,12 @@ ${input.css}
 </style>
 </head>
 <body>
-<div id="view" ${lookAttrs(input)}><div id="stage" class="atl-stage"></div>${logoTag(input)}</div>
+<div id="view" ${lookAttrs(input)}><div id="stage" class="atl-stage"></div>${logoTag(input)}<div id="writeup"${
+	input.notes.length > 0 ? "" : " hidden"
+}><div id="writeup-page">${input.notes.length > 0 ? writeupBody(input) : ""}</div></div></div>
 <div id="hint">Drag or scroll &middot; Ctrl+wheel or +/&minus; to zoom &middot; 0 shows all &middot; click a card to go there &middot; Esc</div>
 <div id="rail"><div id="railfill"></div></div>
 <div id="blank"></div>
-<div id="writeup"${input.notes.length > 0 ? "" : " hidden"}><div id="writeup-page">${
-	input.notes.length > 0 ? writeupBody(input) : ""
-}</div></div>
 <div id="map" class="atl-minimap atl-overlay"><div class="atl-minimap-hint">Click a card to fly to it &middot; M or Esc to close</div></div>
 <div id="bar"><span>${input.title}${
 	input.notes.length > 0 ? ` <button type="button" id="notes">Notes</button>` : ""
@@ -1439,7 +1439,7 @@ function writeupBody(input: ExportInput): string {
 	const entries = input.notes
 		.map(
 			(n) =>
-				`<section class="atl-note">
+				`<section class="wu-entry">
 	<h2>${escapeHtml(n.title)}</h2>
 	${remarkHtml(n.text)}
 </section>`
@@ -1491,19 +1491,19 @@ ${tokens}
     color: var(--ink, #14232a);
   }
   .atl-notes .when { color: var(--ink-soft, #4e5f66); font-size: 0.9em; }
-  .atl-note { margin: 0 0 30px; }
-  .atl-note h2 {
+  .wu-entry { margin: 0 0 30px; }
+  .wu-entry h2 {
     font-family: var(--display-font, var(--body-font));
     font-size: 1.06em;
     letter-spacing: 0.01em;
     margin: 0 0 6px;
     color: var(--accent, #1d5a78);
   }
-  .atl-note p { margin: 0 0 10px; }
-  .atl-note ul { margin: 0 0 10px; padding-left: 1.3em; }
-  .atl-note li { margin: 0 0 5px; }
-  .atl-note li::marker { color: var(--accent, #1d5a78); }
-  .atl-note code {
+  .wu-entry p { margin: 0 0 10px; }
+  .wu-entry ul { margin: 0 0 10px; padding-left: 1.3em; }
+  .wu-entry li { margin: 0 0 5px; }
+  .wu-entry li::marker { color: var(--accent, #1d5a78); }
+  .wu-entry code {
     font-family: var(--mono-font, var(--font-monospace), monospace);
     font-size: 0.86em;
     background: var(--wash, rgb(0 0 0 / 0.06));
