@@ -129,6 +129,18 @@ export class Presentation extends Component {
 	private stepIndex = 0;
 	private onKey!: (e: KeyboardEvent) => void;
 	private onResize!: () => void;
+	/**
+	 * The overlay's own size, watched.
+	 *
+	 * The overlay is fixed to the window, so a window resize moves it and the
+	 * `resize` listener is enough. Fullscreen is not a window resize: F makes
+	 * *this element* fill the screen while the window keeps its size, so no
+	 * resize event fires and the camera went on using the old viewport — the
+	 * card stayed at its pre-fullscreen scale until the next arrow key
+	 * recomputed it. Watching the element catches every case: fullscreen both
+	 * ways, the presenter panel opening, and a window dragged between screens.
+	 */
+	private sizeWatch: ResizeObserver | null = null;
 	/** Set while Obsidian's own graph view has the screen. */
 	private away = false;
 	private awayLeaf: WorkspaceLeaf | null = null;
@@ -386,10 +398,10 @@ export class Presentation extends Component {
 		if (this.deckBackdrop) this.overlay.style.setProperty("--backdrop", this.deckBackdrop);
 
 		if (s.background === "colour") {
-			this.overlay.style.background = s.backgroundColour;
+			this.overlay.setCssStyles({ background: s.backgroundColour });
 		} else if (s.background === "image" && s.backgroundImage) {
 			const url = resourcePath(this.app, s.backgroundImage);
-			this.overlay.style.backgroundImage = `url("${url}")`;
+			this.overlay.setCssStyles({ backgroundImage: `url("${url}")` });
 			this.overlay.addClass("has-image");
 			// A dim layer keeps slide text readable over an arbitrary photo.
 			this.overlay.style.setProperty("--atl-dim", String(s.backgroundDim));
@@ -442,7 +454,9 @@ export class Presentation extends Component {
 			this.scene.stops.forEach((stop, i) => {
 				if (stop.kind !== "group") return;
 				const tick = rail.createDiv({ cls: "atl-rail-tick" });
-				tick.style.left = `${(i / Math.max(1, this.scene.stops.length - 1)) * 100}%`;
+				tick.setCssStyles({
+					left: `${(i / Math.max(1, this.scene.stops.length - 1)) * 100}%`,
+				});
 			});
 		}
 		// No notes band. Speaker notes live in the presenter panel and nowhere
@@ -985,6 +999,25 @@ export class Presentation extends Component {
 
 		this.onResize = () => this.goTo(this.index, { animate: false });
 		this.win.addEventListener("resize", this.onResize);
+		this.watchSize();
+	}
+
+	private watchSize(): void {
+		this.sizeWatch?.disconnect();
+		const Observer = (this.win as unknown as { ResizeObserver?: typeof ResizeObserver })
+			.ResizeObserver;
+		if (!Observer || !this.overlay) return;
+		let last = 0;
+		this.sizeWatch = new Observer(() => {
+			// One refit per frame: entering fullscreen fires several times as
+			// the browser settles, and each one would start its own flight.
+			if (last) this.win.cancelAnimationFrame(last);
+			last = this.win.requestAnimationFrame(() => {
+				last = 0;
+				this.goTo(this.index, { animate: false });
+			});
+		});
+		this.sizeWatch.observe(this.overlay);
 	}
 
 	/**
@@ -1562,6 +1595,7 @@ ${this.themeCss}`,
 		this.applyTheme();
 		if (this.onKey) this.doc.addEventListener("keydown", this.onKey, true);
 		if (this.onResize) this.win.addEventListener("resize", this.onResize);
+		this.watchSize();
 		this.goTo(this.index, { animate: false });
 	}
 
@@ -1749,7 +1783,7 @@ ${this.themeCss}`,
 			const r = this.recorder;
 			if (!r?.isRecording) return;
 			time.setText(mmss(Math.floor(r.elapsed / 1000)));
-			fill.style.width = `${Math.round(r.level() * 100)}%`;
+			fill.setCssStyles({ width: `${Math.round(r.level() * 100)}%` });
 			label.setText(what);
 		}, 200);
 		this.register(() => this.win.clearInterval(this.recTimer));
@@ -2817,7 +2851,7 @@ ${this.themeCss}`,
 
 		if (this.railFill) {
 			const through = this.index / Math.max(1, this.scene.stops.length - 1);
-			this.railFill.style.width = `${through * 100}%`;
+			this.railFill.setCssStyles({ width: `${through * 100}%` });
 		}
 
 		const remark = this.hud.querySelector<HTMLElement>(".atl-map-btn[data-key='N']");
@@ -2925,6 +2959,7 @@ ${this.themeCss}`,
 		if (this.doc.fullscreenElement) void this.doc.exitFullscreen();
 		if (this.onKey) this.doc.removeEventListener("keydown", this.onKey, true);
 		if (this.onResize) this.win.removeEventListener("resize", this.onResize);
+		this.sizeWatch?.disconnect();
 		this.dropTheme();
 		if (this.overlay) this.overlay.remove();
 		this.closeDeckTab(unloading);

@@ -748,8 +748,7 @@ function boxFor(m: RegExpMatchArray): HTMLElement {
 	box.className = kind === "align" ? "atl-align" : "atl-pin";
 	if (at) {
 		// A coordinate, the way Advanced Slides' drop="x y" gives one.
-		box.style.left = `${at[1]}%`;
-		box.style.top = `${at[2]}%`;
+		box.setCssStyles({ left: `${at[1]}%`, top: `${at[2]}%` });
 	} else if (PLACES.has(where)) {
 		box.addClass(`atl-${kind}-${where}`);
 	} else {
@@ -1331,10 +1330,12 @@ export async function renderNode(
 ): Promise<HTMLElement> {
 	const r = rectOf(node);
 	const el = stage.createDiv({ cls: `atl-node atl-node-${node.type}` });
-	el.style.left = `${r.x}px`;
-	el.style.top = `${r.y}px`;
-	el.style.width = `${r.width}px`;
-	el.style.height = `${r.height}px`;
+	el.setCssStyles({
+		left: `${r.x}px`,
+		top: `${r.y}px`,
+		width: `${r.width}px`,
+		height: `${r.height}px`,
+	});
 	if (node.color) el.dataset.color = node.color;
 	el.dataset.nodeId = node.id;
 	if (groupLabel) el.dataset.group = slug(groupLabel);

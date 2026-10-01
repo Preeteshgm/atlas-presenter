@@ -78,7 +78,7 @@ export class Camera {
 		const fromT = this.transform(this.pose);
 		const toT = this.transform(pose);
 		this.pose = pose;
-		this.stage.style.transform = toT;
+		this.stage.setCssStyles({ transform: toT });
 
 		this.anim?.cancel();
 		if (duration <= 0 || fromT === toT) return Promise.resolve();
@@ -97,7 +97,7 @@ export class Camera {
 		this.anim?.cancel();
 		this.anim = null;
 		this.pose = this.poseFor(target);
-		this.stage.style.transform = this.transform(this.pose);
+		this.stage.setCssStyles({ transform: this.transform(this.pose) });
 	}
 
 	flyTo(target: Rect, duration: number): Promise<void> {
@@ -107,7 +107,7 @@ export class Camera {
 
 		const fromT = this.transform(from);
 		const toT = this.transform(to);
-		this.stage.style.transform = toT;
+		this.stage.setCssStyles({ transform: toT });
 
 		this.anim?.cancel();
 		if (duration <= 0 || fromT === toT) return Promise.resolve();

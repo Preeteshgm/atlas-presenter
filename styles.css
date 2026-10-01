@@ -1913,9 +1913,19 @@ button.atl-ref-copy {
 
 
 
-/* B blanks the screen: attention on the room, not the slide. */
+/* B blanks the screen: attention on the room, not the slide.
+   Every selector here needs the declaration block below it — a tidy-up
+   once deleted the block along with three of the selectors, and the list
+   ran on into the next rule, so `background: #000` landed on the viewport
+   and nothing was hidden at all: the backdrop went black and the card
+   stayed lit on top of it. */
 .atl-overlay.is-blank .atl-viewport,
 .atl-overlay.is-blank .atl-hud,
+.atl-overlay.is-blank .atl-band,
+.atl-overlay.is-blank .atl-logos {
+	opacity: 0;
+	transition: opacity 220ms ease;
+}
 
 .atl-overlay.is-blank {
 	background: #000;

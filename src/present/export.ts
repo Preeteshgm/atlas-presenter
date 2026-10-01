@@ -521,8 +521,9 @@ const RUNTIME = `
     var name = s.label || s.title;
     /* Joined from the parts there are, not concatenated around them: the
        banner carries no number, and the line printed its separator anyway. */
-    /* No "? for keys": the key list is one press away and the bar is on screen
-       for the whole talk. What is on it is the deck, the position and the card. */
+    /* The bar carries "? keys" now. The list was always one press away, but
+       only for someone who knew the press existed — and the person who opens
+       an exported deck has never seen the plugin. */
     counter.textContent = [s.order ? s.order + ' / ' + total : '', name]
       .filter(function (part) { return part; })
       .join('  \\u00b7  ');
@@ -839,6 +840,11 @@ const RUNTIME = `
     else if (k === 'End') { e.preventDefault(); go(stops.length - 1); }
     else if (k === 'm' || k === 'M') { e.preventDefault(); toggleMap(); }
     else if (k === 'o' || k === 'O') { e.preventDefault(); openOverview(); }
+    else if (k === 'n' || k === 'N') {
+      if (!writeup) return;
+      e.preventDefault();
+      showWriteup(true);
+    }
     else if (k === 'b' || k === 'B') { e.preventDefault(); blank.classList.toggle('on'); }
     else if (k === 'f' || k === 'F') {
       e.preventDefault();
@@ -880,6 +886,17 @@ const RUNTIME = `
 
   blank.addEventListener('click', function () { blank.classList.remove('on'); });
   keys.addEventListener('click', function () { keys.classList.remove('on'); });
+  var opening = document.getElementById('opening');
+  function dismissOpening() {
+    if (!opening || opening.classList.contains('gone')) return;
+    opening.classList.add('gone');
+    setTimeout(function () { if (opening.parentNode) opening.parentNode.removeChild(opening); }, 700);
+  }
+  setTimeout(dismissOpening, 7000);
+  document.addEventListener('keydown', dismissOpening, { once: true });
+  document.addEventListener('pointerdown', dismissOpening, { once: true });
+  var help = document.getElementById('help');
+  if (help) help.addEventListener('click', function () { keys.classList.add('on'); });
 
   /* The write-up, read over the deck. It is markup inside this file, not a link
      to the page beside it: that page can be deleted, renamed or never sent, and
@@ -1140,7 +1157,7 @@ export async function buildDeckHtml(
   #stage { position: absolute; top: 0; left: 0; transform-origin: 0 0;
     transition: transform ${input.duration}ms cubic-bezier(0.6, 0, 0.2, 1); }
   #bar { z-index: 30; position: fixed; left: 0; right: 0; bottom: 0; display: flex;
-    justify-content: space-between; padding: 10px 18px; font-size: 13px;
+    align-items: center; justify-content: space-between; gap: 16px; padding: 10px 18px; font-size: 13px;
     color: var(--ink-soft, #6b7a80); pointer-events: none; }
   /* The one way in from the deck, and only when there is something to open. */
   #bar button { font: inherit; }
@@ -1149,6 +1166,10 @@ export async function buildDeckHtml(
     border: 1px solid color-mix(in srgb, var(--accent, #1d5a78) 45%, transparent);
     border-radius: 999px; padding: 2px 10px; margin-left: 10px; font-size: 12px; }
   #bar a:hover, #bar button:hover { border-color: var(--accent, #1d5a78); }
+  /* Quieter than Notes: an offer, not an instruction. */
+  #bar #help { margin-left: 0; opacity: 0.75; }
+  #bar #help:hover { opacity: 1; }
+  #counter { text-align: center; }
   /* The write-up, over the deck. Styled by id: the deck's own rules are
      written for cards and must not reach a document, and this must not reach
      them either — which is the mistake that made the first version of this
@@ -1216,6 +1237,16 @@ export async function buildDeckHtml(
     outline-offset: 3px; transition: outline-color 140ms ease; }
   #view.is-overview .atl-node:not(.atl-node-group):hover { outline-color: var(--accent, #1d5a78); }
   #view.is-overview .atl-node.is-active { outline-color: var(--accent, #1d5a78); outline-style: dashed; }
+  /* Shown once, on arrival, then gone: a recipient does not know this is a
+     deck rather than a page, and nothing else on screen tells them. */
+  #opening { position: fixed; left: 50%; bottom: 54px; transform: translateX(-50%);
+    z-index: 31; padding: 8px 17px; border-radius: 999px; font-size: 13px;
+    color: var(--ink-soft, #6b7a80); background: var(--panel, #fff);
+    border: 1px solid var(--rule, #dfe4dd); box-shadow: 0 4px 18px rgb(0 0 0 / 0.18);
+    pointer-events: none; transition: opacity 600ms ease; }
+  #opening b { color: var(--accent, #1d5a78); }
+  #opening.gone { opacity: 0; }
+  @media print { #opening { display: none; } }
   #hint { position: fixed; left: 50%; bottom: 22px; transform: translateX(-50%);
     z-index: 31; display: none; padding: 7px 15px; border-radius: 999px;
     font-size: 13px; color: var(--ink-soft, #6b7a80); background: var(--panel, #fff); border: 1px solid var(--rule, #dfe4dd);
@@ -1276,14 +1307,15 @@ ${input.css}
 	input.notes.length > 0 ? "" : " hidden"
 }><div id="writeup-page">${input.notes.length > 0 ? writeupBody(input) : ""}</div></div></div>
 <div id="hint">Drag or scroll &middot; Ctrl+wheel or +/&minus; to zoom &middot; 0 shows all &middot; click a card to go there &middot; Esc</div>
+<div id="opening">Arrow keys to move &middot; <b>O</b> the overview &middot; <b>M</b> the map &middot; <b>?</b> all the keys</div>
 <div id="rail"><div id="railfill"></div></div>
 <div id="blank"></div>
 <div id="map" class="atl-minimap atl-overlay"><div class="atl-minimap-hint">Click a card to fly to it &middot; M or Esc to close</div></div>
 <div id="bar"><span>${input.title}${
-	input.notes.length > 0 ? ` <button type="button" id="notes">Notes</button>` : ""
-}</span><span id="counter"></span></div>
+	input.notes.length > 0 ? ` <button type="button" id="notes" title="The write-up, over the deck">N Notes</button>` : ""
+}</span><span id="counter"></span><span><button type="button" id="help" title="Every key this deck answers to">? Navigate</button></span></div>
 <div id="keys"><table>
-<caption>Keys</caption>
+<caption>Navigating this deck</caption>
 <tr><td>→  Space</td><td>Reveal, then the pictures, then the next card</td></tr>
 <tr><td>←</td><td>Back, the same way</td></tr>
 <tr><td>O</td><td>The overview — the whole deck, click a card to go to it</td></tr>
@@ -1292,7 +1324,7 @@ ${input.css}
 <tr><td>B</td><td>Blank the screen</td></tr>
 <tr><td>F</td><td>Fullscreen</td></tr>
 <tr><td>Ctrl+P</td><td>Print, or save as PDF — one card to a page</td></tr>
-<tr><td>Notes</td><td>The write-up, over the deck &mdash; Esc or N closes it</td></tr>
+<tr><td>N</td><td>The write-up, over the deck &mdash; Esc or N closes it</td></tr>
 <tr><td>?</td><td>Close this</td></tr>
 </table></div>
 <div id="print" class="atl-overlay">__PRINT__</div>
