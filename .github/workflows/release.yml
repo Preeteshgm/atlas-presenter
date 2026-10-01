@@ -29,14 +29,21 @@ jobs:
       - run: npm run lint
       - run: npm run build
 
-      - name: Check the tag matches manifest.json
+      # package.json is not shipped, but it is what `npm version` drives, so
+      # letting it drift means the next bump starts from the wrong number.
+      - name: Check the tag matches every version file
         run: |
           TAG="${GITHUB_REF_NAME}"
           MANIFEST=$(node -p "require('./manifest.json').version")
-          if [ "$TAG" != "$MANIFEST" ]; then
-            echo "Tag $TAG does not match manifest version $MANIFEST." >&2
-            exit 1
-          fi
+          PKG=$(node -p "require('./package.json').version")
+          MIN=$(node -p "require('./manifest.json').minAppVersion")
+          VERSIONS=$(node -p "require('./versions.json')['$TAG'] || ''")
+          fail=0
+          [ "$TAG" = "$MANIFEST" ] || { echo "manifest.json is $MANIFEST, tag is $TAG" >&2; fail=1; }
+          [ "$TAG" = "$PKG" ]      || { echo "package.json is $PKG, tag is $TAG" >&2; fail=1; }
+          [ -n "$VERSIONS" ]       || { echo "versions.json has no entry for $TAG" >&2; fail=1; }
+          [ "$VERSIONS" = "$MIN" ] || { echo "versions.json[$TAG] is $VERSIONS, minAppVersion is $MIN" >&2; fail=1; }
+          exit $fail
 
       # Provenance, so anyone can verify these files were built from this
       # repository by this workflow rather than uploaded by hand.
