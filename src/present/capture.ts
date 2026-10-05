@@ -232,8 +232,13 @@ function minutesFor(session: Session, options: MinutesOptions): string {
 		"type: minutes",
 		`deck: "${session.deck.replace(/"/g, "'")}"`,
 		`date: ${stamp(session.startedAt)}`,
-		`start: ${hhmm(session.startedAt)}`,
-		`end: ${hhmm(session.endedAt)}`,
+		// `started`/`ended` rather than `start`/`end`: Obsidian types a property
+		// once for the whole vault, and `start` is the obvious name for a date in
+		// a plan or a project note. A clock time under the same key makes every
+		// one of those show as an invalid date. These keys are ours alone, so
+		// they are the ones that should move.
+		`started: ${hhmm(session.startedAt)}`,
+		`ended: ${hhmm(session.endedAt)}`,
 		`minutes: ${mins}`,
 		`cards: ${session.visits.length}`,
 		`actions: ${actions.length}`,

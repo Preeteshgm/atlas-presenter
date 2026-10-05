@@ -835,8 +835,8 @@ wants the actions, and should not have to scroll past twenty cards to find them.
 type: minutes
 deck: "Northwind Depot"
 date: 2026-09-14
-start: 11:02
-end: 11:49
+started: 11:02
+ended: 11:49
 minutes: 47
 cards: 4
 actions: 3
