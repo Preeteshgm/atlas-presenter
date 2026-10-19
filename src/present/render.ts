@@ -2,6 +2,7 @@ import { App, Component, MarkdownRenderer, TFile, normalizePath } from "obsidian
 import { isElement } from "../dom";
 import { CanvasNode } from "../types";
 import { boundsOf, outsideCode, parseCanvas, rectOf } from "../canvas/parse";
+import { isClosingCard } from "../canvas/path";
 import { AUDIO_EXT, IMAGE_EXT, VIDEO_EXT } from "../media";
 
 /** Anything already addressable stays untouched. */
@@ -1149,7 +1150,7 @@ function spaceSteps(md: string): string {
 }
 
 function layOutPanes(card: HTMLElement, body: HTMLElement): void {
-	if (!PANED.some((c) => card.hasClass(c))) return;
+	if (!PANED.some((c) => card.hasClass(c)) && !card.hasClass("is-closing")) return;
 
 	const parts: HTMLElement[][] = [[]];
 	for (const child of Array.from(body.children)) {
@@ -1173,7 +1174,8 @@ function layOutPanes(card: HTMLElement, body: HTMLElement): void {
 	//
 	// A banner defaults to no band, because the deck's name belongs beside what
 	// sits next to it rather than across the top of its own opening slide.
-	const banner = card.hasClass("atl-tag-banner");
+	// A closing #end card is the banner's other bookend, and follows the same rule.
+	const banner = card.hasClass("atl-tag-banner") || card.hasClass("is-closing");
 	const wants = card.hasClass("atl-tag-band");
 	const refuses = card.hasClass("atl-tag-noband");
 	const byDefault = !banner && blocks[0].every(isHeading);
@@ -1350,9 +1352,12 @@ export async function renderNode(
 		if (node.type === "text") {
 			const hooks = extractHooks(node.text ?? "");
 			for (const cls of hooks.classes) el.addClass(cls);
+			// A closing card — `#end` with a rule in it — is laid out like the
+			// banner, so the talk ends on the shape it opened with.
+			if (isClosingCard(node)) el.addClass("is-closing");
 			// Only for the layouts that split on a rule: everywhere else `---`
 			// under a line is a heading on purpose, and people write it that way.
-			const paned = hooks.classes.some((c) => PANED.includes(c));
+			const paned = hooks.classes.some((c) => PANED.includes(c)) || el.hasClass("is-closing");
 			const text = spaceSteps(paned ? spaceRules(hooks.text) : hooks.text);
 			await renderMarkdown(app, owner, body, text, sourcePath, themeCss, allowScripts);
 		} else if (node.type === "file") {
@@ -1378,7 +1383,7 @@ export async function renderNode(
 	}
 	// Pictures first: a card is one or the other, and a paned card splits on a
 	// rule rather than gathering its images.
-	if (PANED.some((c) => el.hasClass(c))) layOutPanes(el, body);
+	if (PANED.some((c) => el.hasClass(c)) || el.hasClass("is-closing")) layOutPanes(el, body);
 	else layOutPictures(el, body);
 	hoistPins(body);
 	return el;

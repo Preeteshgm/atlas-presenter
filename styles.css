@@ -2837,6 +2837,121 @@ textarea.atl-note-box:focus { outline: none; border-color: var(--accent, var(--i
 .atl-node.atl-tag-banner .atl-pane:last-child { justify-self: end; text-align: right; }
 .atl-node.atl-tag-banner .atl-pane:last-child .atl-embed-row { justify-content: flex-end; }
 
+/* In an exported file the picture is a bare <img> in a paragraph rather than
+   Obsidian's embed span, and text-align alone did not reach it: the mark sat
+   in the middle of its column instead of against the edge. */
+.atl-node.atl-tag-banner .atl-pane:last-child.has-picture > p,
+.atl-node.atl-tag-end.is-closing .atl-pane:last-child.has-picture > p {
+	display: flex;
+	justify-content: flex-end;
+	margin: 0;
+}
+.atl-node.atl-tag-banner .atl-pane:last-child.has-picture img,
+.atl-node.atl-tag-end.is-closing .atl-pane:last-child.has-picture img {
+	display: block;
+	margin-left: auto;
+	margin-right: 0;
+}
+
+/* ---- #end with a rule: the closing card, laid out like the banner -------
+   An #end card with a `---` in it takes the banner's frame and its shape —
+   the words down the left, whatever follows the rule beside them — so a talk
+   closes on the card it opened with. An #end card with no rule keeps the
+   centred look above. */
+
+.atl-node.atl-tag-end.is-closing .atl-body {
+	display: grid;
+	grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr);
+	align-content: center;
+	align-items: center;
+	justify-content: center;
+	column-gap: 5%;
+	padding: 6% 5%;
+	text-align: left;
+}
+
+.atl-node.atl-tag-end.is-closing .atl-body[data-panes="1"],
+.atl-node.atl-tag-end.is-closing .atl-body:not([data-panes]) {
+	grid-template-columns: minmax(0, 1fr);
+}
+
+/* Three or four blocks are equal columns, as on the banner. `#noband` keeps a
+   first block of only a heading as a column of its own instead of a band. */
+.atl-node.atl-tag-end.is-closing .atl-body[data-panes="3"] {
+	grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+.atl-node.atl-tag-end.is-closing .atl-body[data-panes="4"] {
+	grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.atl-node.atl-tag-end.is-closing .atl-pane:not(.has-picture) {
+	align-self: stretch;
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
+	align-items: flex-start;
+}
+
+.atl-node.atl-tag-end.is-closing .atl-pane.has-picture { align-self: stretch; }
+
+.atl-node.atl-tag-end.is-closing h1 {
+	font-size: var(--scale-title, 3.6em);
+	line-height: 1.02;
+	letter-spacing: -0.02em;
+	margin: 0 0 0.24em;
+	max-width: 20ch;
+}
+
+/* The accent bar belongs to the centred card; the banner shape has none. */
+.atl-node.atl-tag-end.is-closing h1::after { display: none; }
+
+.atl-node.atl-tag-end.is-closing h2 { font-size: 1.9em; margin: 0 0 0.3em; }
+
+.atl-node.atl-tag-end.is-closing p {
+	font-size: 1.1em;
+	color: var(--ink-soft, var(--text-muted));
+	margin: 0 0 0.5em;
+	max-width: 52ch;
+}
+
+.atl-node.atl-tag-end.is-closing .atl-pane:first-child > p:last-child {
+	margin-top: 0.9em;
+	font-size: 0.92em;
+	color: var(--ink-faint, var(--text-faint));
+}
+
+.atl-node.atl-tag-end.is-closing .atl-pane img { max-height: 42cqh; max-width: 100%; }
+.atl-node.atl-tag-end.is-closing .atl-pane:last-child { justify-self: end; text-align: right; }
+.atl-node.atl-tag-end.is-closing .atl-pane:last-child .atl-embed-row { justify-content: flex-end; }
+
+/* The picture first: the closing card mirrored, the mark on the left and the
+   words beside it, so the talk ends facing the way it opened. */
+.atl-node.atl-tag-end.is-closing .atl-body[data-panes="2"]:has(> .atl-pane:first-child.has-picture) {
+	grid-template-columns: minmax(0, 1fr) minmax(0, 1.5fr);
+}
+.atl-node.atl-tag-end.is-closing .atl-pane:first-child.has-picture { justify-self: start; text-align: left; }
+.atl-node.atl-tag-end.is-closing .atl-pane:first-child.has-picture > p { display: flex; justify-content: flex-start; margin: 0; }
+.atl-node.atl-tag-end.is-closing .atl-pane:first-child.has-picture img { display: block; margin: 0 auto 0 0; }
+.atl-node.atl-tag-end.is-closing .atl-pane:last-child:not(.has-picture) { justify-self: stretch; text-align: left; }
+.atl-node.atl-tag-end.is-closing .atl-pane:last-child:not(.has-picture) > p:last-child {
+	margin-top: 0.9em;
+	font-size: 0.92em;
+	color: var(--ink-faint, var(--text-faint));
+}
+/* The by-line can sit under the picture too, in the same column as the logo. */
+.atl-node.atl-tag-end.is-closing .atl-pane.has-picture > p:last-child:not(:has(img)) {
+	margin-top: 0.9em;
+	font-size: 0.92em;
+	color: var(--ink-faint, var(--text-faint));
+}
+.atl-node.atl-tag-end.is-closing .atl-pane.has-picture > :is(h2, h3) { width: 100%; }
+/* Every line in the picture's column runs to its edge, so a short by-line
+   lines up with the lines above it instead of stopping at the measure. */
+.atl-node.atl-tag-banner .atl-pane:last-child.has-picture > p,
+.atl-node.atl-tag-end.is-closing .atl-pane.has-picture > p { max-width: none; width: 100%; }
+
+.atl-node.atl-tag-end.is-closing h3 { font-size: 1.25em; font-weight: 500; margin: 0 0 0.4em; color: var(--ink-soft, var(--text-muted)); }
+
 /* ---- controls inside the deck --------------------------------------------
    Everything that opens over a talk — the note box, ask, the write-up, peek,
    the graph — puts real <button>, <input> and <textarea> elements on screen,

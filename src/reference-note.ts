@@ -44,7 +44,7 @@ never reaches the screen.
 | A point that should land | \`#dark\` |
 | A picture filling the card | \`#full\` |
 | Text flowing from column to column | \`#split\` |
-| A closing card | \`#end\` |
+| A closing card | \`#end\` — add a \`---\` and it is laid out like the banner |
 | A block somewhere specific | \`:::pin\` |
 | A block at the foot of its column | \`:::align\` |
 | One line at a time | \`+++\` |

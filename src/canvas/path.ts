@@ -131,6 +131,52 @@ export function variantsIn(data: CanvasData): string[] {
 }
 
 /**
+ * The frame the banner takes: as wide as the first section (capped at the
+ * widest one, and never flatter than 4:1) and as tall as the tallest card in
+ * that section. The #deck card's banner and a closing `#end` card share it, so
+ * a talk opens and closes on the same shape.
+ */
+function bannerFrame(nodes: CanvasNode[], fallback: CanvasNode): { x: number; y: number; width: number; height: number } {
+	const groups = nodes.filter((n) => n.type === "group");
+	const widest = groups.reduce((w, g) => Math.max(w, g.width), 0);
+	const first = groups
+		.slice()
+		.sort((a, b) => a.y - b.y || a.x - b.x)[0];
+
+	const wide = Math.min(first?.width ?? fallback.width, widest || fallback.width) || fallback.width;
+	// As tall as the cards it sits above, not as tall as it is wide.
+	const inFirst = first
+		? nodes.filter(
+				(n) =>
+					n.type !== "group" &&
+					n.x >= first.x &&
+					n.y >= first.y &&
+					n.x + n.width <= first.x + first.width &&
+					n.y + n.height <= first.y + first.height
+			)
+		: [];
+	const height = inFirst.reduce((h, n) => Math.max(h, n.height), 0) || fallback.height;
+	// Never flatter than 4:1. A first section of six cards is 9000 units wide,
+	// and a banner that shape is a 90-pixel strip across a 16:9 screen — past
+	// four times its height there is nothing left to look at.
+	const width = Math.min(wide, height * 4);
+	return { x: first?.x ?? fallback.x, y: first?.y ?? fallback.y, width, height };
+}
+
+/**
+ * A closing card: `#end` with a `---` rule in it. It is laid out like the
+ * banner — the words down the left, whatever follows the rule beside them —
+ * and takes the banner's frame. An `#end` card with no rule is the centred
+ * closing card it always was.
+ */
+export function isClosingCard(node: CanvasNode): boolean {
+	if (node.type !== "text") return false;
+	const bare = outsideCode(node.text ?? "");
+	return /(^|\n)[ \t]*(?:#[\w-]+[ \t]+)*#end(?:[ \t]+#[\w-]+)*[ \t]*(\n|$)/i.test(bare)
+		&& /(^|\n)[ \t]*---[ \t]*(\n|$)/.test(bare);
+}
+
+/**
  * The #deck card as a slide, sized to the deck it belongs to.
  *
  * Width follows the first section, because a banner as wide as the talk below
@@ -146,30 +192,9 @@ function bannerNode(nodes: CanvasNode[], meta: Record<string, string>): CanvasNo
 	const card = deckCardsIn(nodes)[0];
 	if (!card || !meta.__body) return null;
 
-	const groups = nodes.filter((n) => n.type === "group");
-	const widest = groups.reduce((w, g) => Math.max(w, g.width), 0);
-	const first = groups
-		.slice()
-		.sort((a, b) => a.y - b.y || a.x - b.x)[0];
-
-	const wide = Math.min(first?.width ?? card.width, widest || card.width) || card.width;
-	// As tall as the cards it sits above, not as tall as it is wide.
-	const inFirst = first
-		? nodes.filter(
-				(n) =>
-					n.type !== "group" &&
-					n.x >= first.x &&
-					n.y >= first.y &&
-					n.x + n.width <= first.x + first.width &&
-					n.y + n.height <= first.y + first.height
-			)
-		: [];
-	const height = inFirst.reduce((h, n) => Math.max(h, n.height), 0) || card.height;
-	// Never flatter than 4:1. A first section of six cards is 9000 units wide,
-	// and a banner that shape is a 90-pixel strip across a 16:9 screen — past
-	// four times its height there is nothing left to look at.
-	const width = Math.min(wide, height * 4);
-	const x = first?.x ?? card.x;
+	const frame = bannerFrame(nodes, card);
+	const { width, height, x } = frame;
+	const first = { y: frame.y };
 
 	// Themed like every other card, rather than left as bare markdown.
 	//
@@ -196,7 +221,7 @@ function bannerNode(nodes: CanvasNode[], meta: Record<string, string>): CanvasNo
 		text,
 		x,
 		// Sat above the first section, with a card's worth of air below it.
-		y: (first?.y ?? card.y) - height - 240,
+		y: first.y - height - 240,
 		width,
 		height,
 	};
@@ -217,6 +242,21 @@ export function buildScene(
 	const groups = data.nodes.filter((n) => n.type === "group");
 	const groupOf = buildGroupMap(data.nodes);
 	const byId = new Map(data.nodes.map((n) => [n.id, n]));
+
+	// A closing `#end` card takes the banner's frame, kept where it was placed
+	// down the canvas but lined up with the banner across it. Only the scene's
+	// copy changes; the canvas file is never touched.
+	for (let i = 0; i < slides.length; i++) {
+		const n = slides[i];
+		if (!isClosingCard(n)) continue;
+		const f = bannerFrame(data.nodes, n);
+		// A little taller than the banner, so the two bookends read as two
+		// cards rather than one shown twice, and a closing card has room for
+		// the line or two more it usually carries.
+		const sized = { ...n, x: f.x, width: f.width, height: Math.round(f.height * 1.15) };
+		slides[i] = sized;
+		byId.set(n.id, sized);
+	}
 
 	const out = new Map<string, CanvasEdge[]>();
 	for (const e of data.edges) {

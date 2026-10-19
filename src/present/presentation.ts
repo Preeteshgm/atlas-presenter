@@ -13,7 +13,7 @@ import { hhmm, mmss, safeFileName } from "../format";
 import { fileAt, readFileAt } from "../vault";
 import { AUDIO_EXT } from "../media";
 import { parseCanvas, rectOf } from "../canvas/parse";
-import { buildScene, readDeckVariant } from "../canvas/path";
+import { buildScene, isClosingCard, readDeckVariant } from "../canvas/path";
 import { Camera } from "./camera";
 import { Minimap } from "./minimap";
 import { Peek } from "./peek";
@@ -2815,6 +2815,15 @@ ${this.themeCss}`,
 	 * only stop whose node is not in the canvas file. Matching on the id is
 	 * enough, and it survives a rebuild of the scene.
 	 */
+	/**
+	 * The opening banner, or a closing `#end` card laid out like it. Both are
+	 * shown without the header and with the deck's logo at its own size; only
+	 * the banner is left out of the card count.
+	 */
+	private isBookend(stop: Stop): boolean {
+		return this.isBanner(stop) || (stop.kind === "node" && isClosingCard(stop.node));
+	}
+
 	private isBanner(stop: Stop): boolean {
 		return stop.kind === "node" && stop.node.id === this.scene.stops[0]?.node.id
 			&& !!this.scene.meta.__body;
@@ -2847,7 +2856,8 @@ ${this.themeCss}`,
 		this.renderHeader(stop);
 		// The logo belongs to the deck, so on the deck's own card it is shown
 		// at its own size rather than as the small standing mark.
-		this.overlay.toggleClass("is-banner", this.isBanner(stop));
+		// The closing card is dressed the same way, so the talk ends as it began.
+		this.overlay.toggleClass("is-banner", this.isBookend(stop));
 
 		if (this.railFill) {
 			const through = this.index / Math.max(1, this.scene.stops.length - 1);
@@ -2873,13 +2883,13 @@ ${this.themeCss}`,
 			// What the deck card asked for, or the breadcrumbs when it asked for
 			// nothing. Hidden on the banner, where a position and a section name
 			// make an opening slide look unfinished.
-			const line = this.settings.showHeader && !this.isBanner(stop) ? this.headerLine(stop) : "";
+			const line = this.settings.showHeader && !this.isBookend(stop) ? this.headerLine(stop) : "";
 			if (line) {
 				crumbs.setText(line);
 			} else {
 				const parts = [this.file.basename];
 				if (stop.group && stop.group.label) parts.push(stop.group.label);
-				crumbs.setText(this.isBanner(stop) ? this.file.basename : parts.join("  ›  "));
+				crumbs.setText(this.isBookend(stop) ? this.file.basename : parts.join("  ›  "));
 			}
 		}
 		if (counter) {
