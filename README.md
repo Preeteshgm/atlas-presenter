@@ -391,7 +391,7 @@ reaches the slide.
 | `#stat` | One large number and a line about it |
 | `#dark` | The same card, inverted |
 | `#agenda` | A running order — numbered, set large, one line to a row |
-| `#end` | The closing card — thanks, a contact, a next step |
+| `#end` | The closing card — thanks, a contact, a next step. Put a `---` in it and it closes like the banner opens: the banner's width, a little taller, words on one side and the picture on the other, no header, the logo at its own size. Picture first puts it on the left. Like the banner, no band unless you write `#band`, so three blocks are three columns |
 | `#full` | A picture with no margin. Words take their line; the picture fills the rest and crops |
 | `#focus-left` | Keep the left of a cropped picture. `#focus-right` and `#focus-centre` are the others |
 | `#fade-left` | Dissolve the picture's left edge into the card. `#fade-right`, `#fade-both` |
@@ -657,6 +657,11 @@ trusted to run here should not start running because it was sent to somebody.
 
 Four things stay behind, and cannot sensibly travel: peeking a note, the vault
 graph, remarks and minutes, and your speaker notes.
+
+**On a phone** it works by touch: swipe, or tap either side, to move; the
+**Overview** and **Map** buttons replace O and M; drag and pinch the overview.
+The glass blur is dropped on touch screens so the flights stay smooth, and a
+phone held upright is asked, once, to turn sideways.
 
 ### Preview it first
 

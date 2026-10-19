@@ -496,6 +496,31 @@ const RUNTIME = `
     for (var m = 0; m < sh.length; m++) setFrame(sh[m], shown ? framesIn(sh[m]).length - 1 : 0);
   }
 
+  /* A phone keeps every card of the deck drawn at once — the pictures, the
+     HTML cards and their animations — and a deck of a dozen rich cards ran it
+     out of memory after two or three slides. The browser then dropped the tab
+     and reloaded it, and a file opened from Drive or a chat app cannot be
+     reloaded offline. On a touch screen only the cards around the current
+     stop are drawn; the rest are skipped until they are near, and the
+     overview draws them all again. */
+  var touch = !!(window.matchMedia && matchMedia('(pointer: coarse)').matches);
+  function cull() {
+    if (!touch) return;
+    var near = [stops[i - 1], stops[i], stops[i + 1]].filter(function (r) { return r; });
+    var cards = stage.querySelectorAll('.atl-node');
+    for (var c = 0; c < cards.length; c++) {
+      var el = cards[c], st = el.style;
+      var x = parseFloat(st.left) || 0, y = parseFloat(st.top) || 0;
+      var w = parseFloat(st.width) || 0, h = parseFloat(st.height) || 0;
+      var keep = overview;
+      for (var k = 0; !keep && k < near.length; k++) {
+        var r = near[k];
+        keep = x < r.x + r.width && x + w > r.x && y < r.y + r.height && y + h > r.y;
+      }
+      el.classList.toggle('is-far', !keep);
+    }
+  }
+
   function paint(animate) {
     var s = stops[i];
     var scale = Math.min(
@@ -513,6 +538,7 @@ const RUNTIME = `
     for (var c = 0; c < cards.length; c++) cards[c].classList.remove('is-active');
     var active = cardAt(i);
     if (active) active.classList.add('is-active');
+    cull();
     /* Cards, the way the deck counts them: a section overview is a stop but
        not a card, and the banner is the cover rather than card one, so
        counting stops here made the exported file disagree with the deck it
@@ -663,6 +689,7 @@ const RUNTIME = `
     if (overview) return;
     overview = true;
     view.classList.add('is-overview');
+    cull();
     var g = sectionOf(i), r = g || stops[i];
     pickScale = Math.min(
       view.clientWidth / (r.width * (1 + pad * 2)),
@@ -936,6 +963,7 @@ const RUNTIME = `
   }
 
   view.addEventListener('click', function (e) {
+    if (swiped) return;
     if (overview) {
       if (moved) return;
       var path = e.composedPath ? e.composedPath() : [e.target];
@@ -972,6 +1000,87 @@ const RUNTIME = `
        to right needs the other direction. */
     pan(e.shiftKey ? e.deltaY : e.deltaX, e.shiftKey ? 0 : e.deltaY, false);
   }, { passive: false });
+
+  /* ---- touch ------------------------------------------------------------
+     A phone has no keys. A swipe moves through the deck the way the arrows
+     do, a pinch zooms the overview the way Ctrl+wheel does, and the view says
+     its touches are its own (touch-action: none), so the browser stops
+     zooming the page underneath the deck. A tap still works as it always has:
+     the right two thirds forward, the left third back. */
+  var touches = {}, swiped = false, pinchFrom = 0, swipeFrom = null;
+  function touchList() { var p = []; for (var t in touches) p.push(touches[t]); return p; }
+  function spread() {
+    var p = touchList();
+    if (p.length < 2) return 0;
+    var dx = p[0].x - p[1].x, dy = p[0].y - p[1].y;
+    return Math.sqrt(dx * dx + dy * dy);
+  }
+  view.addEventListener('pointerdown', function (e) {
+    if (e.pointerType !== 'touch') return;
+    touches[e.pointerId] = { x: e.clientX, y: e.clientY };
+    var n = touchList().length;
+    if (n === 1) swipeFrom = { x: e.clientX, y: e.clientY, t: Date.now() };
+    /* A second finger is a pinch, not the start of a drag or a swipe. */
+    if (n === 2) { pinchFrom = spread(); swipeFrom = null; from = null; }
+  });
+  view.addEventListener('pointermove', function (e) {
+    if (e.pointerType !== 'touch' || !touches[e.pointerId]) return;
+    touches[e.pointerId] = { x: e.clientX, y: e.clientY };
+    if (overview && pinchFrom && touchList().length === 2) {
+      var p = touchList(), now = spread(), box = view.getBoundingClientRect();
+      zoom(now / pinchFrom,
+        (p[0].x + p[1].x) / 2 - box.left - box.width / 2,
+        (p[0].y + p[1].y) / 2 - box.top - box.height / 2, false);
+      pinchFrom = now;
+      moved = true;
+    }
+  });
+  function lift(e) {
+    if (e.pointerType !== 'touch') return;
+    var s = swipeFrom;
+    delete touches[e.pointerId];
+    if (touchList().length < 2) pinchFrom = 0;
+    if (!s || overview || touchList().length > 0) return;
+    swipeFrom = null;
+    var dx = e.clientX - s.x, dy = e.clientY - s.y;
+    if (Math.abs(dx) > 48 && Math.abs(dx) > Math.abs(dy) * 1.3 && Date.now() - s.t < 800) {
+      /* The click that follows a swipe must not also step. */
+      swiped = true;
+      setTimeout(function () { swiped = false; }, 400);
+      if (dx < 0) advance(); else retreat();
+    }
+  }
+  view.addEventListener('pointerup', lift);
+  view.addEventListener('pointercancel', lift);
+
+  /* iOS ignores touch-action on the page itself, so the scroll that becomes a
+     pull to refresh is stopped where it starts. The write-up still scrolls. */
+  document.addEventListener('touchmove', function (e) {
+    if (writeup && writeup.classList.contains('on') && writeup.contains(e.target)) return;
+    e.preventDefault();
+  }, { passive: false });
+
+  /* The phone's back gesture — a swipe from the screen's edge — left the page,
+     and coming back meant fetching it again. One history entry of our own
+     catches it: back steps back a card, and the entry is put back each time,
+     so the deck is never left by accident. */
+  if (history && history.pushState && window.matchMedia && matchMedia('(pointer: coarse)').matches) {
+    try { history.pushState({ atlas: 1 }, ''); } catch (err) { /* file:// may refuse */ }
+    addEventListener('popstate', function () {
+      if (overview) closeOverview(); else retreat();
+      try { history.pushState({ atlas: 1 }, ''); } catch (err) { /* nothing to undo */ }
+    });
+  }
+
+  /* The buttons a phone shows instead of the keys. */
+  function tap(id, fn) {
+    var b = document.getElementById(id);
+    if (b) b.addEventListener('click', function (e) { e.stopPropagation(); fn(); });
+  }
+  tap('t-prev', function () { if (overview) closeOverview(); else retreat(); });
+  tap('t-next', function () { if (overview) closeOverview(); else advance(); });
+  tap('t-over', function () { if (overview) closeOverview(); else openOverview(); });
+  tap('t-map', function () { toggleMap(); });
 
   /* Every card starts folded, or a reveal would be showing before its turn. */
   var all = stage.querySelectorAll('.atl-node');
@@ -1300,20 +1409,58 @@ export async function buildDeckHtml(
   }
   @page { size: landscape; margin: 12mm; }
 ${input.css}
+  /* ---- touch ---- */
+  /* The page itself never scrolls, bounces or pulls to refresh. A pull to
+     refresh on a phone reloads the file, and a file opened from Drive, OneDrive
+     or a chat app cannot be reloaded offline: the deck vanished behind
+     "you're offline" halfway through a talk. */
+  html, body { overscroll-behavior: none; touch-action: none; }
+  #view { touch-action: none; }
+  /* Cards far from the current stop, on a touch screen: not drawn, not animated. */
+  #view .atl-node.is-far { content-visibility: hidden; visibility: hidden; }
+  #touch, #turn, .touch-only { display: none; }
+  @media (pointer: coarse) {
+    .kbd-only { display: none; }
+    .touch-only { display: inline; }
+    #touch { display: flex; position: fixed; z-index: 31; left: 50%; bottom: 44px;
+      transform: translateX(-50%); gap: 8px; }
+    #touch button { font: 600 14px/1 system-ui, sans-serif; color: var(--ink, #14232a);
+      background: var(--panel, rgb(255 255 255 / 0.92)); border: 1px solid var(--rule, #cbd3d1);
+      border-radius: 999px; padding: 10px 16px; min-width: 44px; min-height: 40px; opacity: 0.72; }
+    #touch button:active { opacity: 1; }
+    #touch #t-prev, #touch #t-next { font-size: 22px; padding: 6px 14px; }
+    #opening { bottom: 100px; }
+    #bar #help { display: none; }
+    /* Glass is a per-card blur over everything behind it, redrawn on every
+       frame of a flight. On a phone that is the stutter; solid cards look
+       the same at that size and fly smoothly. */
+    #view .atl-node, #view .atl-node * { -webkit-backdrop-filter: none !important; backdrop-filter: none !important; }
+  }
+  @media (pointer: coarse) and (orientation: portrait) {
+    #turn { display: block; position: fixed; z-index: 32; left: 50%; top: 12px; transform: translateX(-50%);
+      width: max-content; max-width: calc(100vw - 24px); box-sizing: border-box; white-space: normal;
+      text-align: center; padding: 10px 14px; border-radius: 12px; font: 600 13px system-ui, sans-serif;
+      color: var(--ink, #14232a); background: var(--panel, #fff); border: 1px solid var(--rule, #cbd3d1);
+      pointer-events: none; animation: atl-turn 6s ease forwards; }
+    @keyframes atl-turn { 0%, 80% { opacity: 1; } 100% { opacity: 0; } }
+  }
+  @media print { #touch, #turn { display: none !important; } }
 </style>
 </head>
 <body>
 <div id="view" ${lookAttrs(input)}><div id="stage" class="atl-stage"></div>${logoTag(input)}<div id="writeup"${
 	input.notes.length > 0 ? "" : " hidden"
 }><div id="writeup-page">${input.notes.length > 0 ? writeupBody(input) : ""}</div></div></div>
-<div id="hint">Drag or scroll &middot; Ctrl+wheel or +/&minus; to zoom &middot; 0 shows all &middot; click a card to go there &middot; Esc</div>
-<div id="opening">Arrow keys to move &middot; <b>O</b> the overview &middot; <b>M</b> the map &middot; <b>?</b> all the keys</div>
+<div id="hint"><span class="kbd-only">Drag or scroll &middot; Ctrl+wheel or +/&minus; to zoom &middot; 0 shows all &middot; click a card to go there &middot; Esc</span><span class="touch-only">Drag to move &middot; pinch to zoom &middot; tap a card to go there</span></div>
+<div id="opening"><span class="kbd-only">Arrow keys to move &middot; <b>O</b> the overview &middot; <b>M</b> the map &middot; <b>?</b> all the keys</span><span class="touch-only">Swipe, or tap either side, to move &middot; <b>Overview</b> and <b>Map</b> below</span></div>
 <div id="rail"><div id="railfill"></div></div>
 <div id="blank"></div>
 <div id="map" class="atl-minimap atl-overlay"><div class="atl-minimap-hint">Click a card to fly to it &middot; M or Esc to close</div></div>
 <div id="bar"><span>${input.title}${
 	input.notes.length > 0 ? ` <button type="button" id="notes" title="The write-up, over the deck">N Notes</button>` : ""
 }</span><span id="counter"></span><span><button type="button" id="help" title="Every key this deck answers to">? Navigate</button></span></div>
+<div id="touch"><button type="button" id="t-prev" aria-label="Previous">&lsaquo;</button><button type="button" id="t-over">Overview</button><button type="button" id="t-map">Map</button><button type="button" id="t-next" aria-label="Next">&rsaquo;</button></div>
+<div id="turn">Turn your phone sideways to see the whole slide</div>
 <div id="keys"><table>
 <caption>Navigating this deck</caption>
 <tr><td>→  Space</td><td>Reveal, then the pictures, then the next card</td></tr>
