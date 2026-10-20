@@ -418,26 +418,36 @@ const RUNTIME = `
 
   /* Z, or the Freeze button on a phone: the card on screen holds still so what
      is in it can be used. Clicks are the card's, swipes and arrows do not move
-     the deck, and the snowflake under the note dot, top right, is also the
-     way out. Going to another card lets go. */
+     the deck, and the snowflake beside the card, bottom right, is also the way
+     out. Going to another card lets go. */
   var frozen = false;
   function setFrozen(on) {
     frozen = on;
     document.documentElement.classList.toggle('is-frozen', on);
-    var old = stage.querySelectorAll('.atl-freeze-mark');
+    var old = stage.querySelectorAll('.atl-mark-frz');
     for (var q = 0; q < old.length; q++) old[q].remove();
     var fb = document.getElementById('t-frz');
     if (fb) { fb.textContent = on ? 'Unfreeze' : 'Freeze'; fb.setAttribute('aria-pressed', on ? 'true' : 'false'); }
     if (!on) return;
     var card = cardAt(i);
     if (!card) return;
+    /* The card's marks travel with the clone, beside it; a card with none gets
+       a holder in the same place. */
+    var holder = card.nextElementSibling;
+    if (!holder || !holder.classList.contains('atl-marks')) {
+      holder = document.createElement('div');
+      holder.className = 'atl-marks';
+      holder.style.left = 'calc(' + card.style.left + ' + ' + card.style.width + ' + 10px)';
+      holder.style.top = 'calc(' + card.style.top + ' + ' + card.style.height + ')';
+      card.parentNode.insertBefore(holder, card.nextSibling);
+    }
     var mark = document.createElement('div');
-    mark.className = 'atl-freeze-mark';
+    mark.className = 'atl-mark atl-mark-frz';
     mark.title = 'Frozen · Z or tap here to unfreeze';
     mark.setAttribute('role', 'button');
     mark.setAttribute('aria-label', 'Unfreeze');
     mark.addEventListener('click', function (e) { e.preventDefault(); e.stopPropagation(); setFrozen(false); });
-    card.appendChild(mark);
+    holder.appendChild(mark);
     frzHint('Frozen · use the card · Z to unfreeze');
   }
   function frzHint(text) {

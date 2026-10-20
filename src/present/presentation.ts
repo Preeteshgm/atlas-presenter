@@ -63,7 +63,7 @@ import { fail, say } from "../notice";
  * exported deck is held to the same list.
  */
 const INTERACTIVE =
-	"a, button, video, audio, iframe, input, textarea, select, label, summary, .atl-hud, .atl-freeze-mark";
+	"a, button, video, audio, iframe, input, textarea, select, label, summary, .atl-hud, .atl-mark-frz";
 
 export class Presentation extends Component {
 	private overlay!: HTMLElement;
@@ -2872,22 +2872,43 @@ ${this.themeCss}`,
 	}
 
 	/**
+	 * The holder for a card's marks, just outside its bottom-right corner.
+	 *
+	 * Outside, because a mark inside the card sits on the card's own content —
+	 * a menu, a button — and the card clips anything that crosses its edge. It
+	 * is the card's next sibling on the stage, so it moves and scales with the
+	 * card, fades with it off camera, and travels into the export with the clone.
+	 */
+	private marksFor(el: HTMLElement, create: boolean): HTMLElement | null {
+		const next = el.nextElementSibling;
+		if (next instanceof HTMLElement && next.hasClass("atl-marks")) return next;
+		if (!create) return null;
+		const holder = createDiv({ cls: "atl-marks" });
+		holder.setCssStyles({
+			left: `calc(${el.style.left} + ${el.style.width} + 10px)`,
+			top: `calc(${el.style.top} + ${el.style.height})`,
+		});
+		el.after(holder);
+		return holder;
+	}
+
+	/**
 	 * Freeze or let go of the card on screen.
 	 *
-	 * The mark is built like the note dot and sits just under it, top right, so
-	 * everything a card is marked with is in one place. It is a real element rather than a
-	 * second pseudo-element because it is also the way out on a screen with no
+	 * The snowflake joins the card's marks, under the note if there is one. It
+	 * is a real element because it is also the way out on a screen with no
 	 * keyboard: clicking it lets go.
 	 */
 	private setFrozen(on: boolean): void {
 		this.frozen = on;
 		this.overlay.toggleClass("is-frozen", on);
-		for (const el of Array.from(this.overlay.querySelectorAll(".atl-freeze-mark"))) el.remove();
+		for (const el of Array.from(this.overlay.querySelectorAll(".atl-mark-frz"))) el.remove();
 		if (!on) return;
 		const card = this.nodeEls.get(this.stopAt(this.index).node.id);
-		if (!card) return;
-		const mark = card.createDiv({
-			cls: "atl-freeze-mark",
+		const holder = card ? this.marksFor(card, true) : null;
+		if (!holder) return;
+		const mark = holder.createDiv({
+			cls: "atl-mark atl-mark-frz",
 			attr: { title: "Frozen · Z or click here to unfreeze", role: "button", "aria-label": "Unfreeze" },
 		});
 		mark.addEventListener("click", (e) => {
@@ -2928,6 +2949,20 @@ ${this.themeCss}`,
 		for (const [id, el] of this.nodeEls) {
 			el.toggleClass("has-note", noted.has(id));
 			el.toggleClass("has-audio", spoken.has(id));
+			if (el.hasClass("atl-node-group")) continue;
+			const holder = this.marksFor(el, noted.has(id));
+			if (!holder) continue;
+			let mark = holder.querySelector<HTMLElement>(".atl-mark-note");
+			if (!noted.has(id)) {
+				mark?.remove();
+				continue;
+			}
+			// The note comes first, so it sits above the snowflake.
+			if (!mark) {
+				mark = createDiv({ cls: "atl-mark atl-mark-note" });
+				holder.prepend(mark);
+			}
+			mark.toggleClass("is-audio", spoken.has(id));
 		}
 	}
 

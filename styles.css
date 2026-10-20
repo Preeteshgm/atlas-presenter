@@ -3034,50 +3034,43 @@ textarea.atl-note-box:focus { outline: none; border-color: var(--accent, var(--i
 	color: var(--ink, var(--text-normal));
 }
 
-/* ---- a card with a note on it -------------------------------------------
-   A dot in the corner, in the deck's accent. Small enough to ignore from the
-   back of a room, and the one thing you want to see on the overview: which
-   cards were talked about. Groups are not cards and never carry one. */
 
 
-.atl-node.has-note:not(.atl-node-group)::after {
-	content: "";
+
+
+/* A card's marks, just outside its bottom-right corner: a note, a spoken note,
+   frozen. Outside, so they never sit on the card's own content; on the stage
+   beside the card, so they move, scale and fade with it, and the exported deck
+   carries them in its clone. They stack from the bottom — a note above the
+   snowflake, and either one alone in the lowest place.
+
+   They sit on the deck's backdrop, not on the card, so the colour is the
+   accent mixed with the deck's own soft ink — the colour the bottom bar is
+   read in — which holds up on a light backdrop and a dark one alike. */
+.atl-marks {
 	position: absolute;
-	top: 12px;
-	right: 12px;
-	width: 14px;
-	height: 14px;
-	background: var(--accent, var(--atl-accent));
-	/* Lucide's sticky-note, drawn in the accent. A ring in the card's own paper
-	   keeps it readable on a dark card or a picture the colour of the accent; no
-	   glow, so it and the marks under it are one quiet set in the corner. */
-	-webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M16 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V8Z'/%3E%3Cpath d='M15 3v4a2 2 0 0 0 2 2h4'/%3E%3C/svg%3E") center / contain no-repeat;
-	mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M16 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V8Z'/%3E%3Cpath d='M15 3v4a2 2 0 0 0 2 2h4'/%3E%3C/svg%3E") center / contain no-repeat;
-	filter: drop-shadow(0 0 1.5px color-mix(in srgb, var(--paper, var(--background-primary, #fff)) 90%, transparent));
+	display: flex;
+	flex-direction: column;
+	gap: 6px;
+	transform: translateY(-100%);
+	--atl-mark-ink: color-mix(in srgb, var(--accent, var(--atl-accent, #1d5a78)) 55%, var(--ink-soft, var(--text-muted, #8a99a0)));
+	opacity: var(--atl-inactive);
+	transition: opacity 320ms ease;
 	pointer-events: none;
-	z-index: 3;
+	z-index: 2;
 }
-
-/* Z: a frozen card. Lucide's snowflake, built like the note mark — the accent,
-   a ring in the card's own paper, no glow — and just under it, top right, so
-   every mark on a card is in one place. Clicking it lets go. The exported
-   deck carries these rules too. */
-.atl-node .atl-freeze-mark {
-	position: absolute;
-	right: 12px;
-	top: 32px;
+.atl-node.is-active + .atl-marks { opacity: 1; }
+.atl-mark {
 	width: 14px;
 	height: 14px;
-	background: var(--accent, var(--atl-accent, #1d5a78));
-	-webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M2 12h20M12 2v20M20 16l-4-4 4-4M4 8l4 4-4 4M16 4l-4 4-4-4M8 20l4-4 4 4'/%3E%3C/svg%3E") center / contain no-repeat;
-	mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M2 12h20M12 2v20M20 16l-4-4 4-4M4 8l4 4-4 4M16 4l-4 4-4-4M8 20l4-4 4 4'/%3E%3C/svg%3E") center / contain no-repeat;
-	/* The same paper ring as the note dot, and like it no glow. */
-	filter: drop-shadow(0 0 1.5px color-mix(in srgb, var(--paper, var(--background-primary, #fff)) 90%, transparent));
-	cursor: pointer;
-	z-index: 4;
+	background: var(--atl-mark-ink);
+	-webkit-mask: var(--atl-mark-icon) center / contain no-repeat;
+	mask: var(--atl-mark-icon) center / contain no-repeat;
 }
-/* No note on the card: the snowflake takes the dot's place in the corner. */
-.atl-node:not(.has-note) .atl-freeze-mark { top: 12px; }
+/* Lucide line icons: sticky-note, mic, snowflake. */
+.atl-mark-note { --atl-mark-icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M16 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V8Z'/%3E%3Cpath d='M15 3v4a2 2 0 0 0 2 2h4'/%3E%3C/svg%3E"); }
+.atl-mark-note.is-audio { --atl-mark-icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z'/%3E%3Cpath d='M19 10v2a7 7 0 0 1-14 0v-2M12 19v3'/%3E%3C/svg%3E"); }
+.atl-mark-frz { --atl-mark-icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M2 12h20M12 2v20M20 16l-4-4 4-4M4 8l4 4-4 4M16 4l-4 4-4-4M8 20l4-4 4 4'/%3E%3C/svg%3E"); pointer-events: auto; cursor: pointer; }
 .atl-freeze-hint {
 	position: absolute;
 	left: 50%;
@@ -3098,14 +3091,7 @@ textarea.atl-note-box:focus { outline: none; border-color: var(--accent, var(--i
 	100% { opacity: 0; }
 }
 
-/* A note that was spoken rather than typed: Lucide's mic in place of the note.
-   Every colour here is the deck's own — accent for the mark, paper for the gap
-   that lifts it off whatever is behind it — so it follows the theme like the
-   rest of the card. */
-.atl-node.has-note.has-audio:not(.atl-node-group)::after {
-	-webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z'/%3E%3Cpath d='M19 10v2a7 7 0 0 1-14 0v-2M12 19v3'/%3E%3C/svg%3E") center / contain no-repeat;
-	mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z'/%3E%3Cpath d='M19 10v2a7 7 0 0 1-14 0v-2M12 19v3'/%3E%3C/svg%3E") center / contain no-repeat;
-}
+
 
 /* Off-camera cards fade to --atl-inactive and the dot fades with them, so the
    overview shows at a glance which cards were talked about. */
