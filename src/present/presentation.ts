@@ -2885,7 +2885,7 @@ ${this.themeCss}`,
 		if (!create) return null;
 		const holder = createDiv({ cls: "atl-marks" });
 		holder.setCssStyles({
-			left: `calc(${el.style.left} + ${el.style.width} + 10px)`,
+			left: `calc(${el.style.left} + ${el.style.width} + 12px)`,
 			top: `calc(${el.style.top} + ${el.style.height})`,
 		});
 		el.after(holder);

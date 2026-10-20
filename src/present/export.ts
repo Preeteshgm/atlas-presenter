@@ -437,7 +437,7 @@ const RUNTIME = `
     if (!holder || !holder.classList.contains('atl-marks')) {
       holder = document.createElement('div');
       holder.className = 'atl-marks';
-      holder.style.left = 'calc(' + card.style.left + ' + ' + card.style.width + ' + 10px)';
+      holder.style.left = 'calc(' + card.style.left + ' + ' + card.style.width + ' + 12px)';
       holder.style.top = 'calc(' + card.style.top + ' + ' + card.style.height + ')';
       card.parentNode.insertBefore(holder, card.nextSibling);
     }
