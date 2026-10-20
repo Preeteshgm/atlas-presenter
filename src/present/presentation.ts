@@ -63,7 +63,7 @@ import { fail, say } from "../notice";
  * exported deck is held to the same list.
  */
 const INTERACTIVE =
-	"a, button, video, audio, iframe, input, textarea, select, label, summary, .atl-hud";
+	"a, button, video, audio, iframe, input, textarea, select, label, summary, .atl-hud, .atl-freeze-mark";
 
 export class Presentation extends Component {
 	private overlay!: HTMLElement;
@@ -114,6 +114,12 @@ export class Presentation extends Component {
 	private written = false;
 	/** A blanked screen, and the unattended-run timer. */
 	private blanked = false;
+	/**
+	 * Z: the card on screen holds still, so what is in it can be used — a click
+	 * anywhere on it is the card's, and the arrows stay on it. Moving to another
+	 * card by any route lets go, so the talk is never stuck.
+	 */
+	private frozen = false;
 	private autoAdvance = 0;
 	/** A sub-deck opened from a card, and the deck it was opened from. */
 	private child: Presentation | null = null;
@@ -585,6 +591,8 @@ export class Presentation extends Component {
 				this.closeOverview(at >= 0 ? at : undefined);
 				return;
 			}
+			// A frozen card keeps every click for itself.
+			if (this.frozen) return;
 			if (this.matchInPath(e, INTERACTIVE)) return;
 			// Acting on an event means owning it: anything left to travel reaches
 			// the app behind the deck.
@@ -876,6 +884,37 @@ export class Presentation extends Component {
 				return;
 			}
 
+			if (key === "z" || key === "Z") {
+				handled();
+				this.setFrozen(!this.frozen);
+				return;
+			}
+			// Frozen, the card keeps the screen. The arrows scroll it if it
+			// scrolls and never move on; anything that would take you elsewhere
+			// says why it did nothing. Escape lets go first, then leaves as usual.
+			if (this.frozen) {
+				if (key === "Escape") {
+					handled();
+					this.setFrozen(false);
+					return;
+				}
+				if (key === "ArrowDown" || key === "PageDown" || key === " ") {
+					handled();
+					this.scrollStep(1);
+					return;
+				}
+				if (key === "ArrowUp" || key === "PageUp") {
+					handled();
+					this.scrollStep(-1);
+					return;
+				}
+				if (NAVIGATION.has(key) || key === "Enter" || "mMoOgG".includes(key) && key.length === 1) {
+					handled();
+					this.freezeHint("Frozen · Z to unfreeze");
+					return;
+				}
+			}
+
 			if (key === "Escape") {
 				handled();
 				if (this.minimap.isOpen) this.minimap.hide();
@@ -1090,6 +1129,9 @@ export class Presentation extends Component {
 
 	private goTo(i: number, opts: { animate?: boolean } = {}): void {
 		const clamped = Math.max(0, Math.min(i, this.scene.stops.length - 1));
+		// Arriving anywhere else, by the map, the presenter or a link, lets go.
+		// A refit of the same card (a resize) does not.
+		if (this.frozen && clamped !== this.index) this.setFrozen(false);
 		const backwards = clamped < this.index;
 		const previous = this.stopAt(this.index);
 		this.index = clamped;
@@ -2827,6 +2869,43 @@ ${this.themeCss}`,
 	private isBanner(stop: Stop): boolean {
 		return stop.kind === "node" && stop.node.id === this.scene.stops[0]?.node.id
 			&& !!this.scene.meta.__body;
+	}
+
+	/**
+	 * Freeze or let go of the card on screen.
+	 *
+	 * The mark is built like the note dot and sits just under it, top right, so
+	 * everything a card is marked with is in one place. It is a real element rather than a
+	 * second pseudo-element because it is also the way out on a screen with no
+	 * keyboard: clicking it lets go.
+	 */
+	private setFrozen(on: boolean): void {
+		this.frozen = on;
+		this.overlay.toggleClass("is-frozen", on);
+		for (const el of Array.from(this.overlay.querySelectorAll(".atl-freeze-mark"))) el.remove();
+		if (!on) return;
+		const card = this.nodeEls.get(this.stopAt(this.index).node.id);
+		if (!card) return;
+		const mark = card.createDiv({
+			cls: "atl-freeze-mark",
+			attr: { title: "Frozen · Z or click here to unfreeze", role: "button", "aria-label": "Unfreeze" },
+		});
+		mark.addEventListener("click", (e) => {
+			e.preventDefault();
+			e.stopPropagation();
+			this.setFrozen(false);
+		});
+		this.freezeHint("Frozen · use the card · Z to unfreeze");
+	}
+
+	/**
+	 * A word on the deck itself. A Notice cannot be used: nothing is drawn over
+	 * a fullscreen element except that element.
+	 */
+	private freezeHint(text: string): void {
+		this.overlay.querySelector(".atl-freeze-hint")?.remove();
+		const hint = this.overlay.createDiv({ cls: "atl-freeze-hint", text });
+		this.win.setTimeout(() => hint.remove(), 1800);
 	}
 
 	/**

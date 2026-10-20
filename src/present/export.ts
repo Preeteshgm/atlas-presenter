@@ -416,6 +416,41 @@ const RUNTIME = `
   var mapData = window.__ATLAS_MAP__;
   var i = 0, step = 0;
 
+  /* Z, or the Freeze button on a phone: the card on screen holds still so what
+     is in it can be used. Clicks are the card's, swipes and arrows do not move
+     the deck, and the snowflake under the note dot, top right, is also the
+     way out. Going to another card lets go. */
+  var frozen = false;
+  function setFrozen(on) {
+    frozen = on;
+    document.documentElement.classList.toggle('is-frozen', on);
+    var old = stage.querySelectorAll('.atl-freeze-mark');
+    for (var q = 0; q < old.length; q++) old[q].remove();
+    var fb = document.getElementById('t-frz');
+    if (fb) { fb.textContent = on ? 'Unfreeze' : 'Freeze'; fb.setAttribute('aria-pressed', on ? 'true' : 'false'); }
+    if (!on) return;
+    var card = cardAt(i);
+    if (!card) return;
+    var mark = document.createElement('div');
+    mark.className = 'atl-freeze-mark';
+    mark.title = 'Frozen · Z or tap here to unfreeze';
+    mark.setAttribute('role', 'button');
+    mark.setAttribute('aria-label', 'Unfreeze');
+    mark.addEventListener('click', function (e) { e.preventDefault(); e.stopPropagation(); setFrozen(false); });
+    card.appendChild(mark);
+    frzHint('Frozen · use the card · Z to unfreeze');
+  }
+  function frzHint(text) {
+    var old = document.getElementById('frz-hint');
+    if (old) old.remove();
+    var h = document.createElement('div');
+    h.id = 'frz-hint';
+    h.className = 'atl-freeze-hint';
+    h.textContent = text;
+    document.body.appendChild(h);
+    setTimeout(function () { h.remove(); }, 1800);
+  }
+
   function cardAt(n) {
     return stage.querySelector('[data-node-id="' + stops[n].nodeId + '"]');
   }
@@ -576,6 +611,7 @@ const RUNTIME = `
      open, so stepping back into a card does not replay it. */
   function go(n, back) {
     n = Math.max(0, Math.min(n, stops.length - 1));
+    if (frozen && n !== i) setFrozen(false);
     if (n === i) { paint(true); return; }
     var leaving = cardAt(i);
     resetCard(leaving, false);
@@ -843,6 +879,16 @@ const RUNTIME = `
       if (k === 'Escape' || k === 'm' || k === 'M') { e.preventDefault(); toggleMap(false); }
       return;
     }
+    if ((k === 'z' || k === 'Z') && !overview) { e.preventDefault(); setFrozen(!frozen); return; }
+    if (frozen) {
+      if (k === 'Escape') { e.preventDefault(); setFrozen(false); return; }
+      if (['ArrowRight', ' ', 'PageDown', 'ArrowDown', 'ArrowLeft', 'PageUp', 'ArrowUp',
+           'Home', 'End', 'm', 'M', 'o', 'O'].indexOf(k) > -1) {
+        e.preventDefault();
+        frzHint('Frozen · Z to unfreeze');
+        return;
+      }
+    }
     /* The overview is a look, not a place. */
     if (overview) {
       e.preventDefault();
@@ -976,6 +1022,8 @@ const RUNTIME = `
       closeOverview(at);
       return;
     }
+    /* A frozen card keeps every click for itself. */
+    if (frozen) return;
     if (interactiveHit(e)) return;
     if (e.clientX > window.innerWidth / 3) advance(); else retreat();
   });
@@ -1040,7 +1088,7 @@ const RUNTIME = `
     var s = swipeFrom;
     delete touches[e.pointerId];
     if (touchList().length < 2) pinchFrom = 0;
-    if (!s || overview || touchList().length > 0) return;
+    if (!s || overview || frozen || touchList().length > 0) return;
     swipeFrom = null;
     var dx = e.clientX - s.x, dy = e.clientY - s.y;
     if (Math.abs(dx) > 48 && Math.abs(dx) > Math.abs(dy) * 1.3 && Date.now() - s.t < 800) {
@@ -1057,6 +1105,8 @@ const RUNTIME = `
      pull to refresh is stopped where it starts. The write-up still scrolls. */
   document.addEventListener('touchmove', function (e) {
     if (writeup && writeup.classList.contains('on') && writeup.contains(e.target)) return;
+    /* A frozen card scrolls under the finger like a page. */
+    if (frozen && e.composedPath && e.composedPath().indexOf(cardAt(i)) > -1) return;
     e.preventDefault();
   }, { passive: false });
 
@@ -1077,8 +1127,9 @@ const RUNTIME = `
     var b = document.getElementById(id);
     if (b) b.addEventListener('click', function (e) { e.stopPropagation(); fn(); });
   }
-  tap('t-prev', function () { if (overview) closeOverview(); else retreat(); });
-  tap('t-next', function () { if (overview) closeOverview(); else advance(); });
+  tap('t-prev', function () { if (frozen) frzHint('Frozen · tap Unfreeze'); else if (overview) closeOverview(); else retreat(); });
+  tap('t-next', function () { if (frozen) frzHint('Frozen · tap Unfreeze'); else if (overview) closeOverview(); else advance(); });
+  tap('t-frz', function () { if (!overview) setFrozen(!frozen); });
   tap('t-over', function () { if (overview) closeOverview(); else openOverview(); });
   tap('t-map', function () { toggleMap(); });
 
@@ -1416,9 +1467,13 @@ ${input.css}
      "you're offline" halfway through a talk. */
   html, body { overscroll-behavior: none; touch-action: none; }
   #view { touch-action: none; }
+  /* Frozen, the card on screen scrolls under a finger. */
+  html.is-frozen #view .atl-node.is-active .atl-body { touch-action: pan-y; }
   /* Cards far from the current stop, on a touch screen: not drawn, not animated. */
   #view .atl-node.is-far { content-visibility: hidden; visibility: hidden; }
   #touch, #turn, .touch-only { display: none; }
+  #frz-hint { position: fixed; }
+  html.is-frozen #touch #t-frz { opacity: 1; background: var(--accent, #1d5a78); color: #fff; border-color: transparent; }
   @media (pointer: coarse) {
     .kbd-only { display: none; }
     .touch-only { display: inline; }
@@ -1459,7 +1514,7 @@ ${input.css}
 <div id="bar"><span>${input.title}${
 	input.notes.length > 0 ? ` <button type="button" id="notes" title="The write-up, over the deck">N Notes</button>` : ""
 }</span><span id="counter"></span><span><button type="button" id="help" title="Every key this deck answers to">? Navigate</button></span></div>
-<div id="touch"><button type="button" id="t-prev" aria-label="Previous">&lsaquo;</button><button type="button" id="t-over">Overview</button><button type="button" id="t-map">Map</button><button type="button" id="t-next" aria-label="Next">&rsaquo;</button></div>
+<div id="touch"><button type="button" id="t-prev" aria-label="Previous">&lsaquo;</button><button type="button" id="t-over">Overview</button><button type="button" id="t-map">Map</button><button type="button" id="t-frz" aria-pressed="false">Freeze</button><button type="button" id="t-next" aria-label="Next">&rsaquo;</button></div>
 <div id="turn">Turn your phone sideways to see the whole slide</div>
 <div id="keys"><table>
 <caption>Navigating this deck</caption>
@@ -1470,6 +1525,7 @@ ${input.css}
 <tr><td>Home  End</td><td>First and last card</td></tr>
 <tr><td>B</td><td>Blank the screen</td></tr>
 <tr><td>F</td><td>Fullscreen</td></tr>
+<tr><td>Z</td><td>Freeze the card, so you can use what is in it &mdash; Z again, Esc or its mark lets go</td></tr>
 <tr><td>Ctrl+P</td><td>Print, or save as PDF — one card to a page</td></tr>
 <tr><td>N</td><td>The write-up, over the deck &mdash; Esc or N closes it</td></tr>
 <tr><td>?</td><td>Close this</td></tr>

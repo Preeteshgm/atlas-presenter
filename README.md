@@ -89,6 +89,7 @@ starts at the beginning.
 | `Enter` | Dive into the sub-deck on this card |
 | `E` | Export the deck to one standalone HTML file |
 | `F` | Fullscreen |
+| `Z` | Freeze the card on screen, so you can use what is in it: clicks are the card's and the arrows only scroll it. A snowflake under the note dot, top right, shows it; `Z`, `Esc` or clicking the mark lets go, and so does going to another card. Works in the exported HTML too, with a Freeze button on a phone |
 | `Esc` | Close the map or the note, then leave the deck |
 
 Clicking the right two-thirds advances, the left third goes back. Clicking a
