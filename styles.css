@@ -3268,9 +3268,15 @@ textarea.atl-note-box:focus { outline: none; border-color: var(--accent, var(--i
 .atl-overlay.atl-overlay .atl-ink-bar button.atl-ink-btn.is-main,
 .atl-ink-bar .atl-ink-btn.is-main { grid-column: 1 / -1; width: 100%; }
 
-/* While drawing on a card that fills the screen to its left edge, the deck
-   keeps the bar's width clear, so the bar never sits on the card. */
-.atl-overlay.ink-inset .atl-viewport { left: 104px; }
+/* A narrow margin: the same bar, slimmer, so it still fits beside the card. */
+.atl-ink-bar.is-slim { grid-template-columns: repeat(2, 25px); padding: 4px; gap: 1px; }
+.atl-overlay.atl-overlay .atl-ink-bar.is-slim button.atl-ink-btn,
+.atl-ink-bar.is-slim .atl-ink-btn { width: 25px; height: 25px; }
+.atl-overlay.atl-overlay .atl-ink-bar.is-slim button.atl-ink-btn svg { width: 15px; height: 15px; }
+.atl-ink-bar.is-slim .atl-ink-col::before { width: 13px; height: 13px; }
+.atl-overlay.atl-overlay .atl-ink-bar.is-slim button.atl-ink-col { width: 25px; }
+.atl-overlay.atl-overlay .atl-ink-bar.is-slim input.atl-ink-num { width: 28px; }
+.atl-overlay.atl-overlay .atl-ink-bar.is-slim button.atl-ink-btn.is-main { width: 100%; }
 
 /* A phone has no side margin: the bar goes back to one row at the bottom. */
 @media (max-width: 760px) {
@@ -3287,7 +3293,6 @@ textarea.atl-note-box:focus { outline: none; border-color: var(--accent, var(--i
 	.atl-ink-bar > i { width: 1px; height: 20px; margin: 0 4px; }
 	.atl-overlay.atl-overlay .atl-ink-bar button.atl-ink-btn.is-main,
 	.atl-ink-bar .atl-ink-btn.is-main { width: 30px; }
-	.atl-overlay.ink-inset .atl-viewport { left: 0; }
 }
 
 /* The line size: one control — a dot that grows with it, and the number. */

@@ -101,10 +101,14 @@ export class Ink {
 
 		const View = (doc.defaultView as unknown as { ResizeObserver?: typeof ResizeObserver }).ResizeObserver;
 		if (View) {
-			this.ro = new View(() => this.fit());
+			this.ro = new View(() => {
+				this.fit();
+				this.place();
+			});
 			this.ro.observe(card);
 		}
 		this.fit();
+		this.place();
 	}
 
 	get hasInk(): boolean {
@@ -169,11 +173,24 @@ export class Ink {
 		this.fit();
 	}
 
-	/** True when the card comes so close to the left edge that the bar would sit on it. */
-	crowds(): boolean {
+	/**
+	 * Put the bar in the margin to the left of the card, centred in it, and
+	 * slimmer when that margin is narrow. The card never moves for the bar:
+	 * the deck stays the size it is while you present.
+	 */
+	place(): void {
 		const view = this.card.ownerDocument.defaultView;
-		const box = this.card.getBoundingClientRect();
-		return !!view && view.innerWidth > 760 && box.left < 104;
+		if (!view || view.innerWidth <= 760) {
+			this.bar.style.left = "";
+			return;
+		}
+		const host = (this.bar.offsetParent as HTMLElement | null) ?? this.card.ownerDocument.body;
+		const hostLeft = host.getBoundingClientRect().left;
+		const margin = this.card.getBoundingClientRect().left - hostLeft;
+		this.bar.classList.remove("is-slim");
+		if (this.bar.offsetWidth + 12 > margin) this.bar.classList.add("is-slim");
+		const w = this.bar.offsetWidth;
+		this.bar.style.left = `${Math.max(4, Math.round((margin - w) / 2))}px`;
 	}
 
 	/** Hide the toolbar, so a capture of the card shows only the card and its ink. */
