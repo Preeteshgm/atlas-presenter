@@ -3218,3 +3218,44 @@ textarea.atl-note-box:focus { outline: none; border-color: var(--accent, var(--i
 	font-family: system-ui, sans-serif;
 	outline: none;
 }
+
+/* The drawing bar inside the deck. The deck styles every button in it, on
+   purpose and strongly (see above), which squeezed these 30px icon buttons
+   down to grey chips with nothing in them. So the bar says the overlay twice
+   too, and states what its buttons are. */
+.atl-overlay.atl-overlay .atl-ink-bar button.atl-ink-btn {
+	width: 30px;
+	height: 30px;
+	padding: 0;
+	margin: 0;
+	border: 0;
+	border-radius: 8px;
+	background: transparent;
+	color: var(--ink, var(--text-normal));
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	font-size: 0;
+	box-shadow: none;
+}
+.atl-overlay.atl-overlay .atl-ink-bar button.atl-ink-btn svg { width: 17px; height: 17px; flex: none; }
+.atl-overlay.atl-overlay .atl-ink-bar button.atl-ink-btn:hover {
+	background: color-mix(in srgb, var(--accent, var(--atl-accent)) 12%, transparent);
+}
+.atl-overlay.atl-overlay .atl-ink-bar button.atl-ink-btn.is-on {
+	background: color-mix(in srgb, var(--accent, var(--atl-accent)) 18%, transparent);
+	color: var(--accent, var(--atl-accent));
+}
+.atl-overlay.atl-overlay .atl-ink-bar button.atl-ink-btn.is-main {
+	background: var(--accent, var(--atl-accent));
+	color: #fff;
+}
+.atl-overlay.atl-overlay .atl-ink-bar button.atl-ink-col { width: 24px; }
+.atl-overlay.atl-overlay .atl-ink-bar button.atl-ink-col.is-on { background: transparent; }
+.atl-overlay.atl-overlay .atl-node input.atl-ink-text {
+	background: transparent;
+	border: 1px dashed currentColor;
+	border-radius: 4px;
+	padding: 0 4px;
+	font-weight: 600;
+}
