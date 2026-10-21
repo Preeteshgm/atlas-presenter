@@ -2,6 +2,7 @@ import { App, Notice, TFile, TFolder, normalizePath } from "obsidian";
 import { safeFileName } from "../format";
 import { mimeFor } from "../media";
 import { fail, offer, say } from "../notice";
+import { Ink } from "./ink";
 
 /**
  * Write the running deck out as one HTML file.
@@ -463,8 +464,10 @@ const RUNTIME = `
   }
 
 
-  /* D, or Draw on a phone: ink on the card on screen, for the room. The file
-     has nowhere to keep it, so finishing — D, Esc or Done — lets it go. */
+  /* D, or Draw on a phone: ink on the card on screen, for the room. The board
+     is the deck's own drawing class, written in here as it is. The file has
+     nowhere to keep the ink, so finishing — D, Esc or Done — lets it go. */
+  var Ink = ${Ink.toString()};
   var ink = null;
   function startInk() {
     if (ink || overview) return;
@@ -473,105 +476,14 @@ const RUNTIME = `
     var froze = !frozen;
     if (!frozen) setFrozen(true);
     var accent = getComputedStyle(card).getPropertyValue('--accent').trim() || '#1d5a78';
-    var cv = document.createElement('canvas');
-    cv.className = 'atl-ink';
-    card.appendChild(cv);
-    var bar = document.createElement('div');
-    bar.className = 'atl-ink-bar';
-    var st = { tool: 'pen', strokes: [], live: null };
-    var W = { pen: 3, red: 3, mark: 16, erase: 22 };
-    [['pen', 'Pen', accent], ['red', 'Red pen', '#B3402F'], ['mark', 'Highlighter', '#D4AF37'], ['erase', 'Eraser', '']].forEach(function (t) {
-      var b = document.createElement('button');
-      b.type = 'button';
-      b.className = 'atl-ink-tool' + (t[0] === 'pen' ? ' is-on' : '');
-      b.setAttribute('data-tool', t[0]);
-      b.title = t[1];
-      b.setAttribute('aria-label', t[1]);
-      if (t[2]) b.style.setProperty('--ink', t[2]);
-      b.addEventListener('click', function (e) {
-        e.stopPropagation();
-        st.tool = t[0];
-        var all = bar.querySelectorAll('.atl-ink-tool');
-        for (var q = 0; q < all.length; q++) all[q].classList.toggle('is-on', all[q].getAttribute('data-tool') === t[0]);
-      });
-      bar.appendChild(b);
-    });
-    function act(label, cls, fn) {
-      var b = document.createElement('button');
-      b.type = 'button';
-      b.className = cls;
-      b.textContent = label;
-      b.addEventListener('click', function (e) { e.stopPropagation(); fn(); });
-      bar.appendChild(b);
-    }
-    act('Undo', 'atl-ink-act', function () { st.strokes.pop(); draw(); });
-    act('Clear', 'atl-ink-act', function () { st.strokes = []; draw(); });
-    bar.appendChild(document.createElement('i'));
-    act('Done', 'atl-ink-act is-main', function () { stopInk(); });
-    document.body.appendChild(bar);
-    function fit() {
-      var b = card.getBoundingClientRect(), r = window.devicePixelRatio || 1;
-      var w = Math.max(1, Math.round(b.width * r)), h = Math.max(1, Math.round(b.height * r));
-      if (w !== cv.width || h !== cv.height) { cv.width = w; cv.height = h; draw(); }
-    }
-    function at(e) {
-      var b = card.getBoundingClientRect();
-      return [(e.clientX - b.left) / b.width * card.offsetWidth, (e.clientY - b.top) / b.height * card.offsetHeight,
-        (e.pointerType === 'pen' && e.pressure > 0) ? e.pressure : 0.5];
-    }
-    function draw() {
-      var c = cv.getContext('2d');
-      if (!c) return;
-      var sx = cv.width / Math.max(1, card.offsetWidth), sy = cv.height / Math.max(1, card.offsetHeight);
-      c.setTransform(1, 0, 0, 1, 0, 0);
-      c.clearRect(0, 0, cv.width, cv.height);
-      c.setTransform(sx, 0, 0, sy, 0, 0);
-      c.lineCap = 'round';
-      c.lineJoin = 'round';
-      st.strokes.forEach(function (s) {
-        var pts = s.points;
-        if (!pts.length) return;
-        c.globalCompositeOperation = s.erase ? 'destination-out' : 'source-over';
-        c.globalAlpha = s.alpha;
-        c.strokeStyle = s.color;
-        c.lineWidth = s.width * (0.5 + pts[0][2]);
-        c.beginPath();
-        c.moveTo(pts[0][0], pts[0][1]);
-        if (pts.length === 1) c.lineTo(pts[0][0] + 0.1, pts[0][1]);
-        for (var k = 1; k < pts.length; k++) c.lineTo(pts[k][0], pts[k][1]);
-        c.stroke();
-      });
-      c.globalCompositeOperation = 'source-over';
-      c.globalAlpha = 1;
-    }
-    cv.addEventListener('pointerdown', function (e) {
-      if (e.button !== 0) return;
-      e.preventDefault();
-      e.stopPropagation();
-      cv.setPointerCapture(e.pointerId);
-      st.live = { color: st.tool === 'red' ? '#B3402F' : (st.tool === 'mark' ? '#D4AF37' : accent), width: W[st.tool],
-        alpha: st.tool === 'mark' ? 0.35 : 1, erase: st.tool === 'erase', points: [at(e)] };
-      st.strokes.push(st.live);
-      draw();
-    });
-    cv.addEventListener('pointermove', function (e) {
-      if (!st.live) return;
-      e.preventDefault();
-      st.live.points.push(at(e));
-      draw();
-    });
-    function up(e) { if (!st.live) return; e.stopPropagation(); st.live = null; }
-    cv.addEventListener('pointerup', up);
-    cv.addEventListener('pointercancel', up);
-    cv.addEventListener('click', function (e) { e.stopPropagation(); });
-    window.addEventListener('resize', fit);
-    fit();
+    var board = new Ink(card, document.body, { accent: accent, saves: false, onDone: function () { stopInk(); } });
     var db = document.getElementById('t-drw');
     if (db) db.textContent = 'Done';
     ink = {
-      undo: function () { st.strokes.pop(); draw(); },
-      remove: function () { window.removeEventListener('resize', fit); cv.remove(); bar.remove(); if (db) db.textContent = 'Draw'; },
-      froze: froze
+      board: board,
+      froze: froze,
+      undo: function () { board.undo(); },
+      remove: function () { board.destroy(); if (db) db.textContent = 'Draw'; }
     };
     frzHint('Drawing · D, Esc or Done to finish');
   }
@@ -582,6 +494,7 @@ const RUNTIME = `
     k.remove();
     if (k.froze) setFrozen(false);
   }
+
 
   function cardAt(n) {
     return stage.querySelector('[data-node-id="' + stops[n].nodeId + '"]');
@@ -985,7 +898,7 @@ const RUNTIME = `
   /* ---- keys ------------------------------------------------------------- */
 
   document.addEventListener('keydown', function (e) {
-    if (ink && (e.ctrlKey || e.metaKey) && (e.key === 'z' || e.key === 'Z')) { e.preventDefault(); ink.undo(); return; }
+    if (ink && ink.board.key(e)) { e.preventDefault(); return; }
     if (e.ctrlKey || e.metaKey || e.altKey) return;
     var k = e.key;
     /* The write-up is read, so arrows and Page keys scroll it; only Escape and
@@ -1669,7 +1582,7 @@ ${input.css}
 <tr><td>B</td><td>Blank the screen</td></tr>
 <tr><td>F</td><td>Fullscreen</td></tr>
 <tr><td>Z</td><td>Freeze the card, so you can use what is in it &mdash; Z again, Esc or its mark lets go</td></tr>
-<tr><td>D</td><td>Draw on the card, for the room &mdash; D, Esc or Done clears it; Ctrl+Z undoes a stroke</td></tr>
+<tr><td>D</td><td>Draw on the card, for the room &mdash; P pen · H highlighter · A arrow · R box · O ellipse · T text · E eraser · 1&ndash;6 colours · Ctrl+Z undo · D, Esc or Done clears it</td></tr>
 <tr><td>Ctrl+P</td><td>Print, or save as PDF — one card to a page</td></tr>
 <tr><td>N</td><td>The write-up, over the deck &mdash; Esc or N closes it</td></tr>
 <tr><td>?</td><td>Close this</td></tr>

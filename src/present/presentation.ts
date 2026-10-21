@@ -891,9 +891,8 @@ export class Presentation extends Component {
 			// Drawing is a full freeze: the ink owns the pointer, and the keys
 			// either finish the drawing or do nothing.
 			if (this.ink) {
-				if ((key === "z" || key === "Z") && (e.ctrlKey || e.metaKey)) {
+				if (this.ink.key(e)) {
 					handled();
-					this.ink.undo();
 					return;
 				}
 				if (key === "Escape" || key === "d" || key === "D") {

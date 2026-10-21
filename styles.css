@@ -3123,39 +3123,54 @@ textarea.atl-note-box:focus { outline: none; border-color: var(--accent, var(--i
 	z-index: 45;
 	display: flex;
 	align-items: center;
-	gap: 6px;
-	padding: 6px 8px;
-	border-radius: 999px;
+	gap: 2px;
+	padding: 5px 6px;
+	border-radius: 12px;
 	background: var(--panel, var(--background-primary, #fff));
 	border: 1px solid var(--rule, var(--background-modifier-border, #cbd3d1));
 	box-shadow: 0 8px 24px rgb(0 0 0 / 0.18);
-	font: 600 12.5px/1 system-ui, sans-serif;
-}
-.atl-ink-bar.is-hidden { display: none; }
-.atl-ink-bar > i { width: 1px; align-self: stretch; background: var(--rule, #cbd3d1); margin: 2px 4px; }
-.atl-ink-bar button {
-	all: unset;
-	cursor: pointer;
-	border-radius: 999px;
 	color: var(--ink, var(--text-normal, #14232a));
 }
-.atl-ink-bar .atl-ink-tool {
-	width: 26px;
-	height: 26px;
+.atl-ink-bar.is-hidden { display: none; }
+.atl-ink-bar > i { width: 1px; height: 20px; background: var(--rule, #cbd3d1); margin: 0 4px; }
+.atl-ink-bar .atl-ink-btn {
+	all: unset;
+	box-sizing: border-box;
+	width: 30px;
+	height: 30px;
+	border-radius: 8px;
 	display: inline-flex;
 	align-items: center;
 	justify-content: center;
+	cursor: pointer;
+	color: inherit;
 }
-.atl-ink-bar .atl-ink-tool::before {
+.atl-ink-bar .atl-ink-btn:hover { background: color-mix(in srgb, var(--accent, var(--atl-accent, #1d5a78)) 12%, transparent); }
+.atl-ink-bar .atl-ink-btn.is-on { background: color-mix(in srgb, var(--accent, var(--atl-accent, #1d5a78)) 18%, transparent); color: var(--accent, var(--atl-accent, #1d5a78)); }
+.atl-ink-bar .atl-ink-btn.is-main { background: var(--accent, var(--atl-accent, #1d5a78)); color: #fff; }
+.atl-ink-bar .atl-ink-sw { display: inline-flex; gap: 2px; }
+.atl-ink-bar .atl-ink-col { width: 24px; }
+.atl-ink-bar .atl-ink-col::before {
 	content: "";
-	width: 14px;
-	height: 14px;
+	width: 16px;
+	height: 16px;
 	border-radius: 50%;
-	background: var(--ink, transparent);
+	background: var(--c);
+	box-shadow: inset 0 0 0 1px rgb(0 0 0 / 0.18);
 }
-.atl-ink-bar .atl-ink-tool[data-tool="mark"]::before { border-radius: 3px; width: 16px; height: 9px; opacity: 0.6; }
-.atl-ink-bar .atl-ink-tool[data-tool="erase"]::before { background: none; border: 2px solid currentColor; border-radius: 3px; width: 12px; height: 9px; }
-.atl-ink-bar .atl-ink-tool.is-on { box-shadow: 0 0 0 2px var(--accent, var(--atl-accent, #1d5a78)); }
-.atl-ink-bar .atl-ink-act { padding: 6px 10px; }
-.atl-ink-bar .atl-ink-act:hover { background: color-mix(in srgb, var(--accent, var(--atl-accent, #1d5a78)) 12%, transparent); }
-.atl-ink-bar .atl-ink-act.is-main { background: var(--accent, var(--atl-accent, #1d5a78)); color: #fff; }
+.atl-ink-bar .atl-ink-col.is-on { background: none; }
+.atl-ink-bar .atl-ink-col.is-on::before { box-shadow: 0 0 0 2px var(--panel, #fff), 0 0 0 4px var(--c); }
+.atl-ink-bar .atl-ink-size b { display: block; border-radius: 50%; background: currentColor; }
+.atl-ink-bar .atl-ink-pick { position: absolute; width: 0; height: 0; opacity: 0; pointer-events: none; border: 0; padding: 0; }
+.atl-node .atl-ink-text {
+	position: absolute;
+	z-index: 7;
+	min-width: 120px;
+	background: transparent;
+	border: 1px dashed currentColor;
+	border-radius: 4px;
+	padding: 0 4px;
+	font-weight: 600;
+	font-family: system-ui, sans-serif;
+	outline: none;
+}
