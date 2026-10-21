@@ -2937,33 +2937,43 @@ ${this.themeCss}`,
 	 * deck is on screen at once. One dot, on the card itself, answers both.
 	 */
 	private markNotedCards(): void {
-		const noted = new Set(this.captures.map((c) => c.nodeId));
-		// A note that carries an audio embed was spoken rather than typed. R
-		// stores a spoken note as an ordinary note with the clip embedded in
-		// it, so this is the only thing that tells the two apart — and it is
-		// the same mark either way, with a ring round it, rather than a second
-		// indicator meaning something adjacent.
-		const spoken = new Set(
-			this.captures.filter((c) => AUDIO_EXT.test(c.text)).map((c) => c.nodeId)
-		);
+		// R stores a spoken note as an ordinary note with the clip embedded in
+		// it — the transcript, if there is one, then `![[clip.webm]]`. So the
+		// clip is found by its embed. Testing the whole text against the audio
+		// extensions never matched: the text ends with the embed's `]]`.
+		const EMBED = /!\[\[([^\]|#]+)[^\]]*\]\]/g;
+		const hasAudio = (text: string) => Array.from(text.matchAll(EMBED)).some((m) => AUDIO_EXT.test(m[1].trim()));
+		const hasWords = (text: string) => text.replace(EMBED, "").trim().length > 0;
+		const written = new Set(this.captures.filter((c) => hasWords(c.text)).map((c) => c.nodeId));
+		const spoken = new Set(this.captures.filter((c) => hasAudio(c.text)).map((c) => c.nodeId));
 		for (const [id, el] of this.nodeEls) {
-			el.toggleClass("has-note", noted.has(id));
+			const noted = written.has(id) || spoken.has(id);
+			el.toggleClass("has-note", noted);
 			el.toggleClass("has-audio", spoken.has(id));
 			if (el.hasClass("atl-node-group")) continue;
-			const holder = this.marksFor(el, noted.has(id));
+			const holder = this.marksFor(el, noted);
 			if (!holder) continue;
-			let mark = holder.querySelector<HTMLElement>(".atl-mark-note");
-			if (!noted.has(id)) {
-				mark?.remove();
-				continue;
-			}
-			// The note comes first, so it sits above the snowflake.
-			if (!mark) {
-				mark = createDiv({ cls: "atl-mark atl-mark-note" });
-				holder.prepend(mark);
-			}
-			mark.toggleClass("is-audio", spoken.has(id));
+			// One mark for each kind, top to bottom: the note, the recording,
+			// then the snowflake — which setFrozen always adds last.
+			this.placeMark(holder, "atl-mark-note", written.has(id), 0);
+			this.placeMark(holder, "atl-mark-mic", spoken.has(id), 1);
 		}
+	}
+
+	/** Add or remove one card mark, keeping the stack in its fixed order. */
+	private placeMark(holder: HTMLElement, cls: string, on: boolean, order: number): void {
+		const mark = holder.querySelector<HTMLElement>(`.${cls}`);
+		if (!on) {
+			mark?.remove();
+			return;
+		}
+		if (mark) return;
+		const el = createDiv({ cls: `atl-mark ${cls}` });
+		el.dataset.order = String(order);
+		const after = Array.from(holder.children).find(
+			(c) => c instanceof HTMLElement && Number(c.dataset.order ?? 9) > order
+		);
+		holder.insertBefore(el, after ?? null);
 	}
 
 	private updateHud(stop: Stop, stepCount: number): void {
