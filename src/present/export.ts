@@ -1,4 +1,4 @@
-import { App, Notice, TFile, TFolder, normalizePath } from "obsidian";
+import { App, Notice, TFile, TFolder, getIcon, normalizePath } from "obsidian";
 import { safeFileName } from "../format";
 import { mimeFor } from "../media";
 import { fail, offer, say } from "../notice";
@@ -139,6 +139,40 @@ function lookAttrs(input: ExportInput): string {
 	if (k.backgroundImage) classes.push("has-image");
 	if (!k.sectionTitles) classes.push("hide-sections");
 	return `class="${classes.join(" ")}" style="${style.join(";")}"`;
+}
+
+/**
+ * The bar along the foot of the exported deck, the same as the deck's own.
+ *
+ * The deck name on the left; on the right the keys in the same segments and
+ * the same `[key] icon` form, then the card count. Only the keys this file
+ * answers to: the graph, the presenter panel, notes, recording, asking and
+ * writing up all need Obsidian, so a button for them here would be a promise
+ * the file cannot keep. The icons are Obsidian's own, written in as markup.
+ */
+function barTag(input: ExportInput): string {
+	const icon = (name: string) => getIcon(name)?.outerHTML ?? "";
+	const btn = (act: string, key: string, name: string, label: string, id = "") =>
+		`<button type="button" class="atl-map-btn"${id ? ` id="${id}"` : ""} data-act="${act}" ` +
+		`aria-label="${label} · ${key}" title="${label} · ${key}">` +
+		`<span class="atl-btn-key">${key}</span><span class="atl-btn-icon">${icon(name)}</span></button>`;
+	const group = (...buttons: string[]) => `<div class="atl-btns">${buttons.join("")}</div>`;
+	const groups = [
+		group(btn("o", "O", "layout-grid", "The overview"), btn("m", "M", "map", "The map")),
+		group(
+			btn("z", "Z", "snowflake", "Freeze the card, to use what is in it"),
+			btn("d", "D", "pen-tool", "Draw on the card"),
+			btn("b", "B", "square", "Blank the screen · Shift+B the other screen"),
+			btn("f", "F", "maximize", "Fullscreen"),
+		),
+	];
+	if (input.notes.length > 0) groups.push(group(btn("n", "N", "file-text", "The write-up, over the deck", "notes")));
+	groups.push(group(btn("p", "Ctrl+P", "printer", "Print, or save as PDF")));
+	groups.push(group(btn("h", "H", "keyboard", "Every key this deck answers to", "help")));
+	return (
+		`<div id="bar" class="atl-overlay atl-hud"><span class="atl-crumbs">${escapeHtml(input.title)}</span>` +
+		`<div class="atl-hud-right">${groups.join("")}<span id="counter" class="atl-counter"></span></div></div>`
+	);
 }
 
 /** The blank screen, the same one the deck shows: glass, holding or black. */
@@ -997,19 +1031,7 @@ const RUNTIME = `
       showWriteup(true);
     }
     else if (k === 'b' || k === 'B') { e.preventDefault(); setBlank(!isBlank(), e.shiftKey); }
-    else if (k === 'f' || k === 'F') {
-      e.preventDefault();
-      if (document.fullscreenElement) document.exitFullscreen();
-      else {
-        /* In fullscreen the browser takes Esc for itself; the keyboard lock
-           hands it back, so Esc closes what is open first and leaves
-           fullscreen last. Holding Esc still leaves at once. */
-        var p = document.documentElement.requestFullscreen();
-        if (p && p.then) p.then(function () {
-          if (navigator.keyboard && navigator.keyboard.lock) navigator.keyboard.lock(['Escape']).catch(function () {});
-        }).catch(function () {});
-      }
-    }
+    else if (k === 'f' || k === 'F') { e.preventDefault(); toggleFull(); }
     else if (k === 'Escape') {
       /* The last layers: a blank screen, then fullscreen. */
       e.preventDefault();
@@ -1051,6 +1073,50 @@ const RUNTIME = `
 
   blank.addEventListener('click', function (e) { e.stopPropagation(); setBlank(false); });
   keys.addEventListener('click', function () { keys.classList.remove('on'); });
+
+  function toggleFull() {
+    if (document.fullscreenElement) { document.exitFullscreen(); return; }
+    /* In fullscreen the browser takes Esc for itself; the keyboard lock hands
+       it back, so Esc closes what is open first and leaves fullscreen last.
+       Holding Esc still leaves at once. */
+    var p = document.documentElement.requestFullscreen();
+    if (p && p.then) p.then(function () {
+      if (navigator.keyboard && navigator.keyboard.lock) navigator.keyboard.lock(['Escape']).catch(function () {});
+    }).catch(function () {});
+  }
+
+  /* The bar: each button does what its key does. Notes and Keys keep their
+     own handlers below and above. A switch that is on wears the accent, as on
+     the deck, so the bar says what is frozen, drawn or blanked. */
+  var bar = document.getElementById('bar');
+  var acts = {
+    o: function () { if (overview) closeOverview(); else openOverview(); },
+    m: function () { toggleMap(); },
+    z: function () { if (!overview) setFrozen(!frozen); },
+    d: function () { if (ink) stopInk(); else startInk(); },
+    b: function () { setBlank(!isBlank()); },
+    f: toggleFull,
+    p: function () { window.print(); }
+  };
+  bar.addEventListener('click', function (e) {
+    var b = e.target.closest ? e.target.closest('button[data-act]') : null;
+    if (!b || !acts[b.dataset.act]) return;
+    e.stopPropagation();
+    acts[b.dataset.act]();
+    b.blur();
+    syncBar();
+  });
+  function syncBar() {
+    var on = { o: overview, m: map.classList.contains('is-open'), z: frozen, d: !!ink,
+      b: isBlank(), f: !!document.fullscreenElement };
+    var buttons = bar.querySelectorAll('button[data-act]');
+    for (var q = 0; q < buttons.length; q++) buttons[q].classList.toggle('is-on', !!on[buttons[q].dataset.act]);
+  }
+  /* After whatever a key or a click changed, rather than in each of the
+     dozen places a switch can be thrown. */
+  document.addEventListener('keydown', function () { setTimeout(syncBar, 0); });
+  document.addEventListener('click', function () { setTimeout(syncBar, 0); });
+  document.addEventListener('fullscreenchange', syncBar);
   var opening = document.getElementById('opening');
   function dismissOpening() {
     if (!opening || opening.classList.contains('gone')) return;
@@ -1409,20 +1475,12 @@ export async function buildDeckHtml(
   #view { position: fixed; inset: 0; overflow: hidden; z-index: 0; }
   #stage { position: absolute; top: 0; left: 0; transform-origin: 0 0;
     transition: transform ${input.duration}ms cubic-bezier(0.6, 0, 0.2, 1); }
-  #bar { z-index: 30; position: fixed; left: 0; right: 0; bottom: 0; display: flex;
-    align-items: center; justify-content: space-between; gap: 16px; padding: 10px 18px; font-size: 13px;
-    color: var(--ink-soft, #6b7a80); pointer-events: none; }
-  /* The one way in from the deck, and only when there is something to open. */
-  #bar button { font: inherit; }
-  #bar a, #bar button { pointer-events: auto; color: var(--accent, #1d5a78); text-decoration: none;
-    background: none; cursor: pointer;
-    border: 1px solid color-mix(in srgb, var(--accent, #1d5a78) 45%, transparent);
-    border-radius: 999px; padding: 2px 10px; margin-left: 10px; font-size: 12px; }
-  #bar a:hover, #bar button:hover { border-color: var(--accent, #1d5a78); }
-  /* Quieter than Notes: an offer, not an instruction. */
-  #bar #help { margin-left: 0; opacity: 0.75; }
-  #bar #help:hover { opacity: 1; }
-  #counter { text-align: center; }
+  /* The deck's own bar. It carries .atl-overlay, as the map does, because the
+     theme's colours are declared there; only its place is stated here. */
+  #bar.atl-overlay { z-index: 30; position: fixed; inset: auto 0 0 0; overflow: visible;
+    background: linear-gradient(to top, var(--paper, #fff), transparent); }
+  #bar .atl-hud-right { gap: 10px; }
+  #bar .atl-counter { margin-left: 6px; }
   /* The write-up, over the deck. Styled by id: the deck's own rules are
      written for cards and must not reach a document, and this must not reach
      them either — which is the mistake that made the first version of this
@@ -1581,7 +1639,8 @@ ${input.css}
     #touch button:active { opacity: 1; }
     #touch #t-prev, #touch #t-next { font-size: 22px; padding: 6px 14px; }
     #opening { bottom: 100px; }
-    #bar #help { display: none; }
+    /* A phone has the buttons above the bar, made for a thumb. */
+    #bar .atl-btns { display: none; }
     /* Glass is a per-card blur over everything behind it, redrawn on every
        frame of a flight. On a phone that is the stutter; solid cards look
        the same at that size and fly smoothly. */
@@ -1606,9 +1665,7 @@ ${input.css}
 <div id="opening"><span class="kbd-only">Arrow keys to move &middot; <b>O</b> the overview &middot; <b>M</b> the map &middot; <b>?</b> all the keys</span><span class="touch-only">Swipe, or tap either side, to move &middot; <b>Overview</b> and <b>Map</b> below</span></div>
 <div id="rail"><div id="railfill"></div></div>
 <div id="map" class="atl-minimap atl-overlay"><div class="atl-minimap-hint">Click a card to fly to it &middot; M or Esc to close</div></div>
-<div id="bar"><span>${input.title}${
-	input.notes.length > 0 ? ` <button type="button" id="notes" title="The write-up, over the deck">N Notes</button>` : ""
-}</span><span id="counter"></span><span><button type="button" id="help" title="Every key this deck answers to · H">H Keys</button></span></div>
+${barTag(input)}
 <div id="touch"><button type="button" id="t-prev" aria-label="Previous">&lsaquo;</button><button type="button" id="t-over">Overview</button><button type="button" id="t-map">Map</button><button type="button" id="t-frz" aria-pressed="false">Freeze</button><button type="button" id="t-drw">Draw</button><button type="button" id="t-next" aria-label="Next">&rsaquo;</button></div>
 <div id="turn">Turn your phone sideways to see the whole slide</div>
 <div id="keys"><table>
