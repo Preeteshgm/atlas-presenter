@@ -477,13 +477,19 @@ const RUNTIME = `
     if (!frozen) setFrozen(true);
     var accent = getComputedStyle(card).getPropertyValue('--accent').trim() || '#1d5a78';
     var board = new Ink(card, document.body, { accent: accent, saves: false, onDone: function () { stopInk(); } });
+    var inset = board.crowds();
+    if (inset) { document.documentElement.classList.add('ink-inset'); paint(false); board.refit(); }
     var db = document.getElementById('t-drw');
     if (db) db.textContent = 'Done';
     ink = {
       board: board,
       froze: froze,
       undo: function () { board.undo(); },
-      remove: function () { board.destroy(); if (db) db.textContent = 'Draw'; }
+      remove: function () {
+        board.destroy();
+        if (db) db.textContent = 'Draw';
+        if (inset) { document.documentElement.classList.remove('ink-inset'); paint(false); }
+      }
     };
     frzHint('Drawing · D, Esc or Done to finish');
   }
@@ -1529,6 +1535,8 @@ ${input.css}
   #touch, #turn, .touch-only { display: none; }
   #frz-hint { position: fixed; }
   .atl-ink-bar { position: fixed; }
+  html.ink-inset #view { left: 84px; }
+  @media (max-width: 760px) { html.ink-inset #view { left: 0; } }
   html.is-frozen #touch #t-frz { opacity: 1; background: var(--accent, #1d5a78); color: #fff; border-color: transparent; }
   @media (pointer: coarse) {
     .kbd-only { display: none; }

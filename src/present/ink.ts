@@ -145,6 +145,18 @@ export class Ink {
 		return false;
 	}
 
+	/** The card moved or changed size on screen: redraw the ink to match. */
+	refit(): void {
+		this.fit();
+	}
+
+	/** True when the card comes so close to the left edge that the bar would sit on it. */
+	crowds(): boolean {
+		const view = this.card.ownerDocument.defaultView;
+		const box = this.card.getBoundingClientRect();
+		return !!view && view.innerWidth > 760 && box.left < 84;
+	}
+
 	/** Hide the toolbar, so a capture of the card shows only the card and its ink. */
 	hideBar(): void {
 		this.bar.classList.add("is-hidden");
@@ -239,11 +251,12 @@ export class Ink {
 		btn("atl-ink-btn", "Undo · Ctrl+Z", svg("undo"), () => this.undo());
 		btn("atl-ink-btn", "Redo · Ctrl+Shift+Z", svg("redo"), () => this.redo());
 		btn("atl-ink-btn", "Clear", svg("clear"), () => this.clear());
-		gap();
 		if (this.opts.saves) {
 			btn("atl-ink-btn", "Discard", svg("discard"), () => this.opts.onDone(false));
+			gap();
 			btn("atl-ink-btn is-main", "Save to the card's note · D", svg("save"), () => this.opts.onDone(true));
 		} else {
+			gap();
 			btn("atl-ink-btn is-main", "Done · D", svg("save"), () => this.opts.onDone(false));
 		}
 		this.mark();

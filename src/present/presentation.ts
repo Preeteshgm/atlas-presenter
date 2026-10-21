@@ -1196,6 +1196,7 @@ export class Presentation extends Component {
 			this.ink = null;
 			this.inkFroze = false;
 			this.overlay.removeClass("is-drawing");
+			this.overlay.removeClass("ink-inset");
 			void this.saveInk(ink, true);
 		}
 		if (this.frozen && clamped !== this.index) this.setFrozen(false);
@@ -1930,8 +1931,19 @@ ${this.themeCss}`,
 		const accent = this.win.getComputedStyle(this.overlay).getPropertyValue("--accent").trim() || "#1d5a78";
 		this.ink = new Ink(card, this.overlay, { accent, saves: true, onDone: (keep) => void this.finishDraw(keep) });
 		this.overlay.addClass("is-drawing");
+		if (this.ink.crowds()) {
+			this.overlay.addClass("ink-inset");
+			this.refitCamera();
+			this.ink.refit();
+		}
 		this.markSwitches();
 		this.freezeHint("Drawing · D or Esc saves it to the card's note");
+	}
+
+	/** Fit the card on screen again, where it is, without replaying its reveals. */
+	private refitCamera(): void {
+		const stop = this.stopAt(this.index);
+		this.camera.snapTo(stop.kind === "group" ? this.sectionFrame(stop.node) : rectOf(stop.node));
 	}
 
 	/** End the drawing: keep it in the card's note, or let it go. */
@@ -1941,10 +1953,15 @@ ${this.themeCss}`,
 		this.ink = null;
 		this.overlay.removeClass("is-drawing");
 		this.markSwitches();
+		const inset = this.overlay.hasClass("ink-inset");
 		const unfreeze = this.inkFroze;
 		this.inkFroze = false;
 		if (keep && ink.hasInk) await this.saveInk(ink, false);
 		else ink.destroy();
+		if (inset) {
+			this.overlay.removeClass("ink-inset");
+			this.refitCamera();
+		}
 		if (unfreeze) this.setFrozen(false);
 	}
 
