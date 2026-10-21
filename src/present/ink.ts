@@ -49,6 +49,8 @@ export class Ink {
 	private typing: HTMLInputElement | null;
 	private colours: string[];
 	private swatches: HTMLElement;
+	private sizer: HTMLInputElement | null;
+	private sizeDot: HTMLElement | null;
 
 	constructor(
 		readonly card: HTMLElement,
@@ -60,7 +62,9 @@ export class Ink {
 		this.live = null;
 		this.tool = "pen";
 		this.color = "#B3402F";
-		this.size = 2;
+		this.size = 4;
+		this.sizer = null;
+		this.sizeDot = null;
 		this.shift = false;
 		this.ro = null;
 		this.typing = null;
@@ -83,6 +87,17 @@ export class Ink {
 		this.canvas.addEventListener("pointercancel", (e) => this.up(e));
 		// The card must not answer while it is being drawn on.
 		this.canvas.addEventListener("click", (e) => e.stopPropagation());
+		// Ctrl+scroll on the card makes the line thicker or thinner.
+		this.canvas.addEventListener(
+			"wheel",
+			(e) => {
+				if (!e.ctrlKey && !e.metaKey) return;
+				e.preventDefault();
+				e.stopPropagation();
+				this.resize(this.size + (e.deltaY < 0 ? 1 : -1));
+			},
+			{ passive: false }
+		);
 
 		const View = (doc.defaultView as unknown as { ResizeObserver?: typeof ResizeObserver }).ResizeObserver;
 		if (View) {
@@ -137,6 +152,10 @@ export class Ink {
 			this.pick(t);
 			return true;
 		}
+		if (k === "[" || k === "]") {
+			this.resize(this.size + (k === "]" ? 1 : -1));
+			return true;
+		}
 		const n = Number(k);
 		if (n >= 1 && n <= this.colours.length) {
 			this.paint(this.colours[n - 1]);
@@ -154,7 +173,7 @@ export class Ink {
 	crowds(): boolean {
 		const view = this.card.ownerDocument.defaultView;
 		const box = this.card.getBoundingClientRect();
-		return !!view && view.innerWidth > 760 && box.left < 84;
+		return !!view && view.innerWidth > 760 && box.left < 104;
 	}
 
 	/** Hide the toolbar, so a capture of the card shows only the card and its ink. */
@@ -243,10 +262,32 @@ export class Ink {
 		this.bar.appendChild(picker);
 		btn("atl-ink-btn", "Another colour", svg("plus"), () => picker.click());
 		gap();
-		for (const [s, title] of [[1, "Thin"], [2, "Medium"], [3, "Thick"]] as [number, string][]) {
-			const b = btn("atl-ink-btn atl-ink-size", title, `<b style="width:${3 + s * 3}px;height:${3 + s * 3}px"></b>`, () => this.resize(s));
-			b.dataset.size = String(s);
-		}
+		const box = doc.createElement("label");
+		box.className = "atl-ink-size2";
+		box.title = "Line size 1–24 · type it, scroll here, Ctrl+scroll on the card, or [ ]";
+		const dot = doc.createElement("b");
+		box.appendChild(dot);
+		const num = doc.createElement("input");
+		num.type = "number";
+		num.min = "1";
+		num.max = "24";
+		num.className = "atl-ink-num";
+		num.setAttribute("aria-label", "Line size");
+		num.addEventListener("input", () => this.resize(Number(num.value) || this.size, false));
+		num.addEventListener("keydown", (e) => {
+			e.stopPropagation();
+			if (e.key === "Enter" || e.key === "Escape") num.blur();
+		});
+		box.appendChild(num);
+		box.addEventListener("wheel", (e) => {
+			e.preventDefault();
+			this.resize(this.size + (e.deltaY < 0 ? 1 : -1));
+		}, { passive: false });
+		box.addEventListener("click", (e) => e.stopPropagation());
+		this.bar.appendChild(box);
+		this.sizer = num;
+		this.sizeDot = dot;
+		this.resize(this.size);
 		gap();
 		btn("atl-ink-btn", "Undo · Ctrl+Z", svg("undo"), () => this.undo());
 		btn("atl-ink-btn", "Redo · Ctrl+Shift+Z", svg("redo"), () => this.redo());
@@ -297,16 +338,22 @@ export class Ink {
 		this.mark();
 	}
 
-	private resize(s: number): void {
-		this.size = s;
-		this.mark();
+	/** The line size, kept between 1 and 24; the control shows it as a dot and a number. */
+	private resize(s: number, echo = true): void {
+		this.size = Math.max(1, Math.min(24, Math.round(s)));
+		if (this.sizer && echo) this.sizer.value = String(this.size);
+		if (this.sizeDot) {
+			const d = Math.max(3, Math.min(18, 2 + this.size * 0.7));
+			this.sizeDot.style.width = `${d}px`;
+			this.sizeDot.style.height = `${d}px`;
+		}
+		if (this.typing) this.typing.style.fontSize = `${10 + this.size * 3}px`;
 	}
 
 	/** Show which tool, colour and size are on. */
 	private mark(): void {
 		for (const b of Array.from(this.bar.querySelectorAll<HTMLElement>(".atl-ink-tool"))) b.classList.toggle("is-on", b.dataset.tool === this.tool);
 		for (const b of Array.from(this.bar.querySelectorAll<HTMLElement>(".atl-ink-col"))) b.classList.toggle("is-on", b.dataset.c === this.color);
-		for (const b of Array.from(this.bar.querySelectorAll<HTMLElement>(".atl-ink-size"))) b.classList.toggle("is-on", b.dataset.size === String(this.size));
 	}
 
 	// ── drawing ─────────────────────────────────────────────────────────────
@@ -390,7 +437,7 @@ export class Ink {
 		const input = doc.createElement("input");
 		input.className = "atl-ink-text";
 		input.type = "text";
-		const sizePx = [0, 16, 24, 36][this.size];
+		const sizePx = 10 + this.size * 3;
 		input.style.left = `${(p[0] / this.card.offsetWidth) * 100}%`;
 		input.style.top = `${(p[1] / this.card.offsetHeight) * 100}%`;
 		input.style.color = this.color;
@@ -440,7 +487,7 @@ export class Ink {
 		ctx.lineCap = "round";
 		ctx.lineJoin = "round";
 		for (const it of this.items) {
-			const w = [0, 2, 4, 8][it.size];
+			const w = it.size;
 			ctx.globalCompositeOperation = it.tool === "erase" ? "destination-out" : "source-over";
 			ctx.globalAlpha = it.tool === "mark" ? 0.35 : 1;
 			ctx.strokeStyle = it.color;
@@ -448,7 +495,7 @@ export class Ink {
 			const [a, b] = it.points;
 			if (!a) continue;
 			if (it.tool === "text") {
-				ctx.font = `600 ${[0, 16, 24, 36][it.size]}px system-ui, sans-serif`;
+				ctx.font = `600 ${10 + it.size * 3}px system-ui, sans-serif`;
 				ctx.textBaseline = "top";
 				ctx.fillText(it.text || "", a[0] + 2, a[1] + 2);
 				continue;
@@ -456,7 +503,7 @@ export class Ink {
 			const end = it === this.live && this.shift && (it.tool === "arrow" || it.tool === "rect" || it.tool === "ellipse") ? this.snap(it.tool, a, b) : b;
 			ctx.beginPath();
 			if (it.tool === "pen" || it.tool === "mark" || it.tool === "erase") {
-				ctx.lineWidth = it.tool === "mark" ? w * 4 : it.tool === "erase" ? w * 6 : w * (0.5 + a[2]);
+				ctx.lineWidth = it.tool === "mark" ? w * 3 + 6 : it.tool === "erase" ? w * 3 + 8 : w * (0.5 + a[2]);
 				ctx.moveTo(a[0], a[1]);
 				if (it.points.length < 3 && b && b[0] === a[0] && b[1] === a[1]) ctx.lineTo(a[0] + 0.1, a[1]);
 				for (const p of it.points.slice(1)) ctx.lineTo(p[0], p[1]);

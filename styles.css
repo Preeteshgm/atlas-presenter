@@ -3270,7 +3270,7 @@ textarea.atl-note-box:focus { outline: none; border-color: var(--accent, var(--i
 
 /* While drawing on a card that fills the screen to its left edge, the deck
    keeps the bar's width clear, so the bar never sits on the card. */
-.atl-overlay.ink-inset .atl-viewport { left: 84px; }
+.atl-overlay.ink-inset .atl-viewport { left: 104px; }
 
 /* A phone has no side margin: the bar goes back to one row at the bottom. */
 @media (max-width: 760px) {
@@ -3289,3 +3289,31 @@ textarea.atl-note-box:focus { outline: none; border-color: var(--accent, var(--i
 	.atl-ink-bar .atl-ink-btn.is-main { width: 30px; }
 	.atl-overlay.ink-inset .atl-viewport { left: 0; }
 }
+
+/* The line size: one control — a dot that grows with it, and the number. */
+.atl-ink-bar .atl-ink-size2 {
+	grid-column: 1 / -1;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	gap: 6px;
+	height: 30px;
+	cursor: ns-resize;
+}
+.atl-ink-bar .atl-ink-size2 b { display: block; border-radius: 50%; background: currentColor; flex: none; }
+.atl-overlay.atl-overlay .atl-ink-bar input.atl-ink-num,
+.atl-ink-bar input.atl-ink-num {
+	width: 34px;
+	height: 22px;
+	padding: 0 2px;
+	box-sizing: border-box;
+	font: 600 12px/1 system-ui, sans-serif;
+	text-align: center;
+	background: transparent;
+	color: inherit;
+	border: 1px solid var(--rule, var(--background-modifier-border, #cbd3d1));
+	border-radius: 6px;
+	-moz-appearance: textfield;
+}
+.atl-ink-bar input.atl-ink-num::-webkit-inner-spin-button,
+.atl-ink-bar input.atl-ink-num::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }

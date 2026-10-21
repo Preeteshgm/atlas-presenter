@@ -1535,7 +1535,7 @@ ${input.css}
   #touch, #turn, .touch-only { display: none; }
   #frz-hint { position: fixed; }
   .atl-ink-bar { position: fixed; }
-  html.ink-inset #view { left: 84px; }
+  html.ink-inset #view { left: 104px; }
   @media (max-width: 760px) { html.ink-inset #view { left: 0; } }
   html.is-frozen #touch #t-frz { opacity: 1; background: var(--accent, #1d5a78); color: #fff; border-color: transparent; }
   @media (pointer: coarse) {
