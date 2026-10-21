@@ -184,8 +184,31 @@ export class ReviewPanel {
 				};
 				view.setAttr("aria-label", "Click to edit");
 				view.addEventListener("click", (e) => {
+					const target = e.target as HTMLElement;
+					// A task's box ticks the task, in the remark itself, so the
+					// note is written with it ticked. Counted rather than read from
+					// the renderer's own line numbers, which it does not promise.
+					if (target instanceof HTMLInputElement && target.type === "checkbox") {
+						e.stopPropagation();
+						const boxes = Array.from(view.querySelectorAll('input[type="checkbox"]'));
+						const which = boxes.indexOf(target);
+						const lines = entry.text.split("\n");
+						let seen = -1;
+						for (let i = 0; i < lines.length; i++) {
+							if (!/^\s*(?:[-*+]|\d+[.)])\s+\[[ xX/-]\]/.test(lines[i])) continue;
+							if (++seen !== which) continue;
+							lines[i] = lines[i].replace(/\[([ xX/-])\]/, (_m, c: string) => (c === " " ? "[x]" : "[ ]"));
+							break;
+						}
+						entry.text = lines.join("\n");
+						box.value = entry.text;
+						this.options.onEdit(entry.nodeId, entry.text.trim());
+						this.paintActions();
+						show();
+						return;
+					}
 					// A player or a link inside it is for using, not editing.
-					if ((e.target as HTMLElement).closest("audio, video, a, button, .atl-player")) return;
+					if (target.closest("audio, video, a, button, .atl-player")) return;
 					view.hide();
 					box.show();
 					box.rows = Math.max(2, entry.text.split("\n").length + 1);

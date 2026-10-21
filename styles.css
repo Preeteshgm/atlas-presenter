@@ -3545,3 +3545,36 @@ textarea.atl-note-box:focus { outline: none; border-color: var(--accent, var(--i
 .atl-player.is-missing { opacity: 0.6; }
 .atl-player.is-missing .atl-player-btn { background: var(--ink-soft, var(--text-muted, #6b7a80)); }
 /* player:end */
+
+/* The note box's sketches and recordings, shown as themselves above the words. */
+.atl-note-media {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 8px;
+	margin: 0 0 8px;
+}
+.atl-note-media-item {
+	position: relative;
+	display: flex;
+	align-items: center;
+	max-width: 100%;
+}
+.atl-note-media-item > p { margin: 0; }
+.atl-note-media-item img { max-height: 120px; width: auto; border-radius: 6px; display: block; }
+.atl-overlay.atl-overlay button.atl-note-media-x {
+	position: absolute;
+	top: -6px;
+	right: -6px;
+	width: 20px;
+	height: 20px;
+	padding: 0;
+	border-radius: 50%;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	background: var(--panel, var(--background-primary));
+	border: 1px solid var(--rule, var(--background-modifier-border));
+	color: var(--ink-soft, var(--text-muted));
+	box-shadow: none;
+}
+.atl-overlay.atl-overlay button.atl-note-media-x svg { width: 12px; height: 12px; }

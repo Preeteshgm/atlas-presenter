@@ -2809,7 +2809,33 @@ ${this.themeCss}`,
 		box.placeholder =
 			"What was said, what was asked, what to do next.\n" +
 			"A line starting - [ ] becomes an action.";
-		box.value = existing.map((c) => c.text).join("\n\n");
+		// Sketches and recordings are shown as themselves, above the words —
+		// the picture, a player — and kept out of the box, where they could
+		// only ever be a path in brackets. Typing stays where it was; saving
+		// puts them back underneath, exactly as they were written.
+		const lines = existing.map((c) => c.text).join("\n\n").split("\n");
+		const isEmbed = (l: string) => /^!\[\[[^\]]+\]\]$/.test(l.trim());
+		const media = lines.filter(isEmbed).map((l) => l.trim());
+		box.value = lines.filter((l) => !isEmbed(l)).join("\n").replace(/\n{3,}/g, "\n\n").trim();
+		if (media.length > 0) {
+			const strip = createDiv({ cls: "atl-note-media" });
+			panel.insertBefore(strip, box);
+			for (const embed of media.slice()) {
+				const item = strip.createDiv({ cls: "atl-note-media-item markdown-rendered" });
+				void MarkdownRenderer.render(this.app, embed, item, this.file.path, this).then(() => {
+					themedPlayers(item);
+					window.setTimeout(() => themedPlayers(item), 400);
+				});
+				const drop = item.createEl("button", { cls: "atl-note-media-x", attr: { "aria-label": "Take this off the note" } });
+				setIcon(drop, "x");
+				drop.addEventListener("click", (e) => {
+					e.stopPropagation();
+					media.splice(media.indexOf(embed), 1);
+					item.remove();
+					if (media.length === 0) strip.remove();
+				});
+			}
+		}
 		this.noteBox = box;
 
 		panel.createDiv({
@@ -2826,7 +2852,8 @@ ${this.themeCss}`,
 		};
 
 		const save = () => {
-			const text = box.value.trim();
+			// The words, then the sketches and recordings still on it.
+			const text = [box.value.trim(), ...media].filter(Boolean).join("\n\n");
 			this.captures = this.captures.filter((c) => c.nodeId !== stop.node.id);
 			if (text) {
 				this.captures.push({ nodeId: stop.node.id, title, text, at: firstAt });

@@ -1636,6 +1636,10 @@ export async function buildDeckHtml(
     font-size: 2em; line-height: 1.1; margin: 0 0 6px; }
   #writeup-page .when { color: var(--ink-soft, #4e5f66); font-size: 0.9em; }
   #writeup-page .wu-entry { margin: 0 0 26px; }
+  #writeup-page .wu-task { list-style: none; margin-left: -1.3em; }
+  #writeup-page .wu-task input { margin: 0 0.45em 0 0; vertical-align: -1px; accent-color: var(--accent, #1d5a78); }
+  #writeup-page .wu-task.is-done { color: var(--ink-soft, #6b7a80); text-decoration: line-through; }
+  #writeup-page .wu-entry blockquote { margin: 0 0 10px; padding-left: 12px; border-left: 3px solid var(--rule, #d7dbd7); color: var(--ink-soft, #6b7a80); }
   /* The write-up's sketches and recordings, as themselves. */
   #writeup-page .wu-pic, #writeup-page .wu-media { margin: 6px 0 14px; }
   #writeup-page .wu-pic img { display: block; max-width: 100%; max-height: 420px; border-radius: 8px;
@@ -1968,20 +1972,57 @@ function escapeHtml(text: string): string {
  */
 function remarkHtml(text: string, media: Map<string, string> = new Map()): string {
 	const out: string[] = [];
-	let list: string[] = [];
 
 	const embed = (link: string) => media.get(link.trim()) ?? `<p class="wu-missing">${escapeHtml(link)}</p>`;
 	const inline = (line: string) =>
 		escapeHtml(line)
 			.replace(EMBED, (_m, link: string) => embed(link.replace(/&amp;/g, "&")))
+			// [[Note]] and [[Note|what it is called]]: the name, since the vault
+			// is not there to open it in.
+			.replace(/\[\[([^\]|]+)\|([^\]]+)\]\]/g, "$2")
+			.replace(/\[\[([^\]]+)\]\]/g, (_m, link: string) => link.split("/").pop() ?? link)
+			.replace(/\[([^\]]+)\]\((https?:[^)\s]+)\)/g, '<a href="$2" target="_blank" rel="noopener">$1</a>')
 			.replace(/`([^`]+)`/g, "<code>$1</code>")
 			.replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>")
+			.replace(/~~([^~]+)~~/g, "<s>$1</s>")
 			.replace(/(^|[^*])\*([^*]+)\*/g, "$1<em>$2</em>");
 
+	// A list is gathered whole and then drawn, so indented points nest the way
+	// they do in the note: a tab or two spaces is one level in.
+	interface Item { depth: number; ordered: boolean; task: boolean | null; html: string }
+	let items: Item[] = [];
+	const draw = (from: number, depth: number): [string, number] => {
+		const ordered = items[from].ordered;
+		let html = "";
+		let i = from;
+		// A numbered run and a bulleted one are two lists, even back to back.
+		while (i < items.length && items[i].depth >= depth && !(items[i].depth === depth && items[i].ordered !== ordered)) {
+			const it = items[i];
+			if (it.depth > depth) {
+				const [inner, next] = draw(i, it.depth);
+				html = html.replace(/<\/li>$/, `${inner}</li>`);
+				i = next;
+				continue;
+			}
+			// A task is a box, ticked or not, as the note shows it: read-only
+			// here, because the file has nowhere to write the tick.
+			const box = it.task === null ? "" :
+				`<input type="checkbox" disabled${it.task ? " checked" : ""}> `;
+			html += `<li${it.task === null ? "" : ` class="wu-task${it.task ? " is-done" : ""}"`}>${box}${it.html}</li>`;
+			i++;
+		}
+		const tag = ordered ? "ol" : "ul";
+		return [`<${tag}>${html}</${tag}>`, i];
+	};
 	const closeList = () => {
-		if (list.length === 0) return;
-		out.push(`<ul>${list.map((li) => `<li>${li}</li>`).join("")}</ul>`);
-		list = [];
+		if (items.length === 0) return;
+		let i = 0;
+		while (i < items.length) {
+			const [html, next] = draw(i, items[i].depth);
+			out.push(html);
+			i = next;
+		}
+		items = [];
 	};
 
 	for (const raw of text.split("\n")) {
@@ -1997,12 +2038,30 @@ function remarkHtml(text: string, media: Map<string, string> = new Map()): strin
 			out.push(embed(alone[1]));
 			continue;
 		}
-		const bullet = line.match(/^[-*+]\s+(.*)$/);
-		if (bullet) {
-			list.push(inline(bullet[1]));
+		const indent = (raw.match(/^[\t ]*/)?.[0] ?? "").replace(/\t/g, "  ").length;
+		const item = line.match(/^(?:([-*+])|(\d+)[.)])\s+(?:\[([ xX/-])\]\s+)?(.*)$/);
+		if (item) {
+			const mark = item[3];
+			items.push({
+				depth: Math.floor(indent / 2),
+				ordered: !!item[2],
+				task: mark === undefined ? null : mark !== " ",
+				html: inline(item[4]),
+			});
 			continue;
 		}
 		closeList();
+		const heading = line.match(/^(#{1,6})\s+(.*)$/);
+		if (heading) {
+			// Under the card's own heading, so a remark's headings sit one below.
+			const level = Math.min(6, heading[1].length + 2);
+			out.push(`<h${level}>${inline(heading[2])}</h${level}>`);
+			continue;
+		}
+		if (/^>\s?/.test(line)) {
+			out.push(`<blockquote>${inline(line.replace(/^>\s?/, ""))}</blockquote>`);
+			continue;
+		}
 		out.push(`<p>${inline(line)}</p>`);
 	}
 	closeList();
@@ -2087,6 +2146,10 @@ ${tokens}
   }
   .wu-page .when { color: var(--ink-soft, #4e5f66); font-size: 0.9em; }
   .wu-entry { margin: 0 0 30px; }
+  .wu-task { list-style: none; margin-left: -1.3em; }
+  .wu-task input { margin: 0 0.45em 0 0; vertical-align: -1px; accent-color: var(--accent, #1d5a78); }
+  .wu-task.is-done { color: var(--ink-soft, #6b7a80); text-decoration: line-through; }
+  .wu-entry blockquote { margin: 0 0 10px; padding-left: 12px; border-left: 3px solid var(--rule, #d7dbd7); color: var(--ink-soft, #6b7a80); }
   .wu-pic, .wu-media { margin: 6px 0 14px; }
   .wu-pic img { display: block; max-width: 100%; max-height: 420px; border-radius: 8px;
     border: 1px solid var(--rule, #d7dbd7); background: #fff; }
