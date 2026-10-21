@@ -3,6 +3,7 @@ import { safeFileName } from "../format";
 import { mimeFor } from "../media";
 import { fail, offer, say } from "../notice";
 import { Ink } from "./ink";
+import { printHtmlToPdf } from "./pdf";
 
 /**
  * Write the running deck out as one HTML file.
@@ -1307,26 +1308,48 @@ const RUNTIME = `
  * These are the same cards laid out one per page, hidden until you print — so
  * one file serves both, and PDF is the browser's job rather than ours.
  */
+/**
+ * The printable area of a landscape A4 page with 12 mm margins, in CSS pixels
+ * (96 to the inch), less a line at the foot for the card number.
+ */
+const PRINT_W = 1030;
+const PRINT_H = 680;
+
 function printPages(clone: HTMLElement, stops: ExportInput["stops"]): string {
 	const pages: string[] = [];
 	for (const stop of stops) {
 		const card = clone.querySelector<HTMLElement>(`[data-node-id="${stop.nodeId}"]`);
 		if (!card) continue;
 		const page = card.cloneNode(true) as HTMLElement;
-		// On a page a card is the page, not a rectangle on a plane. Its height
-		// comes from its own proportions, so this is arithmetic, not a class.
+		// The card at its own size, scaled down whole to fit the page. It was
+		// once given width 100% and a height in percent — of a page with no
+		// height, so every card printed two pixels tall: an empty frame per
+		// page. And a card laid out for 1600 pixels has to be drawn at 1600 and
+		// then shrunk, not squeezed into the width of a sheet, or its text and
+		// columns rewrap into something nobody designed.
+		const k = Math.min(PRINT_W / stop.width, PRINT_H / stop.height);
 		page.setCssStyles({
-			position: "static",
-			left: "",
-			top: "",
-			width: "100%",
-			height: `${(stop.height / stop.width) * 100}%`,
+			position: "absolute",
+			left: "0",
+			top: "0",
+			width: `${stop.width}px`,
+			height: `${stop.height}px`,
+			transform: `scale(${k.toFixed(4)})`,
+			transformOrigin: "0 0",
 		});
 		page.addClass("is-active");
 		// A page cannot be pressed through, so everything on the card has to be
 		// there at once: a reveal is invisible until something shows it, and a
 		// slide show would print its first frame and lose the rest.
 		for (const s of Array.from(page.querySelectorAll(".atl-step"))) s.addClass("is-shown");
+		// Every printed card sits in one document, so radios that share a name
+		// across cards — two HTML cards that both call their page switch "md" —
+		// become one group, only one can stay checked, and every other card
+		// prints the page its switch no longer points at: nothing. On screen
+		// each card has its own shadow root and never met the others.
+		for (const r of Array.from(page.querySelectorAll<HTMLInputElement>("input[type=radio][name]"))) {
+			r.setAttribute("name", `p${pages.length}-${r.getAttribute("name") ?? ""}`);
+		}
 		for (const show of Array.from(page.querySelectorAll<HTMLElement>(".atl-slideshow"))) {
 			const frames = Array.from(show.querySelectorAll<HTMLElement>(".atl-frame-item"));
 			for (const f of frames) f.addClass("is-current");
@@ -1335,7 +1358,8 @@ function printPages(clone: HTMLElement, stops: ExportInput["stops"]): string {
 		// The number a printed deck is referred to by. A section overview carries
 		// none: it is the same view as the cards under it.
 		const n = stop.order ? ` data-n="${stop.order}"` : "";
-		pages.push(`<div class="page"${n}>${page.outerHTML}</div>`);
+		const fit = `width:${Math.round(stop.width * k)}px;height:${Math.round(stop.height * k)}px`;
+		pages.push(`<div class="page"${n}><div class="pfit" style="${fit}">${page.outerHTML}</div></div>`);
 	}
 	return pages.join("\n");
 }
@@ -1392,7 +1416,7 @@ function reveal(
 		el.createDiv({ text: `Atlas: exported to ${path}` });
 		el.createDiv({
 			cls: "atl-notice-sub",
-			text: `${files} Print it from the browser for a PDF.`,
+			text: `${files} Print it from the browser, one card to a page.`,
 		});
 
 		if (!open) return;
@@ -1581,9 +1605,18 @@ export async function buildDeckHtml(
   #print { display: none; }
   @media print {
     html, body { height: auto; overflow: visible; background: #fff; }
-    #view, #bar, #writeup { display: none !important; }
+    #view, #bar, #writeup, #rail, #map, #keys, #hint, #opening, #touch, #turn { display: none !important; }
     #print { display: block; }
-    .page { page-break-after: always; break-after: page; padding: 0; position: relative; }
+    /* One card to a sheet, centred, whatever its shape. */
+    .page { page-break-after: always; break-after: page; padding: 0; position: relative;
+      width: 273mm; height: 185mm; display: flex; align-items: center; justify-content: center;
+      overflow: hidden; }
+    .pfit { position: relative; flex: none; }
+    /* Paper is drawn at an animation's first frame. A card whose content fades
+       in — an HTML card's views do — printed faded out: its frame and nothing
+       inside. Every animation on paper is over before it starts. */
+    #print *, #print *::before, #print *::after { animation-duration: 0s !important;
+      animation-delay: 0s !important; transition: none !important; }
     /* The card number, where a printed deck is read from: bottom right, on
        every page that is a card. */
     .page[data-n]::after {
@@ -1610,7 +1643,9 @@ export async function buildDeckHtml(
       transform: none !important; width: 48% !important; height: auto !important; }
     .print-all .atl-show-controls { display: none !important; }
   }
-  @page { size: landscape; margin: 12mm; }
+  /* A4, said outright: "landscape" alone lets the printer's default paper
+     decide, and on US Letter — narrower — every card lost its right edge. */
+  @page { size: A4 landscape; margin: 12mm; }
 ${input.css}
   /* ---- touch ---- */
   /* The page itself never scrolls, bounces or pulls to refresh. A pull to
@@ -1723,6 +1758,47 @@ __SCRIPTS__
 			// that stayed still.
 			.replace("__SCRIPTS__", `${shadows}\n${scripts}`),
 	};
+}
+
+/**
+ * The deck as a PDF, one card to a page, beside its HTML export.
+ *
+ * The same pages a browser prints from the exported file, so the two can
+ * never disagree; written by Obsidian's own Chromium, with no dialog.
+ */
+export async function exportPdf(app: App, input: ExportInput): Promise<string | null> {
+	const { html } = await buildDeckHtml(app, input);
+	const name = `${safeFileName(input.title)} — deck`;
+	const parent = input.exportFolder.trim().replace(/^\/+|\/+$/g, "");
+	const folder = normalizePath(parent ? `${parent}/${name}` : name);
+	const path = normalizePath(`${folder}/${name}.pdf`);
+	try {
+		const bytes = await printHtmlToPdf(html);
+		await ensureFolder(app, folder);
+		const was = app.vault.getAbstractFileByPath(path);
+		if (was instanceof TFile) await app.vault.modifyBinary(was, bytes);
+		else await app.vault.createBinary(path, bytes);
+	} catch (e) {
+		fail("could not save the PDF", e);
+		return null;
+	}
+	const open = launcher(app);
+	offer((el, close) => {
+		el.createDiv({ text: `Atlas: saved ${path}` });
+		el.createDiv({ cls: "atl-notice-sub", text: `${input.stops.filter((s) => !s.label).length} cards, one to a page. Print it from there.` });
+		if (!open) return;
+		const btn = el.createEl("button", { cls: "atl-notice-btn", text: "Open the PDF" });
+		btn.addEventListener("click", (e) => {
+			e.stopPropagation();
+			try {
+				open(path);
+			} catch {
+				fail(`could not open ${path} — open it yourself`);
+			}
+			close();
+		});
+	});
+	return path;
 }
 
 /** Make a folder and everything above it, quietly if it is already there. */
@@ -1957,7 +2033,7 @@ export async function exportDeck(app: App, input: ExportInput): Promise<string |
 		// Yesterday's clips, in this deck's own folder and nowhere else: a deck
 		// that dropped a recording should not keep handing it out.
 		const keep = new Set(
-			[path, notes, ...carried.map((c) => normalizePath(`${folder}/${c.name}`))].filter(Boolean)
+			[path, notes, normalizePath(`${folder}/${name}.pdf`), ...carried.map((c) => normalizePath(`${folder}/${c.name}`))].filter(Boolean)
 		);
 		const here = app.vault.getAbstractFileByPath(folder);
 		if (here instanceof TFolder) {

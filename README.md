@@ -88,6 +88,7 @@ starts at the beginning.
 | `P` | Open the presenter panel — notes, the clock, what is next, and a box to write a remark in |
 | `Enter` | Dive into the sub-deck on this card |
 | `E` | Export the deck to one standalone HTML file |
+| `Ctrl+P` | Save the deck as a PDF, one card to a page, beside its export (desktop) |
 | `F` | Fullscreen |
 | `Z` | Freeze the card on screen, so you can use what is in it: clicks are the card's and the arrows only scroll it. A snowflake under the note dot, top right, shows it; `Z`, `Esc` or clicking the mark lets go, and so does going to another card. Works in the exported HTML too, with a Freeze button on a phone |
 | `D` | Draw on the card — a full freeze, so a click is ink. Icons only, names on hover: pen `P`, highlighter `H`, arrow `A`, box `R`, ellipse `O`, text `T`, eraser `E`; six colours `1`–`6` (red and blue first) and any other from +; three sizes; `Shift` keeps an arrow at 45° and a box square; `Ctrl`+`Z` / `Ctrl`+`Shift`+`Z` undo and redo. `D`, `Esc` or ✓ keeps it: a picture of the card with the ink goes into `Meetings/Sketches` and into the card's note, and a pen mark shows beside the card. In the exported HTML the ink is for the room only, and finishing clears it |
@@ -125,9 +126,10 @@ across platforms. Assign your own under **Settings → Hotkeys**, searching for
 behind something, or on a screen you cannot see. **Stop presenting** works from
 wherever you are.
 
-`Ctrl+P` is safe inside a deck window: it does nothing. A deck window is a plain
-Chromium window as far as that key is concerned, and left alone it would raise a
-print dialog on the projector in the middle of a talk.
+`Ctrl+P` is safe inside a deck window: it saves a PDF quietly instead of raising
+a print dialog. A deck window is a plain Chromium window as far as that key is
+concerned, and left alone it would put that dialog on the projector in the
+middle of a talk.
 
 ---
 
@@ -693,13 +695,17 @@ the order you presented, and a **Notes** button on the deck that opens the same
 thing over the cards. Read-only, text only, off by default — those remarks are
 written for you.
 
-### For PDF, print it
+### For PDF
 
-The exported file carries a print stylesheet: one card per landscape page, the
-card's **number at the foot of each page**, the camera and bottom bar hidden,
-every reveal shown and picture stacks un-stacked so nothing is lost on paper. Open it in a browser and print to PDF. That keeps
-the deck a deck on screen and gives you pages on paper, without a second export
-path to maintain.
+**In Obsidian:** `Ctrl+P` in the deck, the printer button on its bar, or the
+command *Atlas: Save as PDF* writes `<deck> — deck.pdf` into the deck's export
+folder — no dialog — and offers to open it. Print it from there.
+
+**From the exported file:** print it from the browser, or print to PDF. It
+carries a print stylesheet: one card per landscape A4 page, scaled whole to
+fit, the card's **number at the foot of each page**, the camera and bottom bar
+hidden, every reveal shown and picture stacks un-stacked so nothing is lost on
+paper. Both routes print the same pages.
 
 ---
 

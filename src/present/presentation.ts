@@ -28,7 +28,8 @@ import {
 	titleOf,
 } from "./render";
 import { Slideshow } from "./slideshow";
-import { ExportInput, buildDeckHtml, exportDeck } from "./export";
+import { ExportInput, buildDeckHtml, exportDeck, exportPdf } from "./export";
+import { canPrintPdf } from "./pdf";
 import { DeckSnapshot, PRESENTER_VIEW, setDeck } from "./presenter";
 import { DECK_VIEW, DeckView } from "./deck-window";
 import {
@@ -567,6 +568,7 @@ export class Presentation extends Component {
 		button(end, "file-text", "W", "Write the session up as a note", () => this.reviewSession());
 		// The one thing on this bar that leaves the vault.
 		button(end, "download", "E", "Export this deck to a folder you can send", () => void this.exportToHtml());
+		if (canPrintPdf()) button(end, "printer", "Ctrl+P", "Save as PDF, one card to a page", () => void this.exportToPdf());
 		const help = right.createDiv({ cls: "atl-btns" });
 		button(help, "keyboard", "H", "Every key this deck answers to", () => this.toggleKeys());
 
@@ -830,9 +832,13 @@ export class Presentation extends Component {
 			if (e.ctrlKey || e.metaKey || e.altKey) {
 				// The exception is the browser's own print shortcut. A deck in
 				// its own window is a plain Chromium window as far as that key
-				// is concerned, so Ctrl+P there raises a print dialog — on the
-				// projector, over a live talk. Swallow it and do nothing.
-				if ((e.ctrlKey || e.metaKey) && (key === "p" || key === "P")) handled();
+				// is concerned, so Ctrl+P there raised a print dialog — on the
+				// projector, over a live talk. It saves the deck as a PDF
+				// instead: one card to a page, written quietly, no dialog.
+				if ((e.ctrlKey || e.metaKey) && (key === "p" || key === "P")) {
+					handled();
+					if (!e.repeat) void this.exportToPdf();
+				}
 				return;
 			}
 
@@ -1606,6 +1612,16 @@ ${this.themeCss}`,
 		return exportDeck(this.app, this.exportInput());
 	}
 
+	/** The deck as a PDF beside its export. Returns where it was written. */
+	async exportToPdf(): Promise<string | null> {
+		if (!canPrintPdf()) {
+			new Notice("Atlas: a PDF needs the desktop app — export to HTML and print it from a browser.");
+			return null;
+		}
+		new Notice("Atlas: saving a PDF…");
+		return exportPdf(this.app, this.exportInput());
+	}
+
 	/** The exported document itself, for a preview that writes no file. */
 	async buildHtml(): Promise<string> {
 		return (await buildDeckHtml(this.app, this.exportInput())).html;
@@ -2070,7 +2086,7 @@ ${this.themeCss}`,
 				["F", "maximize", "Fullscreen"], ["P", "presentation", "The presenter panel"]]],
 			["Capturing", "", [["N", "notebook-pen", "A remark on this card"], ["R", "mic", "Speak a note on this card"], ["⇧R", "circle-dot", "Record the whole meeting"],
 				["A", "sparkles", "Ask your notes"]]],
-			["Finishing", "", [["W", "file-text", "Write the session up"], ["E", "download", "Export the deck"], ["H", "keyboard", "This list"]]],
+			["Finishing", "", [["W", "file-text", "Write the session up"], ["E", "download", "Export the deck"], ["Ctrl+P", "printer", "Save as PDF, a card a page"], ["H", "keyboard", "This list"]]],
 			["Drawing", "while D is on", [["P", "pen", "Pen"], ["H", "highlighter", "Highlighter"], ["A", "arrow-up-right", "Arrow"], ["R", "square", "Box"],
 				["O", "circle", "Ellipse"], ["T", "type", "Text"], ["E", "eraser", "Eraser"], ["1–6", "palette", "Colours, red and blue first"],
 				["[ ]", "move-diagonal", "Thinner, thicker · or Ctrl+scroll"], ["Shift", "ruler", "Arrow at 45°, box square"],

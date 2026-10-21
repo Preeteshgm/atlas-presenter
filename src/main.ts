@@ -136,6 +136,20 @@ export default class AtlasPlugin extends Plugin {
 			},
 		});
 
+		this.addCommand({
+			id: "export-pdf",
+			name: "Save as PDF",
+			checkCallback: (checking: boolean) => {
+				const file = this.app.workspace.getActiveFile();
+				if (!this.active && file?.extension !== "canvas") return false;
+				if (!checking) {
+					if (this.active) void this.active.exportToPdf();
+					else if (file) void this.exportCanvas(file, "pdf");
+				}
+				return true;
+			},
+		});
+
 		this.addRibbonIcon(ICON_ID, "Atlas: present this canvas", () => {
 			const file = this.app.workspace.getActiveFile();
 			if (file && file.extension === "canvas") void this.present(file, this.selectedCardId());
@@ -460,13 +474,13 @@ export default class AtlasPlugin extends Plugin {
 	 * The deck is rendered off to one side — laid out at a real size, because
 	 * the cards measure themselves — written out, and thrown away.
 	 */
-	private async exportCanvas(file: TFile): Promise<void> {
-		new Notice("Atlas: exporting…");
+	private async exportCanvas(file: TFile, as: "html" | "pdf" = "html"): Promise<void> {
+		// No notice here: the deck says "exporting…" or "saving a PDF…" itself.
 		const host = document.body.createDiv({ cls: "atl-preview-host" });
 		const deck = new Presentation(this.app, file, this.settings);
 		this.addChild(deck);
 		try {
-			if (await deck.startHeadless(host)) await deck.exportToHtml();
+			if (await deck.startHeadless(host)) await (as === "pdf" ? deck.exportToPdf() : deck.exportToHtml());
 			else new Notice("Atlas: this canvas has no cards to export.");
 		} catch (e) {
 			new Notice(`Atlas: could not export — ${String(e)}`);
