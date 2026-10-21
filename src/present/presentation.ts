@@ -39,6 +39,7 @@ import {
 	writeMinutes,
 } from "./capture";
 import { Clip, Recorder, transcribe } from "./recorder";
+import { Ink } from "./ink";
 import { Journal } from "./journal";
 import { DeckNotes, capturesFrom, readDeckNotes, saveDeckNotes } from "./deck-notes";
 import {
@@ -120,6 +121,9 @@ export class Presentation extends Component {
 	 * card by any route lets go, so the talk is never stuck.
 	 */
 	private frozen = false;
+	/** D: ink on the frozen card, and whether drawing is what froze it. */
+	private ink: Ink | null = null;
+	private inkFroze = false;
 	private autoAdvance = 0;
 	/** A sub-deck opened from a card, and the deck it was opened from. */
 	private child: Presentation | null = null;
@@ -884,6 +888,35 @@ export class Presentation extends Component {
 				return;
 			}
 
+			// Drawing is a full freeze: the ink owns the pointer, and the keys
+			// either finish the drawing or do nothing.
+			if (this.ink) {
+				if ((key === "z" || key === "Z") && (e.ctrlKey || e.metaKey)) {
+					handled();
+					this.ink.undo();
+					return;
+				}
+				if (key === "Escape" || key === "d" || key === "D") {
+					handled();
+					void this.finishDraw(true);
+					return;
+				}
+				if (key === "z" || key === "Z") {
+					handled();
+					void this.finishDraw(true).then(() => this.setFrozen(false));
+					return;
+				}
+				if (NAVIGATION.has(key) || key === "Enter" || key.length === 1) {
+					handled();
+					this.freezeHint("Drawing · D or Esc saves it to the card's note");
+					return;
+				}
+			}
+			if ((key === "d" || key === "D") && !e.ctrlKey && !e.metaKey) {
+				handled();
+				this.startDraw();
+				return;
+			}
 			if (key === "z" || key === "Z") {
 				handled();
 				this.setFrozen(!this.frozen);
@@ -1131,6 +1164,15 @@ export class Presentation extends Component {
 		const clamped = Math.max(0, Math.min(i, this.scene.stops.length - 1));
 		// Arriving anywhere else, by the map, the presenter or a link, lets go.
 		// A refit of the same card (a resize) does not.
+		if (this.ink && clamped !== this.index) {
+			// Leaving the card by the map or the presenter: keep what was drawn,
+			// as ink on the card's paper — the screen is about to move.
+			const ink = this.ink;
+			this.ink = null;
+			this.inkFroze = false;
+			this.overlay.removeClass("is-drawing");
+			void this.saveInk(ink, true);
+		}
 		if (this.frozen && clamped !== this.index) this.setFrozen(false);
 		const backwards = clamped < this.index;
 		const previous = this.stopAt(this.index);
@@ -1796,6 +1838,136 @@ ${this.themeCss}`,
 	private recordingSession = false;
 	/** The session recording, once it has been written. */
 	private sessionAudio: { path: string; startedAt: number; ms: number } | null = null;
+
+	private get sketches(): string {
+		const dir = this.settings.minutesFolder || "Meetings";
+		return `${dir}/Sketches`;
+	}
+
+	/** D: draw on the card on screen. It freezes the card first if it is not frozen. */
+	private startDraw(): void {
+		if (this.ink || this.overviewing) return;
+		const card = this.nodeEls.get(this.stopAt(this.index).node.id);
+		if (!card) return;
+		this.inkFroze = !this.frozen;
+		if (!this.frozen) this.setFrozen(true);
+		const accent = this.win.getComputedStyle(this.overlay).getPropertyValue("--accent").trim() || "#1d5a78";
+		this.ink = new Ink(card, this.overlay, { accent, saves: true, onDone: (keep) => void this.finishDraw(keep) });
+		this.overlay.addClass("is-drawing");
+		this.freezeHint("Drawing · D or Esc saves it to the card's note");
+	}
+
+	/** End the drawing: keep it in the card's note, or let it go. */
+	private async finishDraw(keep: boolean): Promise<void> {
+		const ink = this.ink;
+		if (!ink) return;
+		this.ink = null;
+		this.overlay.removeClass("is-drawing");
+		const unfreeze = this.inkFroze;
+		this.inkFroze = false;
+		if (keep && ink.hasInk) await this.saveInk(ink, false);
+		else ink.destroy();
+		if (unfreeze) this.setFrozen(false);
+	}
+
+	/**
+	 * Save a drawing as a picture and put it in the card's note.
+	 *
+	 * The picture is the card as it is on screen, with the ink on it, taken
+	 * from Obsidian's own window. Where the window cannot be captured — or the
+	 * camera is already on its way to another card — it is the ink on the
+	 * card's own paper instead.
+	 */
+	private async saveInk(ink: Ink, paperOnly: boolean): Promise<void> {
+		ink.hideBar();
+		await new Promise<void>((ok) => this.win.requestAnimationFrame(() => this.win.requestAnimationFrame(() => ok())));
+		const shot = paperOnly ? null : await this.captureCard(ink.card);
+		const png = shot ?? (await ink.onPaper());
+		ink.destroy();
+		if (!png) {
+			fail("the sketch could not be saved");
+			return;
+		}
+		const id = ink.card.dataset.nodeId;
+		const stop = this.scene.stops.find((st) => st.node.id === id) ?? this.stopAt(this.index);
+		const title = titleOf(stop.node);
+		const path = await this.saveSketchFile(png, title);
+		if (!path) return;
+		const existing = this.captures.filter((c) => c.nodeId === stop.node.id);
+		const firstAt = existing.length > 0 ? existing[0].at : Date.now();
+		const text = [...existing.map((c) => c.text), `![[${path}]]`].join("\n\n").trim();
+		this.captures = this.captures.filter((c) => c.nodeId !== stop.node.id);
+		this.captures.push({ nodeId: stop.node.id, title, text, at: firstAt });
+		this.journalSave();
+		this.updateHud(this.stopAt(this.index), 0);
+		for (const listener of this.listeners) listener();
+		this.freezeHint(`Sketch saved to the note on “${title}”`);
+	}
+
+	/** The card's area of Obsidian's window, as a PNG — or null where that is not possible. */
+	private async captureCard(el: HTMLElement): Promise<ArrayBuffer | null> {
+		interface Contents {
+			capturePage(rect: { x: number; y: number; width: number; height: number }): Promise<{ toPNG(): Uint8Array }>;
+			getZoomFactor?(): number;
+		}
+		interface Remote {
+			getCurrentWebContents(): Contents;
+		}
+		const req = (this.win as unknown as { require?: (m: string) => unknown }).require;
+		if (!req) return null;
+		let remote: Remote | undefined;
+		try {
+			remote = req("@electron/remote") as Remote;
+		} catch {
+			try {
+				remote = (req("electron") as { remote?: Remote }).remote;
+			} catch {
+				remote = undefined;
+			}
+		}
+		if (!remote) return null;
+		try {
+			const contents = remote.getCurrentWebContents();
+			const zoom = contents.getZoomFactor?.() ?? 1;
+			const box = el.getBoundingClientRect();
+			const image = await contents.capturePage({
+				x: Math.round(box.left * zoom),
+				y: Math.round(box.top * zoom),
+				width: Math.round(box.width * zoom),
+				height: Math.round(box.height * zoom),
+			});
+			const bytes = image.toPNG();
+			if (!bytes || bytes.length === 0) return null;
+			return bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength) as ArrayBuffer;
+		} catch {
+			return null;
+		}
+	}
+
+	/** Write a sketch into the vault, beside the recordings, and hand back its path. */
+	private async saveSketchFile(png: ArrayBuffer, label: string): Promise<string | null> {
+		const dir = normalizePath(this.sketches);
+		try {
+			if (!(this.app.vault.getAbstractFileByPath(dir) instanceof TFolder)) {
+				await this.app.vault.createFolder(dir);
+			}
+		} catch {
+			// Already there, or the name is taken; the write below will say.
+		}
+		const stamp = new Date().toISOString().slice(0, 16).replace(/[:T]/g, "-");
+		let path = normalizePath(`${dir}/${safeFileName(this.file.basename)} ${stamp} ${safeFileName(label)}.png`);
+		let n = 2;
+		while (this.app.vault.getAbstractFileByPath(path)) {
+			path = path.replace(/(\.\w+)$/, ` (${n++})$1`);
+		}
+		try {
+			await this.app.vault.createBinary(path, png);
+			return path;
+		} catch (e) {
+			fail("could not save the sketch", e);
+			return null;
+		}
+	}
 
 	private get recordings(): string {
 		const dir = this.settings.minutesFolder || "Meetings";
@@ -2900,6 +3072,11 @@ ${this.themeCss}`,
 	 * keyboard: clicking it lets go.
 	 */
 	private setFrozen(on: boolean): void {
+		// Letting go while drawing saves the drawing first.
+		if (!on && this.ink) {
+			void this.finishDraw(true).then(() => this.setFrozen(false));
+			return;
+		}
 		this.frozen = on;
 		this.overlay.toggleClass("is-frozen", on);
 		for (const el of Array.from(this.overlay.querySelectorAll(".atl-mark-frz"))) el.remove();
@@ -2950,8 +3127,11 @@ ${this.themeCss}`,
 		const hasWords = (text: string) => text.replace(EMBED, "").trim().length > 0;
 		const written = new Set(this.captures.filter((c) => hasWords(c.text)).map((c) => c.nodeId));
 		const spoken = new Set(this.captures.filter((c) => hasAudio(c.text)).map((c) => c.nodeId));
+		const sketches = `${normalizePath(this.sketches)}/`;
+		const hasSketch = (text: string) => Array.from(text.matchAll(EMBED)).some((m) => normalizePath(m[1].trim()).startsWith(sketches));
+		const drawn = new Set(this.captures.filter((c) => hasSketch(c.text)).map((c) => c.nodeId));
 		for (const [id, el] of this.nodeEls) {
-			const noted = written.has(id) || spoken.has(id);
+			const noted = written.has(id) || spoken.has(id) || drawn.has(id);
 			el.toggleClass("has-note", noted);
 			el.toggleClass("has-audio", spoken.has(id));
 			if (el.hasClass("atl-node-group")) continue;
@@ -2961,6 +3141,7 @@ ${this.themeCss}`,
 			// then the snowflake — which setFrozen always adds last.
 			this.placeMark(holder, "atl-mark-note", written.has(id), 0);
 			this.placeMark(holder, "atl-mark-mic", spoken.has(id), 1);
+			this.placeMark(holder, "atl-mark-sketch", drawn.has(id), 2);
 		}
 	}
 

@@ -3067,9 +3067,10 @@ textarea.atl-note-box:focus { outline: none; border-color: var(--accent, var(--i
 	-webkit-mask: var(--atl-mark-icon) center / contain no-repeat;
 	mask: var(--atl-mark-icon) center / contain no-repeat;
 }
-/* Lucide line icons: notebook-pen, mic, snowflake. */
+/* Lucide line icons: notebook-pen, mic, pen-tool (a sketch), snowflake. */
 .atl-mark-note { --atl-mark-icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M13.4 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-7.4'/%3E%3Cpath d='M2 6h4M2 10h4M2 14h4M2 18h4'/%3E%3Cpath d='M21.378 5.626a1 1 0 1 0-3.004-3.004l-5.01 5.012a2 2 0 0 0-.506.854l-.837 2.87a.5.5 0 0 0 .62.62l2.87-.837a2 2 0 0 0 .854-.506z'/%3E%3C/svg%3E"); }
 .atl-mark-mic { --atl-mark-icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z'/%3E%3Cpath d='M19 10v2a7 7 0 0 1-14 0v-2M12 19v3'/%3E%3C/svg%3E"); }
+.atl-mark-sketch { --atl-mark-icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M15.7 21.3a1 1 0 0 1-1.4 0l-1.6-1.6a1 1 0 0 1 0-1.4l5.6-5.6a1 1 0 0 1 1.4 0l1.6 1.6a1 1 0 0 1 0 1.4z'/%3E%3Cpath d='m18 13-1.4-6.9a1 1 0 0 0-.7-.8L3.2 2a1 1 0 0 0-1.2 1.2L5.4 15.9a1 1 0 0 0 .8.7L13 18M2.3 2.3l7.3 7.3'/%3E%3Ccircle cx='11' cy='11' r='2'/%3E%3C/svg%3E"); }
 .atl-mark-frz { --atl-mark-icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M2 12h20M12 2v20M20 16l-4-4 4-4M4 8l4 4-4 4M16 4l-4 4-4-4M8 20l4-4 4 4'/%3E%3C/svg%3E"); pointer-events: auto; cursor: pointer; }
 .atl-freeze-hint {
 	position: absolute;
@@ -3101,3 +3102,60 @@ textarea.atl-note-box:focus { outline: none; border-color: var(--accent, var(--i
 	background: color-mix(in srgb, var(--accent, var(--atl-accent)) 35%, transparent);
 	color: var(--ink, var(--text-normal));
 }
+
+/* D: drawing on a frozen card. The canvas lies over the card, so the ink moves
+   and scales with it; the toolbar sits on the deck, above the bottom bar. The
+   exported deck carries these rules too. */
+.atl-node .atl-ink {
+	position: absolute;
+	inset: 0;
+	width: 100%;
+	height: 100%;
+	z-index: 6;
+	cursor: crosshair;
+	touch-action: none;
+}
+.atl-ink-bar {
+	position: absolute;
+	left: 50%;
+	bottom: 64px;
+	transform: translateX(-50%);
+	z-index: 45;
+	display: flex;
+	align-items: center;
+	gap: 6px;
+	padding: 6px 8px;
+	border-radius: 999px;
+	background: var(--panel, var(--background-primary, #fff));
+	border: 1px solid var(--rule, var(--background-modifier-border, #cbd3d1));
+	box-shadow: 0 8px 24px rgb(0 0 0 / 0.18);
+	font: 600 12.5px/1 system-ui, sans-serif;
+}
+.atl-ink-bar.is-hidden { display: none; }
+.atl-ink-bar > i { width: 1px; align-self: stretch; background: var(--rule, #cbd3d1); margin: 2px 4px; }
+.atl-ink-bar button {
+	all: unset;
+	cursor: pointer;
+	border-radius: 999px;
+	color: var(--ink, var(--text-normal, #14232a));
+}
+.atl-ink-bar .atl-ink-tool {
+	width: 26px;
+	height: 26px;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+}
+.atl-ink-bar .atl-ink-tool::before {
+	content: "";
+	width: 14px;
+	height: 14px;
+	border-radius: 50%;
+	background: var(--ink, transparent);
+}
+.atl-ink-bar .atl-ink-tool[data-tool="mark"]::before { border-radius: 3px; width: 16px; height: 9px; opacity: 0.6; }
+.atl-ink-bar .atl-ink-tool[data-tool="erase"]::before { background: none; border: 2px solid currentColor; border-radius: 3px; width: 12px; height: 9px; }
+.atl-ink-bar .atl-ink-tool.is-on { box-shadow: 0 0 0 2px var(--accent, var(--atl-accent, #1d5a78)); }
+.atl-ink-bar .atl-ink-act { padding: 6px 10px; }
+.atl-ink-bar .atl-ink-act:hover { background: color-mix(in srgb, var(--accent, var(--atl-accent, #1d5a78)) 12%, transparent); }
+.atl-ink-bar .atl-ink-act.is-main { background: var(--accent, var(--atl-accent, #1d5a78)); color: #fff; }

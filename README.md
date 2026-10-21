@@ -90,6 +90,7 @@ starts at the beginning.
 | `E` | Export the deck to one standalone HTML file |
 | `F` | Fullscreen |
 | `Z` | Freeze the card on screen, so you can use what is in it: clicks are the card's and the arrows only scroll it. A snowflake under the note dot, top right, shows it; `Z`, `Esc` or clicking the mark lets go, and so does going to another card. Works in the exported HTML too, with a Freeze button on a phone |
+| `D` | Draw on the card — a full freeze, so a click is ink. Pen, red pen, highlighter, eraser; `Ctrl`+`Z` undoes a stroke. `D`, `Esc` or Save keeps it: a picture of the card with the ink goes into `Meetings/Sketches` and into the card's note, and a pen mark shows beside the card. In the exported HTML the ink is for the room only, and finishing clears it |
 | `Esc` | Close the map or the note, then leave the deck |
 
 Clicking the right two-thirds advances, the left third goes back. Clicking a
