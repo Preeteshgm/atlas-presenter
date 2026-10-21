@@ -983,7 +983,7 @@ export class Presentation extends Component {
 					this.blanked = false;
 					this.overlay.removeClass("is-blank");
 					this.markSwitches();
-				} else if (this.doc.fullscreenElement) void this.doc.exitFullscreen();
+				} else if (this.isFull()) this.exitFull();
 				else this.stop();
 			} else if (key === "m" || key === "M") {
 				handled();
@@ -1368,10 +1368,10 @@ export class Presentation extends Component {
 		// fullscreen element except that element. Fullscreen therefore has to go:
 		// it was showing the graph underneath a deck that still owned the screen,
 		// so it could be seen and not touched. It comes back on the way home.
-		this.wasFullscreen = !!this.doc.fullscreenElement;
+		this.wasFullscreen = this.isFull();
 		if (this.wasFullscreen) {
 			try {
-				await this.doc.exitFullscreen();
+				await this.exitFull();
 			} catch {
 				// Refused; the graph will open behind, and Escape still returns.
 			}
@@ -1885,15 +1885,93 @@ ${this.themeCss}`,
 		return (this.win.navigator as unknown as { keyboard?: { lock?: (keys: string[]) => Promise<void>; unlock?: () => void } }).keyboard;
 	}
 
+	/** Set while the deck fills a fullscreen window (Obsidian's own fullscreen, not the browser's). */
+	private windowFull = false;
+	/** Where the overlay lived before it was laid over the whole window. */
+	private overlayHome: { parent: HTMLElement; next: Node | null } | null = null;
+
+	/**
+	 * Obsidian's window, where there is one.
+	 *
+	 * In Obsidian the browser's fullscreen (an element filling the screen)
+	 * takes Esc for itself before any page can hear it, and the keyboard lock
+	 * that gets it back in a browser does nothing there. Fullscreening the
+	 * window instead — the way F11 does — leaves Esc alone, so the deck can
+	 * close the top layer first and leave fullscreen last.
+	 */
+	private electronWindow(): { setFullScreen(on: boolean): void; isFullScreen(): boolean } | null {
+		interface Win { setFullScreen(on: boolean): void; isFullScreen(): boolean }
+		interface Remote { BrowserWindow: { getFocusedWindow(): Win | null }; getCurrentWindow(): Win }
+		const req = (this.win as unknown as { require?: (m: string) => unknown }).require;
+		if (!req) return null;
+		let remote: Remote | undefined;
+		try {
+			remote = req("@electron/remote") as Remote;
+		} catch {
+			try {
+				remote = (req("electron") as { remote?: Remote }).remote;
+			} catch {
+				remote = undefined;
+			}
+		}
+		if (!remote) return null;
+		try {
+			return remote.BrowserWindow.getFocusedWindow() ?? remote.getCurrentWindow();
+		} catch {
+			return null;
+		}
+	}
+
+	private isFull(): boolean {
+		return this.windowFull || !!this.doc.fullscreenElement;
+	}
+
 	private enterFullscreen(): void {
+		const win = this.electronWindow();
+		if (win) {
+			// The deck over the whole window, then the window fullscreen.
+			const parent = this.overlay.parentElement;
+			if (parent && parent !== this.doc.body) {
+				this.overlayHome = { parent, next: this.overlay.nextSibling };
+				this.doc.body.appendChild(this.overlay);
+			}
+			this.overlay.addClass("is-full");
+			try {
+				win.setFullScreen(true);
+			} catch {
+				// The window would not go fullscreen; the deck still fills it.
+			}
+			this.windowFull = true;
+			this.markSwitches();
+			return;
+		}
 		void this.overlay
 			.requestFullscreen()
 			.then(() => this.keyboard()?.lock?.(["Escape"]))
 			.catch(() => undefined);
 	}
 
+	private async exitFull(): Promise<void> {
+		if (this.windowFull) {
+			this.windowFull = false;
+			try {
+				this.electronWindow()?.setFullScreen(false);
+			} catch {
+				// Already out.
+			}
+			this.overlay.removeClass("is-full");
+			if (this.overlayHome) {
+				this.overlayHome.parent.insertBefore(this.overlay, this.overlayHome.next);
+				this.overlayHome = null;
+			}
+			this.markSwitches();
+			return;
+		}
+		if (this.doc.fullscreenElement) await this.doc.exitFullscreen();
+	}
+
 	private toggleFullscreen(): void {
-		if (this.doc.fullscreenElement) void this.doc.exitFullscreen();
+		if (this.isFull()) void this.exitFull();
 		else this.enterFullscreen();
 	}
 
@@ -1902,7 +1980,7 @@ ${this.themeCss}`,
 		this.freezeBtn?.toggleClass("is-on", this.frozen);
 		this.drawBtn?.toggleClass("is-on", !!this.ink);
 		this.blankBtn?.toggleClass("is-on", this.blanked);
-		this.fullBtn?.toggleClass("is-on", !!this.doc.fullscreenElement);
+		this.fullBtn?.toggleClass("is-on", this.isFull());
 	}
 
 	/**
@@ -3417,7 +3495,7 @@ ${this.themeCss}`,
 		this.minimap?.hide();
 		this.peek?.close();
 		this.closeSite();
-		if (this.doc.fullscreenElement) void this.doc.exitFullscreen();
+		if (this.isFull()) void this.exitFull();
 		if (this.onKey) this.doc.removeEventListener("keydown", this.onKey, true);
 		if (this.onResize) this.win.removeEventListener("resize", this.onResize);
 		this.sizeWatch?.disconnect();
