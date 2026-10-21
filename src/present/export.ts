@@ -4,6 +4,7 @@ import { mimeFor } from "../media";
 import { fail, offer, say } from "../notice";
 import { Ink } from "./ink";
 import { printHtmlToPdf } from "./pdf";
+import { themedPlayers } from "./player";
 
 /**
  * Write the running deck out as one HTML file.
@@ -590,6 +591,11 @@ const RUNTIME = `
      is the deck's own drawing class, written in here as it is. The file has
      nowhere to keep the ink, so finishing — D, Esc or Done — lets it go. */
   var Ink = ${Ink.toString()};
+
+  /* The write-up's recordings, in a player of the deck's own colours rather
+     than the browser's black one. The same function the deck uses. */
+  var themedPlayers = ${themedPlayers.toString()};
+  if (writeup) themedPlayers(writeup);
   var ink = null;
   function startInk() {
     if (ink || overview) return;
@@ -2035,6 +2041,13 @@ function writeupBody(input: ExportInput): string {
 ${entries}`;
 }
 
+/** The player's rules out of the plugin's stylesheet, for a page that carries no other. */
+function playerCss(css: string): string {
+	const a = css.indexOf("/* player:start");
+	const b = css.indexOf("/* player:end */");
+	return a >= 0 && b > a ? css.slice(a, b) : "";
+}
+
 function notesPage(input: ExportInput, deckHref: string): string {
 	// The theme's tokens are declared on `.atl-overlay`; here they belong to the
 	// page itself. Re-aimed at :root, so a document gets the deck's paper, ink,
@@ -2121,6 +2134,8 @@ ${tokens}
 ${writeupBody(input)}
 <footer>Written while presenting, and read-only here. <a href="${deckHref}">Open the deck</a></footer>
 </div>
+<style>${playerCss(input.css)}</style>
+<script>(${themedPlayers.toString()})(document);</script>
 </body>
 </html>`;
 }

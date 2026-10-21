@@ -185,7 +185,7 @@ export class ReviewPanel {
 				view.setAttr("aria-label", "Click to edit");
 				view.addEventListener("click", (e) => {
 					// A player or a link inside it is for using, not editing.
-					if ((e.target as HTMLElement).closest("audio, video, a, button")) return;
+					if ((e.target as HTMLElement).closest("audio, video, a, button, .atl-player")) return;
 					view.hide();
 					box.show();
 					box.rows = Math.max(2, entry.text.split("\n").length + 1);

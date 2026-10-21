@@ -31,6 +31,7 @@ import {
 import { Slideshow } from "./slideshow";
 import { ExportInput, buildDeckHtml, exportDeck, exportPdf } from "./export";
 import { canPrintPdf } from "./pdf";
+import { themedPlayers } from "./player";
 import { DeckSnapshot, PRESENTER_VIEW, setDeck } from "./presenter";
 import { DECK_VIEW, DeckView } from "./deck-window";
 import {
@@ -2916,7 +2917,14 @@ ${this.themeCss}`,
 				this.updateHud(this.stopAt(this.index), 0);
 			},
 			onWrite: () => void this.writeUp(),
-			render: (markdown, into) => void MarkdownRenderer.render(this.app, markdown, into, this.file.path, this),
+			render: (markdown, into) => {
+				// Embeds arrive after the render resolves, so the players are
+				// themed once now and again when the media has been put in.
+				void MarkdownRenderer.render(this.app, markdown, into, this.file.path, this).then(() => {
+					themedPlayers(into);
+					window.setTimeout(() => themedPlayers(into), 400);
+				});
+			},
 		});
 		this.review.open();
 	}
