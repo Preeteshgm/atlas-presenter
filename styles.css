@@ -695,13 +695,18 @@ settings:
 .atl-hud-right {
 	display: flex;
 	align-items: center;
-	gap: 14px;
+	gap: 10px;
 }
 
 .atl-btns {
 	display: flex;
 	align-items: center;
-	gap: 2px;
+	gap: 0;
+	/* Each group is one soft segment, so the bar reads as four or five things
+	   rather than fifteen. Tinted from the bar's own ink: it follows the theme. */
+	padding: 2px;
+	border-radius: 9px;
+	background: color-mix(in srgb, var(--ink-soft, var(--text-muted)) 9%, transparent);
 }
 
 /* The HUD ignores clicks so it never eats a click-to-advance; the one control
@@ -738,9 +743,11 @@ settings:
 	display: inline-flex;
 	align-items: center;
 	justify-content: center;
-	min-width: 18px;
+	min-width: 15px;
+	height: 15px;
 	padding: 0 3px;
-	border-radius: 999px;
+	box-sizing: border-box;
+	border-radius: 4px;
 	/* Contrast that cannot be argued with.
 	   This pill used to take its background from one token and its letter from
 	   another, and a theme only has to disagree about those two for the letter
@@ -751,8 +758,9 @@ settings:
 	background: transparent;
 	color: inherit;
 	border: 1px solid currentColor;
-	opacity: 0.85;
-	font-size: 10.5px;
+	opacity: 0.8;
+	font-size: 9.5px;
+	line-height: 1;
 	font-weight: 600;
 	font-variant-numeric: tabular-nums;
 }
@@ -777,7 +785,7 @@ settings:
 /* The icon after the key. It takes the bar's own colour, so it follows the
    theme exactly as the key does. */
 .atl-btn-icon { display: inline-flex; }
-.atl-btn-icon svg { width: 15px; height: 15px; stroke-width: 2; }
+.atl-btn-icon svg { width: 14px; height: 14px; stroke-width: 2; }
 .atl-btn-count:not(:empty) {
 	font-size: 10.5px;
 	font-weight: 700;
@@ -3055,11 +3063,11 @@ textarea.atl-note-box:focus { outline: none; border-color: var(--accent, var(--i
 /* The bar over the deck is chrome, not a panel: it keeps its own unpainted
    look rather than the panel treatment above. */
 .atl-overlay.atl-overlay button.atl-map-btn {
-	padding: 3px 5px;
-	gap: 5px;
+	padding: 3px 6px;
+	gap: 4px;
 	background: transparent;
 	border-color: transparent;
-	border-radius: 999px;
+	border-radius: 7px;
 	color: var(--ink-soft, var(--text-muted));
 	font-size: 12px;
 }
