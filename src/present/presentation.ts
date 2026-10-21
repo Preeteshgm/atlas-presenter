@@ -803,6 +803,19 @@ export class Presentation extends Component {
 				}
 				return;
 			}
+			// While the session review is up, it has the keys. The deck behind it
+			// went on answering them — an arrow pressed to read further changed
+			// the slide under the panel. Up and down scroll the review instead.
+			if (this.review?.isOpen) {
+				handled();
+				const list = this.overlay.querySelector<HTMLElement>(".atl-review-panel .atl-review-list");
+				const by: Record<string, number> = { ArrowDown: 60, ArrowUp: -60, PageDown: 0.85, PageUp: -0.85, " ": 0.85 };
+				const step = by[key];
+				if (list && step !== undefined) {
+					list.scrollBy({ top: Math.abs(step) < 1 ? step * list.clientHeight : step, behavior: "smooth" });
+				}
+				return;
+			}
 
 			if (this.overviewing && (NAVIGATION.has(key) || ZOOM.has(key))) {
 				handled();
