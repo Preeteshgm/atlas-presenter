@@ -188,7 +188,7 @@ settings:
 }
 
 /* A blanked screen still shows it: the microphone is still open. */
-.atl-overlay.is-blank .atl-rec { opacity: 1; }
+.atl-overlay.is-blank .atl-rec { opacity: 1; z-index: 51; }
 
 .atl-viewport {
 	position: absolute;
@@ -2000,12 +2000,10 @@ button.atl-ref-copy {
 
 
 /* B blanks the screen: attention on the room, not the slide.
-   Every selector here needs the declaration block below it — a tidy-up
-   once deleted the block along with three of the selectors, and the list
-   ran on into the next rule, so `background: #000` landed on the viewport
-   and nothing was hidden at all: the backdrop went black and the card
-   stayed lit on top of it. */
-.atl-overlay.is-blank .atl-viewport,
+   The bar, the band and the corner logos step back; the screen itself is
+   .atl-blank, in the theme's own colours. Every selector here needs the
+   declaration block below it — a tidy-up once deleted a block along with
+   some of its selectors and the list ran on into the next rule. */
 .atl-overlay.is-blank .atl-hud,
 .atl-overlay.is-blank .atl-band,
 .atl-overlay.is-blank .atl-logos {
@@ -2013,9 +2011,90 @@ button.atl-ref-copy {
 	transition: opacity 220ms ease;
 }
 
-.atl-overlay.is-blank {
-	background: #000;
+.atl-blank {
+	position: absolute;
+	inset: 0;
+	/* Over the cards — the current one is lifted above its neighbours — and
+	   under the key card and the recording light. */
+	z-index: 50;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	cursor: pointer;
+	color: var(--ink, var(--text-normal));
+	opacity: 0;
+	visibility: hidden;
+	transition: opacity 320ms ease, visibility 0s linear 320ms;
 }
+.atl-overlay.is-blank .atl-blank {
+	opacity: 1;
+	visibility: visible;
+	transition: opacity 320ms ease;
+}
+.atl-blank-mid {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: 14px;
+	text-align: center;
+	transform: translateY(8px) scale(0.98);
+	transition: transform 420ms cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+.atl-overlay.is-blank .atl-blank-mid { transform: none; }
+.atl-blank-logos { display: flex; gap: 22px; align-items: center; }
+.atl-blank-logos img { height: 64px; width: auto; }
+.atl-blank-title {
+	font-size: clamp(24px, 3.2vw, 44px);
+	font-weight: 700;
+	letter-spacing: -0.01em;
+	line-height: 1.15;
+	max-width: 70vw;
+}
+.atl-blank-title::after {
+	content: "";
+	display: block;
+	width: 48px;
+	height: 3px;
+	margin: 16px auto 0;
+	border-radius: 2px;
+	background: var(--accent, var(--interactive-accent));
+}
+.atl-blank-line {
+	font-size: clamp(14px, 1.3vw, 18px);
+	color: var(--ink-soft, var(--text-muted));
+}
+
+/* Glass: the slide stays where it was, frosted past reading, under a wash
+   of the theme's paper with a breath of its accent. Only the mark shows —
+   the logo, or the deck's name small where there is none. */
+.atl-blank[data-mode="glass"] {
+	background:
+		radial-gradient(ellipse at 50% 45%, color-mix(in srgb, var(--accent, var(--interactive-accent)) 14%, transparent), transparent 65%),
+		color-mix(in srgb, var(--paper, var(--background-primary)) 62%, transparent);
+	backdrop-filter: blur(32px) saturate(1.25);
+}
+.atl-blank[data-mode="glass"] .atl-blank-logos img { height: 48px; opacity: 0.85; }
+.atl-blank[data-mode="glass"] .atl-blank-logos ~ .atl-blank-title,
+.atl-blank[data-mode="glass"] .atl-blank-line { display: none; }
+.atl-blank[data-mode="glass"] .atl-blank-title {
+	font-size: 13px;
+	font-weight: 600;
+	letter-spacing: 0.12em;
+	text-transform: uppercase;
+	color: var(--ink-soft, var(--text-muted));
+}
+.atl-blank[data-mode="glass"] .atl-blank-title::after { width: 28px; height: 2px; margin-top: 12px; }
+
+/* Holding: the deck's paper, its logo, its name and a line. */
+.atl-blank[data-mode="hold"] {
+	background: radial-gradient(ellipse at 50% 40%,
+		color-mix(in srgb, var(--accent, var(--interactive-accent)) 10%, var(--paper, var(--background-primary))),
+		var(--paper, var(--background-primary)) 70%);
+}
+
+/* Black, for whoever wants it. */
+.atl-blank[data-mode="black"] { background: #000; }
+.atl-blank[data-mode="black"] .atl-blank-mid { display: none; }
 
 /* --- A canvas on a canvas ----------------------------------------------- */
 

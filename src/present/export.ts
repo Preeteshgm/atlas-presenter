@@ -67,6 +67,8 @@ export interface ExportInput {
 	 * where the branding was the point.
 	 */
 	logo?: { srcs: string[]; corner: string; height: number; opacity: number };
+	/** What B shows, chosen when the deck was exported: a file has no settings. */
+	blank: { mode: string; line: string };
 	/**
 	 * The rest of the deck's branding.
 	 *
@@ -137,6 +139,18 @@ function lookAttrs(input: ExportInput): string {
 	if (k.backgroundImage) classes.push("has-image");
 	if (!k.sectionTitles) classes.push("hide-sections");
 	return `class="${classes.join(" ")}" style="${style.join(";")}"`;
+}
+
+/** The blank screen, the same one the deck shows: glass, holding or black. */
+function blankTag(input: ExportInput): string {
+	const logos = input.logo && input.logo.srcs.length > 0
+		? `<div class="atl-blank-logos">${input.logo.srcs.map((src) => `<img src="${src}">`).join("")}</div>`
+		: "";
+	const line = input.blank.line ? `<div class="atl-blank-line">${escapeHtml(input.blank.line)}</div>` : "";
+	return (
+		`<div id="blank" class="atl-blank" data-mode="${escapeHtml(input.blank.mode)}"><div class="atl-blank-mid">` +
+		`${logos}<div class="atl-blank-title">${escapeHtml(input.title)}</div>${line}</div></div>`
+	);
 }
 
 /** The logo markup, with its source inlined along with everything else. */
@@ -409,6 +423,13 @@ const RUNTIME = `
   var counter = document.getElementById('counter');
   var railfill = document.getElementById('railfill');
   var blank = document.getElementById('blank');
+  var blankPick = blank.getAttribute('data-mode');
+  function isBlank() { return view.classList.contains('is-blank'); }
+  /* B shows the chosen screen, Shift+B the other of glass and holding. */
+  function setBlank(on, other) {
+    if (on) blank.setAttribute('data-mode', other ? (blankPick === 'glass' ? 'hold' : 'glass') : blankPick);
+    view.classList.toggle('is-blank', on);
+  }
   var map = document.getElementById('map');
   var keys = document.getElementById('keys');
   var writeup = document.getElementById('writeup');
@@ -975,7 +996,7 @@ const RUNTIME = `
       e.preventDefault();
       showWriteup(true);
     }
-    else if (k === 'b' || k === 'B') { e.preventDefault(); blank.classList.toggle('on'); }
+    else if (k === 'b' || k === 'B') { e.preventDefault(); setBlank(!isBlank(), e.shiftKey); }
     else if (k === 'f' || k === 'F') {
       e.preventDefault();
       if (document.fullscreenElement) document.exitFullscreen();
@@ -992,7 +1013,7 @@ const RUNTIME = `
     else if (k === 'Escape') {
       /* The last layers: a blank screen, then fullscreen. */
       e.preventDefault();
-      if (blank.classList.contains('on')) blank.classList.remove('on');
+      if (isBlank()) setBlank(false);
       else if (document.fullscreenElement) document.exitFullscreen();
     }
   });
@@ -1028,7 +1049,7 @@ const RUNTIME = `
   view.addEventListener('pointerup', release);
   view.addEventListener('pointercancel', release);
 
-  blank.addEventListener('click', function () { blank.classList.remove('on'); });
+  blank.addEventListener('click', function (e) { e.stopPropagation(); setBlank(false); });
   keys.addEventListener('click', function () { keys.classList.remove('on'); });
   var opening = document.getElementById('opening');
   function dismissOpening() {
@@ -1441,8 +1462,9 @@ export async function buildDeckHtml(
     background: var(--wash, rgb(0 0 0 / 0.06)); border-radius: 4px; padding: 0.1em 0.35em; }
   #rail { z-index: 30; position: fixed; left: 0; right: 0; top: 0; height: 3px; background: rgb(0 0 0 / 0.08); }
   #railfill { height: 100%; width: 0; background: var(--accent, #1d5a78); transition: width 420ms ease; }
-  #blank { position: fixed; inset: 0; background: #000; display: none; z-index: 40; }
-  #blank.on { display: block; }
+  /* The blank screen lives in #view, where the theme's colours are; what sits
+     outside it steps back while it is up. */
+  #view.is-blank ~ #bar, #view.is-blank ~ #rail, #view.is-blank ~ #hint, #view.is-blank ~ #opening { visibility: hidden; }
   /* The map carries .atl-minimap, so the plugin's own stylesheet — which
      travels with this file — draws it exactly as the deck does. Only the
      stacking is stated here, because .atl-minimap is positioned inside the
@@ -1579,11 +1601,10 @@ ${input.css}
 <body>
 <div id="view" ${lookAttrs(input)}><div id="stage" class="atl-stage"></div>${logoTag(input)}<div id="writeup"${
 	input.notes.length > 0 ? "" : " hidden"
-}><div id="writeup-page">${input.notes.length > 0 ? writeupBody(input) : ""}</div></div></div>
+}><div id="writeup-page">${input.notes.length > 0 ? writeupBody(input) : ""}</div></div>${blankTag(input)}</div>
 <div id="hint"><span class="kbd-only">Drag or scroll &middot; Ctrl+wheel or +/&minus; to zoom &middot; 0 shows all &middot; click a card to go there &middot; Esc</span><span class="touch-only">Drag to move &middot; pinch to zoom &middot; tap a card to go there</span></div>
 <div id="opening"><span class="kbd-only">Arrow keys to move &middot; <b>O</b> the overview &middot; <b>M</b> the map &middot; <b>?</b> all the keys</span><span class="touch-only">Swipe, or tap either side, to move &middot; <b>Overview</b> and <b>Map</b> below</span></div>
 <div id="rail"><div id="railfill"></div></div>
-<div id="blank"></div>
 <div id="map" class="atl-minimap atl-overlay"><div class="atl-minimap-hint">Click a card to fly to it &middot; M or Esc to close</div></div>
 <div id="bar"><span>${input.title}${
 	input.notes.length > 0 ? ` <button type="button" id="notes" title="The write-up, over the deck">N Notes</button>` : ""
@@ -1599,7 +1620,7 @@ ${input.css}
 <tr><td>M</td><td>The map — the same thing as a diagram</td></tr>
 <tr><td>Z</td><td>Freeze the card, so you can use what is in it — Z again, Esc or its mark lets go</td></tr>
 <tr><td>D</td><td>Draw on the card, for the room: P pen · H highlighter · A arrow · R box · O ellipse · T text · E eraser · 1–6 colours · [ ] size · Ctrl+Z undo · D, Esc or ✓ clears it</td></tr>
-<tr><td>B</td><td>Blank the screen</td></tr>
+<tr><td>B</td><td>Blank the screen &middot; Shift+B the other screen</td></tr>
 <tr><td>F</td><td>Fullscreen</td></tr>
 <tr><td>Ctrl+P</td><td>Print, or save as PDF — one card to a page</td></tr>
 <tr><td>N</td><td>The write-up, over the deck — Esc or N closes it</td></tr>

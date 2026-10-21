@@ -77,6 +77,8 @@ export type TimerMode = "off" | "elapsed" | "clock" | "both";
 /** Where a question may be answered — and whether notes may leave this machine. */
 export type AskWhere = "local" | "local-first" | "cloud-first";
 export type Corner = "top-left" | "top-right" | "bottom-left" | "bottom-right";
+/** What B lays over the deck: the slide under frosted glass, a holding screen, or black. */
+export type BlankScreen = "glass" | "hold" | "black";
 
 export interface AtlasSettings {
 	// --- movement ---
@@ -119,6 +121,10 @@ export interface AtlasSettings {
 	logoCorner: Corner;
 	logoHeight: number;
 	logoOpacity: number;
+	/** What B shows. Shift+B shows the other of glass and the holding screen. */
+	blankScreen: BlankScreen;
+	/** The line under the deck's name on the holding screen. Empty for none. */
+	blankLine: string;
 
 	// --- chrome ---
 	browser: BrowserMode;
@@ -240,6 +246,8 @@ export const DEFAULT_SETTINGS: AtlasSettings = {
 	logoCorner: "top-right",
 	logoHeight: 40,
 	logoOpacity: 0.9,
+	blankScreen: "glass",
+	blankLine: "Back in a moment",
 
 	browser: "obsidian",
 	themeCss: "",

@@ -305,6 +305,8 @@ export class Presentation extends Component {
 		if (m.logo) next.logo = m.logo;
 		if (m.logocorner) next.logoCorner = m.logocorner as AtlasSettings["logoCorner"];
 		if (m.logoheight) next.logoHeight = num(m.logoheight, base.logoHeight);
+		if (m.blank && /^(glass|hold|black)$/.test(m.blank)) next.blankScreen = m.blank as AtlasSettings["blankScreen"];
+		if (m.blankline !== undefined) next.blankLine = m.blankline;
 		if (m.accent) next.accent = m.accent;
 		if (m.background) next.background = m.background as AtlasSettings["background"];
 		if (m.colour) {
@@ -482,6 +484,8 @@ export class Presentation extends Component {
 			this.nextEl = band.createDiv({ cls: "atl-next" });
 		}
 
+		this.buildBlank();
+
 		this.hud = this.overlay.createDiv({ cls: "atl-hud" });
 		this.hud.toggleClass("is-hidden", !this.settings.showHud);
 		this.hud.createDiv({ cls: "atl-crumbs" });
@@ -535,11 +539,7 @@ export class Presentation extends Component {
 			if (this.ink) void this.finishDraw(true);
 			else this.startDraw();
 		});
-		this.blankBtn = button(show, "square", "B", "Blank the screen", () => {
-			this.blanked = !this.blanked;
-			this.overlay.toggleClass("is-blank", this.blanked);
-			this.markSwitches();
-		});
+		this.blankBtn = button(show, "square", "B", "Blank the screen · Shift+B the other screen", () => this.setBlank(!this.blanked));
 		this.fullBtn = button(show, "maximize", "F", "Fullscreen", () => this.toggleFullscreen());
 		button(show, "presentation", "P", "The presenter panel", () => void this.openPresenter());
 		this.registerDomEvent(this.doc, "fullscreenchange", () => {
@@ -982,11 +982,8 @@ export class Presentation extends Component {
 				// box, the panels, the key card, drawing, freeze, the overview.
 				// What is left goes in this order, and only then does Esc leave.
 				if (this.minimap.isOpen) this.minimap.hide();
-				else if (this.blanked) {
-					this.blanked = false;
-					this.overlay.removeClass("is-blank");
-					this.markSwitches();
-				} else if (this.isFull()) this.exitFull();
+				else if (this.blanked) this.setBlank(false);
+				else if (this.isFull()) this.exitFull();
 				else this.stop();
 			} else if (key === "m" || key === "M") {
 				handled();
@@ -1018,9 +1015,7 @@ export class Presentation extends Component {
 				void this.enterSubdeck();
 			} else if (key === "b" || key === "B") {
 				handled();
-				this.blanked = !this.blanked;
-				this.overlay.toggleClass("is-blank", this.blanked);
-				this.markSwitches();
+				this.setBlank(!this.blanked, e.shiftKey);
 			} else if (key === "n" || key === "N") {
 				handled();
 				this.captureNote();
@@ -1509,6 +1504,7 @@ export class Presentation extends Component {
 
 		return {
 			title: this.file.basename,
+			blank: { mode: this.settings.blankScreen, line: this.settings.blankLine.trim() },
 			stage: this.stage,
 			css: `${pluginCss}
 ${this.themeCss}`,
@@ -1984,6 +1980,48 @@ ${this.themeCss}`,
 	}
 
 	/** Light the bar's switches that are on. */
+	/** The screen B lays over the deck, built once and shown or hidden. */
+	private blankEl: HTMLElement | null = null;
+
+	/**
+	 * The blank screen.
+	 *
+	 * Black read as a fault — or as something being hidden — so the default
+	 * is the slide under frosted glass in the theme's own colours: plainly a
+	 * pause, and nothing on the card can be read through it. The holding
+	 * screen is the deck's logo and name on its paper, for a longer break.
+	 */
+	private buildBlank(): void {
+		const s = this.settings;
+		const el = this.overlay.createDiv({ cls: "atl-blank" });
+		el.dataset.mode = s.blankScreen;
+		el.addEventListener("click", (e) => {
+			e.stopPropagation();
+			this.setBlank(false);
+		});
+		const mid = el.createDiv({ cls: "atl-blank-mid" });
+		const logos = s.logo
+			.split(",")
+			.map((p) => p.trim())
+			.filter(Boolean);
+		if (logos.length > 0) {
+			const row = mid.createDiv({ cls: "atl-blank-logos" });
+			for (const path of logos) row.createEl("img").src = resourcePath(this.app, path);
+		}
+		mid.createDiv({ cls: "atl-blank-title", text: this.file.basename });
+		if (s.blankLine.trim()) mid.createDiv({ cls: "atl-blank-line", text: s.blankLine.trim() });
+		this.blankEl = el;
+	}
+
+	/** B shows the chosen screen; Shift+B the other of glass and holding. */
+	private setBlank(on: boolean, other = false): void {
+		const pick = this.settings.blankScreen;
+		if (on && this.blankEl) this.blankEl.dataset.mode = other ? (pick === "glass" ? "hold" : "glass") : pick;
+		this.blanked = on;
+		this.overlay.toggleClass("is-blank", on);
+		this.markSwitches();
+	}
+
 	private markSwitches(): void {
 		this.freezeBtn?.toggleClass("is-on", this.frozen);
 		this.drawBtn?.toggleClass("is-on", !!this.ink);
@@ -2025,7 +2063,7 @@ ${this.themeCss}`,
 			["Moving", "", [["Right Space", "arrow-right", "Reveal, then the next card"], ["Left", "arrow-left", "Back"], ["Home End", "move-horizontal", "First and last card"],
 				["Enter", "corner-down-right", "Into the sub-deck on this card"], ["Backspace", "undo-2", "Back out of a sub-deck"]]],
 			["Looking", "", [["O", "layout-grid", "The overview"], ["M", "map", "The map"], ["G", "network", "Every note in the vault"]]],
-			["Presenting", "", [["Z", "snowflake", "Freeze the card, to use what is in it"], ["D", "pen-tool", "Draw on the card"], ["B", "square", "Blank the screen"],
+			["Presenting", "", [["Z", "snowflake", "Freeze the card, to use what is in it"], ["D", "pen-tool", "Draw on the card"], ["B", "square", "Blank the screen · ⇧B the other one"],
 				["F", "maximize", "Fullscreen"], ["P", "presentation", "The presenter panel"]]],
 			["Capturing", "", [["N", "notebook-pen", "A remark on this card"], ["R", "mic", "Speak a note on this card"], ["⇧R", "circle-dot", "Record the whole meeting"],
 				["A", "sparkles", "Ask your notes"]]],

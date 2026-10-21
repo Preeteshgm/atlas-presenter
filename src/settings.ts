@@ -15,6 +15,7 @@ import { findServer, isLocal, models } from "./ask";
 import {
 	AskWhere,
 	BackgroundMode,
+	BlankScreen,
 	BrowserMode,
 	Corner,
 	FitMode,
@@ -516,6 +517,37 @@ export class AtlasSettingTab extends PluginSettingTab {
 		}
 
 		new Setting(containerEl).setName("On screen").setHeading();
+
+		new Setting(containerEl)
+			.setName("Blank screen")
+			.setDesc(
+				"What B lays over the deck. Glass blurs the slide behind a wash in the " +
+					"theme's own colours, so the room sees a pause rather than a fault; the " +
+					"holding screen shows the logo, the deck's name and the line below. " +
+					"Shift+B shows the other of the two."
+			)
+			.addDropdown((c) =>
+				c
+					.addOptions({ glass: "Frosted glass", hold: "Holding screen", black: "Black" })
+					.setValue(s.blankScreen)
+					.onChange(async (v) => {
+						s.blankScreen = v as BlankScreen;
+						await this.save();
+					})
+			);
+
+		new Setting(containerEl)
+			.setName("Holding screen line")
+			.setDesc("Under the deck's name on the holding screen. Leave blank for none.")
+			.addText((c) =>
+				c
+					.setPlaceholder("Back in a moment")
+					.setValue(s.blankLine)
+					.onChange(async (v) => {
+						s.blankLine = v;
+						await this.save();
+					})
+			);
 
 		new Setting(containerEl)
 			.setName("Show the bottom bar")

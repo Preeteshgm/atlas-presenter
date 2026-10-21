@@ -79,7 +79,7 @@ starts at the beginning.
 | `Backspace` | Return from a jump, or one level out of a peeked note |
 | **`O`** | The overview — drag or scroll around the deck, `Ctrl`+wheel or `+`/`−` to zoom, `0` shows all, click a card to go there |
 | `Home` `End` | First and last card |
-| `B` | Blank the screen — attention on the room, not the slide |
+| `B` | Blank the screen — the slide under frosted glass in the theme's colours (or a holding screen, or black: Settings → Blank screen, or `blank:` on the #deck card). `Shift+B` shows the other screen |
 | `N` | Note against the card on screen — the cursor goes to the presenter panel's box |
 | `R` | Speak that note instead. Press again to stop; it lands on the same card |
 | `A` | Ask your notes a question, over the deck |
