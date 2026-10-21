@@ -958,6 +958,11 @@ const RUNTIME = `
 
   document.addEventListener('keydown', function (e) {
     if (ink && ink.board.key(e)) { e.preventDefault(); return; }
+    if ((e.ctrlKey || e.metaKey) && (e.key === 'p' || e.key === 'P') && framed) {
+      e.preventDefault();
+      if (!e.repeat) printDeck();
+      return;
+    }
     if (e.ctrlKey || e.metaKey || e.altKey) return;
     var k = e.key;
     /* The write-up is read, so arrows and Page keys scroll it; only Escape and
@@ -1041,11 +1046,15 @@ const RUNTIME = `
     }
   });
 
-  /* The preview pane holds this file in a sandboxed frame, so it cannot reach
-     in and call print(). It can send a message, and this answers it. */
-  addEventListener('message', function (e) {
-    if (e.data === 'atlas:print') window.print();
-  });
+  /* Print. In a browser, the browser's own dialog. Inside Obsidian's preview
+     the file sits in a sandbox that may not open one — print() there does
+     nothing at all — so it asks the preview, which saves the PDF instead. */
+  var framed = false;
+  try { framed = window.parent !== window; } catch (e) { framed = true; }
+  function printDeck() {
+    if (framed) parent.postMessage('atlas:pdf', '*');
+    else window.print();
+  }
 
   /* Dragging the map. A few pixels is a click on a card; more is a pan, and the
      click that follows a pan must not also choose. */
@@ -1097,7 +1106,7 @@ const RUNTIME = `
     d: function () { if (ink) stopInk(); else startInk(); },
     b: function () { setBlank(!isBlank()); },
     f: toggleFull,
-    p: function () { window.print(); }
+    p: function () { printDeck(); }
   };
   bar.addEventListener('click', function (e) {
     var b = e.target.closest ? e.target.closest('button[data-act]') : null;
@@ -1342,14 +1351,9 @@ function printPages(clone: HTMLElement, stops: ExportInput["stops"]): string {
 		// there at once: a reveal is invisible until something shows it, and a
 		// slide show would print its first frame and lose the rest.
 		for (const s of Array.from(page.querySelectorAll(".atl-step"))) s.addClass("is-shown");
-		// Every printed card sits in one document, so radios that share a name
-		// across cards — two HTML cards that both call their page switch "md" —
-		// become one group, only one can stay checked, and every other card
-		// prints the page its switch no longer points at: nothing. On screen
-		// each card has its own shadow root and never met the others.
-		for (const r of Array.from(page.querySelectorAll<HTMLInputElement>("input[type=radio][name]"))) {
-			r.setAttribute("name", `p${pages.length}-${r.getAttribute("name") ?? ""}`);
-		}
+		// A picture told to load lazily never loads on a page nobody scrolls
+		// to — and the print pages are hidden until the moment of printing.
+		for (const img of Array.from(page.querySelectorAll("img"))) img.removeAttribute("loading");
 		for (const show of Array.from(page.querySelectorAll<HTMLElement>(".atl-slideshow"))) {
 			const frames = Array.from(show.querySelectorAll<HTMLElement>(".atl-frame-item"));
 			for (const f of frames) f.addClass("is-current");
@@ -1358,6 +1362,24 @@ function printPages(clone: HTMLElement, stops: ExportInput["stops"]): string {
 		// The number a printed deck is referred to by. A section overview carries
 		// none: it is the same view as the cards under it.
 		const n = stop.order ? ` data-n="${stop.order}"` : "";
+		// An HTML card prints in a shadow root of its own, as it shows on
+		// screen. Flattened onto the page, every card's stylesheet applied to
+		// every other card — one card's .row or .bar reshaped the next — and
+		// radios that share a name across cards became one group, so all but
+		// one card printed a page its switch no longer pointed at. The shadow
+		// is built from a template when the file loads, by the same script that
+		// builds the screen's. The style first: animations end before they
+		// start, because paper is drawn at the first frame and a card that
+		// fades in would print faded out.
+		for (const host of Array.from(page.querySelectorAll<HTMLElement>(".atl-was-shadow"))) {
+			const tpl = host.ownerDocument.createElement("template");
+			tpl.className = "card-shadow";
+			const still = host.ownerDocument.createElement("style");
+			still.textContent = "*,*::before,*::after{animation-duration:0s!important;animation-delay:0s!important;transition:none!important}";
+			tpl.content.appendChild(still);
+			while (host.firstChild) tpl.content.appendChild(host.firstChild);
+			host.appendChild(tpl);
+		}
 		const fit = `width:${Math.round(stop.width * k)}px;height:${Math.round(stop.height * k)}px`;
 		pages.push(`<div class="page"${n}><div class="pfit" style="${fit}">${page.outerHTML}</div></div>`);
 	}
@@ -1617,6 +1639,10 @@ export async function buildDeckHtml(
        inside. Every animation on paper is over before it starts. */
     #print *, #print *::before, #print *::after { animation-duration: 0s !important;
       animation-delay: 0s !important; transition: none !important; }
+    /* The cards' own colours print whether or not "Background graphics" is
+       ticked — off by default, it drew every bar, chip and fill as an empty
+       outline. Inherited, so it reaches inside the HTML cards' shadow roots. */
+    #print { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
     /* The card number, where a printed deck is read from: bottom right, on
        every page that is a card. */
     .page[data-n]::after {
@@ -1732,14 +1758,10 @@ __SCRIPTS__
 </html>`;
 
 	// Read before the stage is serialised: it strips the attribute it reads.
-	// Taken while the cards are still flattened: a template's content is invisible
-	// to querySelectorAll, and paper has no shadow roots to give them back. The
-	// `:host` rules are re-aimed at the host itself so a printed HTML card keeps
-	// the look it had on screen.
-	const printHtml = printPages(clone, input.stops.filter((s) => !s.label)).replace(
-		/:host\b/g,
-		".atl-body"
-	);
+	// Taken while the cards are still flattened, because a template's content is
+	// invisible to querySelectorAll; each printed HTML card is then parked in a
+	// template of its own and gets its shadow root back when the file loads.
+	const printHtml = printPages(clone, input.stops.filter((s) => !s.label));
 	const scripts = input.allowScripts ? cardScripts(clone) : "";
 	const shadows = wrapShadows(clone);
 	const stageHtml = clone.innerHTML;

@@ -66,9 +66,10 @@ export class PreviewView extends ItemView {
 		act("Present", () => this.present());
 		act("Open in browser", () => void this.exportAnd(true));
 		act("Export", () => void this.exportAnd(false));
-		// The iframe is sandboxed without same-origin, so its window cannot be
-		// reached from here — but it can be spoken to, and its runtime answers.
-		act("Print / PDF", () => this.frame.contentWindow?.postMessage("atlas:print", "*"));
+		// The iframe's sandbox will not open a print dialog, so print() from
+		// in there did nothing. The PDF is written here instead, the same pages
+		// the file prints; the deck's own Ctrl+P and printer button ask for it.
+		act("Save as PDF", () => void this.savePdf());
 		act("⧉  New window", () => this.popOut());
 
 		this.status = bar.createDiv({ cls: "atl-preview-status" });
@@ -80,6 +81,20 @@ export class PreviewView extends ItemView {
 		this.frame.setAttribute("allow", "fullscreen");
 
 		this.say("Open a canvas and press Refresh.");
+
+		// Only from this frame, and only this one word: the deck asks, and the
+		// pane decides what that means.
+		this.registerDomEvent(window, "message", (e: MessageEvent) => {
+			if (e.source === this.frame.contentWindow && e.data === "atlas:pdf") void this.savePdf();
+		});
+	}
+
+	/** The deck as a PDF beside its export, from the tab reviewing it. */
+	private async savePdf(): Promise<void> {
+		await this.withDeck("Saving a PDF", async (deck) => {
+			const path = await deck.exportToPdf();
+			this.say(path ? `Saved ${path}` : "Could not save the PDF.");
+		});
 	}
 
 	/** Point the preview at a canvas and build it. */
