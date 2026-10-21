@@ -3375,3 +3375,5 @@ textarea.atl-note-box:focus { outline: none; border-color: var(--accent, var(--i
 	height: auto !important;
 	z-index: 2000;
 }
+
+.atl-stage:focus { outline: none; }

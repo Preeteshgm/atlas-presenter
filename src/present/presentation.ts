@@ -450,6 +450,9 @@ export class Presentation extends Component {
 		this.applyTheme();
 		const viewport = this.overlay.createDiv({ cls: "atl-viewport" });
 		this.stage = viewport.createDiv({ cls: "atl-stage" });
+		// Focusable, so the deck can take the keyboard back — from a note editor
+		// behind it, say — without a ring being drawn round the plane.
+		this.stage.tabIndex = -1;
 		this.camera = new Camera(this.stage, viewport, {
 			padding: this.settings.padding,
 			maxScale: this.settings.maxScale,
@@ -1943,6 +1946,10 @@ ${this.themeCss}`,
 			}
 			this.windowFull = true;
 			this.markSwitches();
+			// Moving the deck takes the keyboard focus with it, and Obsidian may
+			// hand it to the note editor behind — where the deck rightly ignores
+			// keys. Take it back, so every key still reaches the deck.
+			this.stage.focus({ preventScroll: true });
 			return;
 		}
 		void this.overlay
@@ -1965,6 +1972,7 @@ ${this.themeCss}`,
 				this.overlayHome = null;
 			}
 			this.markSwitches();
+			this.stage.focus({ preventScroll: true });
 			return;
 		}
 		if (this.doc.fullscreenElement) await this.doc.exitFullscreen();
