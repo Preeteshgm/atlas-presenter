@@ -565,7 +565,7 @@ export class Presentation extends Component {
 		// The one thing on this bar that leaves the vault.
 		button(end, "download", "E", "Export this deck to a folder you can send", () => void this.exportToHtml());
 		const help = right.createDiv({ cls: "atl-btns" });
-		button(help, "keyboard", "?", "Every key this deck answers to", () => this.toggleKeys());
+		button(help, "keyboard", "H", "Every key this deck answers to", () => this.toggleKeys());
 
 		if (this.settings.timer !== "off") {
 			this.timerEl = right.createDiv({ cls: "atl-timer" });
@@ -936,7 +936,7 @@ export class Presentation extends Component {
 				this.startDraw();
 				return;
 			}
-			if (key === "?" || (this.keysEl && key === "Escape")) {
+			if (key === "?" || key === "h" || key === "H" || (this.keysEl && key === "Escape")) {
 				handled();
 				this.toggleKeys();
 				return;
@@ -1906,8 +1906,10 @@ ${this.themeCss}`,
 	}
 
 	/**
-	 * The key card: every key the deck answers to, over the deck. The exported
-	 * file has always had one; the deck itself now does too.
+	 * The key card (H): every key the deck answers to, on a panel over the
+	 * deck, each with the icon the bar uses for it — so the card teaches the
+	 * bar too. Drawing has its own section, because while D is on the letters
+	 * mean tools; and the order Esc closes things in is written out.
 	 */
 	private toggleKeys(): void {
 		if (this.keysEl) {
@@ -1915,31 +1917,57 @@ ${this.themeCss}`,
 			this.keysEl = null;
 			return;
 		}
-		const card = this.overlay.createDiv({ cls: "atl-keys" });
-		card.addEventListener("click", (e) => {
+		const shade = this.overlay.createDiv({ cls: "atl-keys" });
+		shade.addEventListener("click", (e) => {
 			e.stopPropagation();
 			this.toggleKeys();
 		});
-		const groups: [string, [string, string][]][] = [
-			["Moving", [["→  Space", "Reveal, then the next card"], ["←", "Back"], ["Home  End", "First and last card"], ["Enter", "Into the sub-deck on this card"]]],
-			["Looking", [["O", "The overview"], ["M", "The map"], ["G", "Every note in the vault"]]],
-			["Presenting", [["Z", "Freeze the card, to use what is in it"], ["D", "Draw on it · P pen · H highlighter · A arrow · R box · O ellipse · T text · E eraser · 1–6 colours"],
-				["B", "Blank the screen"], ["F", "Fullscreen"], ["P", "The presenter panel"]]],
-			["Capturing", [["N", "A remark on this card"], ["R", "Speak a note"], ["⇧R", "Record the whole meeting"], ["A", "Ask your notes"]]],
-			["Finishing", [["W", "Write the session up"], ["E", "Export the deck"], ["Esc", "Close what is open, then leave the deck"]]],
+		const card = shade.createDiv({ cls: "atl-keys-card" });
+		card.addEventListener("click", (e) => e.stopPropagation());
+		const head = card.createDiv({ cls: "atl-keys-head" });
+		head.createDiv({ cls: "atl-keys-h", text: "Keys" });
+		head.createDiv({ cls: "atl-keys-sub", text: "Every key the deck answers to · the bar at the bottom has the same icons" });
+		const close = head.createEl("button", { cls: "atl-keys-x", attr: { "aria-label": "Close · H" } });
+		setIcon(close, "x");
+		close.addEventListener("click", (e) => {
+			e.stopPropagation();
+			this.toggleKeys();
+		});
+
+		type Row = [string, string, string];
+		const groups: [string, string, Row[]][] = [
+			["Moving", "", [["Right Space", "arrow-right", "Reveal, then the next card"], ["Left", "arrow-left", "Back"], ["Home End", "move-horizontal", "First and last card"],
+				["Enter", "corner-down-right", "Into the sub-deck on this card"], ["Backspace", "undo-2", "Back out of a sub-deck"]]],
+			["Looking", "", [["O", "layout-grid", "The overview"], ["M", "map", "The map"], ["G", "network", "Every note in the vault"]]],
+			["Presenting", "", [["Z", "snowflake", "Freeze the card, to use what is in it"], ["D", "pen-tool", "Draw on the card"], ["B", "square", "Blank the screen"],
+				["F", "maximize", "Fullscreen"], ["P", "presentation", "The presenter panel"]]],
+			["Capturing", "", [["N", "notebook-pen", "A remark on this card"], ["R", "mic", "Speak a note on this card"], ["⇧R", "circle-dot", "Record the whole meeting"],
+				["A", "sparkles", "Ask your notes"]]],
+			["Finishing", "", [["W", "file-text", "Write the session up"], ["E", "download", "Export the deck"], ["H", "keyboard", "This list"]]],
+			["Drawing", "while D is on", [["P", "pen", "Pen"], ["H", "highlighter", "Highlighter"], ["A", "arrow-up-right", "Arrow"], ["R", "square", "Box"],
+				["O", "circle", "Ellipse"], ["T", "type", "Text"], ["E", "eraser", "Eraser"], ["1–6", "palette", "Colours, red and blue first"],
+				["[ ]", "move-diagonal", "Thinner, thicker · or Ctrl+scroll"], ["Shift", "ruler", "Arrow at 45°, box square"],
+				["Ctrl+Z", "undo-2", "Undo · Ctrl+Shift+Z redo"], ["D Esc", "check", "Save it to the card's note"]]],
 		];
 		const grid = card.createDiv({ cls: "atl-keys-grid" });
-		for (const [title, rows] of groups) {
-			const col = grid.createDiv({ cls: "atl-keys-col" });
-			col.createDiv({ cls: "atl-keys-title", text: title });
-			for (const [k, what] of rows) {
+		for (const [title, note, rows] of groups) {
+			const col = grid.createDiv({ cls: `atl-keys-col${title === "Drawing" ? " is-draw" : ""}` });
+			const t = col.createDiv({ cls: "atl-keys-title", text: title });
+			if (note) t.createSpan({ cls: "atl-keys-note", text: ` · ${note}` });
+			for (const [k, icon, what] of rows) {
 				const row = col.createDiv({ cls: "atl-keys-row" });
 				row.createSpan({ cls: "atl-btn-key", text: k });
-				row.createSpan({ text: what });
+				setIcon(row.createSpan({ cls: "atl-keys-icon" }), icon);
+				row.createSpan({ cls: "atl-keys-what", text: what });
 			}
 		}
-		card.createDiv({ cls: "atl-keys-hint", text: "? or Esc closes this" });
-		this.keysEl = card;
+		const esc = card.createDiv({ cls: "atl-keys-esc" });
+		esc.createSpan({ cls: "atl-btn-key", text: "Esc" });
+		esc.createSpan({
+			text: "One layer at a time, the top first: a note or panel → drawing (saved) → freeze → overview → map → blank screen → fullscreen → then it leaves the deck. Holding Esc leaves fullscreen at once.",
+		});
+		card.createDiv({ cls: "atl-keys-hint", text: "H, ? or Esc closes this" });
+		this.keysEl = shade;
 	}
 	/** The pip in the corner, present only while something is recording. */
 	private recEl: HTMLElement | null = null;

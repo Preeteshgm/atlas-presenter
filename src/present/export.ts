@@ -1592,18 +1592,19 @@ ${input.css}
 <div id="turn">Turn your phone sideways to see the whole slide</div>
 <div id="keys"><table>
 <caption>Navigating this deck</caption>
-<tr><td>→  Space</td><td>Reveal, then the pictures, then the next card</td></tr>
-<tr><td>←</td><td>Back, the same way</td></tr>
+<tr><td>Right  Space</td><td>Reveal, then the pictures, then the next card</td></tr>
+<tr><td>Left</td><td>Back, the same way</td></tr>
+<tr><td>Home  End</td><td>First and last card</td></tr>
 <tr><td>O</td><td>The overview — the whole deck, click a card to go to it</td></tr>
 <tr><td>M</td><td>The map — the same thing as a diagram</td></tr>
-<tr><td>Home  End</td><td>First and last card</td></tr>
+<tr><td>Z</td><td>Freeze the card, so you can use what is in it — Z again, Esc or its mark lets go</td></tr>
+<tr><td>D</td><td>Draw on the card, for the room: P pen · H highlighter · A arrow · R box · O ellipse · T text · E eraser · 1–6 colours · [ ] size · Ctrl+Z undo · D, Esc or ✓ clears it</td></tr>
 <tr><td>B</td><td>Blank the screen</td></tr>
 <tr><td>F</td><td>Fullscreen</td></tr>
-<tr><td>Z</td><td>Freeze the card, so you can use what is in it &mdash; Z again, Esc or its mark lets go</td></tr>
-<tr><td>D</td><td>Draw on the card, for the room &mdash; P pen · H highlighter · A arrow · R box · O ellipse · T text · E eraser · 1&ndash;6 colours · Ctrl+Z undo · D, Esc or Done clears it</td></tr>
 <tr><td>Ctrl+P</td><td>Print, or save as PDF — one card to a page</td></tr>
-<tr><td>N</td><td>The write-up, over the deck &mdash; Esc or N closes it</td></tr>
-<tr><td>?</td><td>Close this</td></tr>
+<tr><td>N</td><td>The write-up, over the deck — Esc or N closes it</td></tr>
+<tr><td>Esc</td><td>One layer at a time, the top first: drawing → freeze → map → blank → fullscreen</td></tr>
+<tr><td>H  ?</td><td>Close this</td></tr>
 </table></div>
 <div id="print" class="atl-overlay">__PRINT__</div>
 <script>
