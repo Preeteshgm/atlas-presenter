@@ -3215,12 +3215,22 @@ textarea.atl-note-box:focus { outline: none; border-color: var(--accent, var(--i
 	gap: 8px;
 	transform: translateY(-100%);
 	--atl-mark-ink: color-mix(in srgb, var(--accent, var(--atl-accent, #1d5a78)) 55%, var(--ink-soft, var(--text-muted, #8a99a0)));
-	opacity: var(--atl-inactive);
-	transition: opacity 320ms ease;
+	/* Only the card on screen shows its marks. Marks sit just outside the
+	   card, in the gap before its neighbour, so a faint one on the last card
+	   read as belonging to the next. The overview shows them all, which is
+	   where you look for the cards that carry something. */
+	opacity: 0;
+	visibility: hidden;
+	transition: opacity 320ms ease, visibility 0s linear 320ms;
 	pointer-events: none;
 	z-index: 2;
 }
-.atl-node.is-active + .atl-marks { opacity: 1; }
+.atl-node.is-active + .atl-marks,
+.atl-overlay.is-overview .atl-marks {
+	opacity: 1;
+	visibility: visible;
+	transition: opacity 320ms ease;
+}
 .atl-mark {
 	width: 18px;
 	height: 18px;
