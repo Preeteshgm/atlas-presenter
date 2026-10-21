@@ -2164,11 +2164,6 @@ button.atl-ref-copy {
 }
 /* --- Reviewing a session before it becomes a note ----------------------- */
 
-.atl-review-modal {
-	width: min(860px, 92vw);
-	max-height: 86vh;
-}
-
 .atl-review {
 	display: flex;
 	flex-direction: column;

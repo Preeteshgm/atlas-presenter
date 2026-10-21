@@ -977,13 +977,16 @@ export class Presentation extends Component {
 
 			if (key === "Escape") {
 				handled();
+				// A held Esc repeats, and each repeat would take off another layer
+				// until the deck itself closed. One press, one layer.
+				if (e.repeat) return;
 				// Esc takes off one layer at a time, the top one first. Everything
 				// drawn over the deck has already had its turn above — the note
 				// box, the panels, the key card, drawing, freeze, the overview.
 				// What is left goes in this order, and only then does Esc leave.
 				if (this.minimap.isOpen) this.minimap.hide();
 				else if (this.blanked) this.setBlank(false);
-				else if (this.isFull()) this.exitFull();
+				else if (this.isFull()) void this.exitFull();
 				else this.stop();
 			} else if (key === "m" || key === "M") {
 				handled();
@@ -1898,8 +1901,8 @@ ${this.themeCss}`,
 	 * window instead — the way F11 does — leaves Esc alone, so the deck can
 	 * close the top layer first and leave fullscreen last.
 	 */
-	private electronWindow(): { setFullScreen(on: boolean): void; isFullScreen(): boolean } | null {
-		interface Win { setFullScreen(on: boolean): void; isFullScreen(): boolean }
+	private electronWindow(): { setFullScreen(on: boolean): void } | null {
+		interface Win { setFullScreen(on: boolean): void }
 		interface Remote { BrowserWindow: { getFocusedWindow(): Win | null }; getCurrentWindow(): Win }
 		const req = (this.win as unknown as { require?: (m: string) => unknown }).require;
 		if (!req) return null;
@@ -1979,7 +1982,6 @@ ${this.themeCss}`,
 		else this.enterFullscreen();
 	}
 
-	/** Light the bar's switches that are on. */
 	/** The screen B lays over the deck, built once and shown or hidden. */
 	private blankEl: HTMLElement | null = null;
 
@@ -2022,6 +2024,7 @@ ${this.themeCss}`,
 		this.markSwitches();
 	}
 
+	/** Light the bar's switches that are on. */
 	private markSwitches(): void {
 		this.freezeBtn?.toggleClass("is-on", this.frozen);
 		this.drawBtn?.toggleClass("is-on", !!this.ink);
@@ -2088,7 +2091,7 @@ ${this.themeCss}`,
 		const esc = card.createDiv({ cls: "atl-keys-esc" });
 		esc.createSpan({ cls: "atl-btn-key", text: "Esc" });
 		esc.createSpan({
-			text: "One layer at a time, the top first: a note or panel → drawing (saved) → freeze → overview → map → blank screen → fullscreen → then it leaves the deck. Holding Esc leaves fullscreen at once.",
+			text: "One layer at a time, the top first: a note or panel → drawing (saved) → freeze → overview → map → blank screen → fullscreen → then it leaves the deck. Holding it down still takes off only one.",
 		});
 		card.createDiv({ cls: "atl-keys-hint", text: "H, ? or Esc closes this" });
 		this.keysEl = shade;

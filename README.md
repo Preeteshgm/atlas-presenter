@@ -92,7 +92,7 @@ starts at the beginning.
 | `Z` | Freeze the card on screen, so you can use what is in it: clicks are the card's and the arrows only scroll it. A snowflake under the note dot, top right, shows it; `Z`, `Esc` or clicking the mark lets go, and so does going to another card. Works in the exported HTML too, with a Freeze button on a phone |
 | `D` | Draw on the card — a full freeze, so a click is ink. Icons only, names on hover: pen `P`, highlighter `H`, arrow `A`, box `R`, ellipse `O`, text `T`, eraser `E`; six colours `1`–`6` (red and blue first) and any other from +; three sizes; `Shift` keeps an arrow at 45° and a box square; `Ctrl`+`Z` / `Ctrl`+`Shift`+`Z` undo and redo. `D`, `Esc` or ✓ keeps it: a picture of the card with the ink goes into `Meetings/Sketches` and into the card's note, and a pen mark shows beside the card. In the exported HTML the ink is for the room only, and finishing clears it |
 | `H` or `?` | Every key the deck answers to, each with the icon the bar uses, on one card |
-| `Esc` | One layer at a time, the top first: a note or panel, drawing (saved), freeze, overview, map, blank screen, fullscreen — then it leaves the deck. In fullscreen the deck keeps Esc for this; holding Esc still leaves fullscreen at once |
+| `Esc` | One layer at a time, the top first: a note or panel, drawing (saved), freeze, overview, map, blank screen, fullscreen — then it leaves the deck. In fullscreen the deck keeps Esc for this, and holding Esc down still takes off only one layer, so a long press never ends the talk |
 
 Clicking the right two-thirds advances, the left third goes back. Clicking a
 control inside a card never advances the slide.
