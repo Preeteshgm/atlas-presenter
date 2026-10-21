@@ -1494,6 +1494,13 @@ export async function buildDeckHtml(
 <style>
   html, body { margin: 0; height: 100%; overflow: hidden;
     font-family: -apple-system, "Segoe UI", system-ui, sans-serif; }
+  /* Obsidian's own rule, which every card was laid out under. Without it the
+     export measured padding outside the box: a card's panes grew by their
+     padding — the title card's logo was pushed off its right edge — and a
+     section card's words, set at the foot of a box now taller than the card,
+     printed below the edge where nobody could see them. Shadow roots keep
+     their own, exactly as they do in Obsidian. */
+  *, *::before, *::after { box-sizing: border-box; }
   /* #view carries .atl-overlay so the theme's tokens reach the cards, and that
      class brings z-index:100 with it — which put the slide above the map and
      the blanking layer. An id beats a class, so the stack is stated here. */
