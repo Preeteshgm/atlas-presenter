@@ -2942,7 +2942,11 @@ ${this.themeCss}`,
 		// clip is found by its embed. Testing the whole text against the audio
 		// extensions never matched: the text ends with the embed's `]]`.
 		const EMBED = /!\[\[([^\]|#]+)[^\]]*\]\]/g;
-		const hasAudio = (text: string) => Array.from(text.matchAll(EMBED)).some((m) => AUDIO_EXT.test(m[1].trim()));
+		// The recorder writes .webm, which counts as video by extension, so a
+		// clip is an audio file or anything in the recordings folder.
+		const clips = `${normalizePath(this.recordings)}/`;
+		const isClip = (path: string) => AUDIO_EXT.test(path) || normalizePath(path).startsWith(clips);
+		const hasAudio = (text: string) => Array.from(text.matchAll(EMBED)).some((m) => isClip(m[1].trim()));
 		const hasWords = (text: string) => text.replace(EMBED, "").trim().length > 0;
 		const written = new Set(this.captures.filter((c) => hasWords(c.text)).map((c) => c.nodeId));
 		const spoken = new Set(this.captures.filter((c) => hasAudio(c.text)).map((c) => c.nodeId));
