@@ -695,13 +695,13 @@ settings:
 .atl-hud-right {
 	display: flex;
 	align-items: center;
-	gap: 18px;
+	gap: 14px;
 }
 
 .atl-btns {
 	display: flex;
 	align-items: center;
-	gap: 5px;
+	gap: 2px;
 }
 
 /* The HUD ignores clicks so it never eats a click-to-advance; the one control
@@ -738,8 +738,8 @@ settings:
 	display: inline-flex;
 	align-items: center;
 	justify-content: center;
-	min-width: 20px;
-	padding: 0 4px;
+	min-width: 18px;
+	padding: 0 3px;
 	border-radius: 999px;
 	/* Contrast that cannot be argued with.
 	   This pill used to take its background from one token and its letter from
@@ -774,13 +774,48 @@ settings:
 	color: #fff;
 }
 
-/* A narrow screen keeps the keys and drops the words, which is the half that
-   still works: by then you know what N does. */
-@media (max-width: 1100px) {
-	.atl-btn-text { display: none; }
-	.atl-overlay button.atl-map-btn { padding: 3px 5px; }
-	.atl-hud-right { gap: 12px; }
+/* The icon after the key. It takes the bar's own colour, so it follows the
+   theme exactly as the key does. */
+.atl-btn-icon { display: inline-flex; }
+.atl-btn-icon svg { width: 15px; height: 15px; stroke-width: 2; }
+.atl-btn-count:not(:empty) {
+	font-size: 10.5px;
+	font-weight: 700;
+	color: var(--accent, var(--atl-accent));
+	margin-left: -2px;
 }
+
+/* A switch that is on — freeze, draw, blank, fullscreen — wears the accent. */
+.atl-overlay.atl-overlay button.atl-map-btn.is-on {
+	color: var(--accent, var(--atl-accent));
+	border-color: color-mix(in srgb, var(--accent, var(--atl-accent)) 55%, transparent);
+	background: color-mix(in srgb, var(--accent, var(--atl-accent)) 12%, transparent);
+}
+
+@media (max-width: 1100px) {
+	.atl-overlay button.atl-map-btn { padding: 3px 4px; gap: 4px; }
+	.atl-hud-right { gap: 10px; }
+}
+
+/* ? — every key the deck answers to, over the deck, in its own colours. */
+.atl-keys {
+	position: absolute;
+	inset: 0;
+	z-index: 60;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	gap: 14px;
+	background: color-mix(in srgb, var(--paper, var(--background-primary)) 88%, transparent);
+	color: var(--ink, var(--text-normal));
+	cursor: pointer;
+}
+.atl-keys-grid { display: grid; grid-template-columns: repeat(5, minmax(150px, 230px)); gap: 26px; }
+.atl-keys-title { font-size: 11px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink-soft, var(--text-muted)); margin-bottom: 8px; }
+.atl-keys-row { display: flex; align-items: flex-start; gap: 8px; font-size: 12.5px; line-height: 1.4; margin-bottom: 7px; }
+.atl-keys-row .atl-btn-key { flex: none; }
+.atl-keys-hint { font-size: 12px; color: var(--ink-soft, var(--text-muted)); }
 
 /* --- Ask your notes ------------------------------------------------------
    A question answered from your own notes. The sources are part of the
@@ -3020,7 +3055,8 @@ textarea.atl-note-box:focus { outline: none; border-color: var(--accent, var(--i
 /* The bar over the deck is chrome, not a panel: it keeps its own unpainted
    look rather than the panel treatment above. */
 .atl-overlay.atl-overlay button.atl-map-btn {
-	padding: 3px 6px;
+	padding: 3px 5px;
+	gap: 5px;
 	background: transparent;
 	border-color: transparent;
 	border-radius: 999px;

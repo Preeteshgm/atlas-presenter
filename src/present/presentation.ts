@@ -6,6 +6,7 @@ import {
 	TFolder,
 	WorkspaceLeaf,
 	normalizePath,
+	setIcon,
 } from "obsidian";
 import { isElement } from "../dom";
 import { AtlasSettings, CanvasNode, Rect, Scene, Stop } from "../types";
@@ -485,24 +486,28 @@ export class Presentation extends Component {
 		const right = this.hud.createDiv({ cls: "atl-hud-right" });
 
 		/**
-		 * One button on the bar.
+		 * One button on the bar: its key in a ring, then its icon, and its name
+		 * on hover.
 		 *
-		 * A key nobody can guess needs a control they can see, and there are now
-		 * six of them — so they are grouped by what they are for rather than
-		 * lined up as one undifferentiated row: look at the deck, put something
-		 * into it, finish with it.
+		 * The key leads, because in a talk it is the key you use. The words went
+		 * once the bar had to hold every key the deck answers to — fourteen of
+		 * them do not fit as words, and an icon says the same thing in less.
+		 * They are grouped by when you reach for them: look at the deck,
+		 * present it, put something into it, finish with it.
 		 */
 		const button = (
 			into: HTMLElement,
-			text: string,
+			icon: string,
 			key: string,
 			label: string,
 			onClick: () => void
 		): HTMLButtonElement => {
 			const btn = into.createEl("button", { cls: "atl-map-btn" });
+			btn.dataset.key = key;
 			btn.createSpan({ cls: "atl-btn-key", text: key });
-			btn.createSpan({ cls: "atl-btn-text", text });
-			btn.setAttribute("aria-label", `${label} (${key})`);
+			setIcon(btn.createSpan({ cls: "atl-btn-icon" }), icon);
+			btn.setAttribute("aria-label", `${label} · ${key}`);
+			btn.setAttribute("title", `${label} · ${key}`);
 			btn.addEventListener("click", (e) => {
 				e.stopPropagation();
 				onClick();
@@ -512,22 +517,40 @@ export class Presentation extends Component {
 
 		// Looking at the deck.
 		const look = right.createDiv({ cls: "atl-btns" });
-		button(look, "Map", "M", "Open the map", () => this.minimap.toggle());
-		button(look, "Notes", "G", "Browse every note in the vault", () => {
+		button(look, "layout-grid", "O", "The overview", () => this.toggleOverview());
+		button(look, "map", "M", "The map", () => this.minimap.toggle());
+		button(look, "network", "G", "Every note in the vault", () => {
 			if (this.settings.browser === "obsidian") void this.openVaultGraph();
 			else this.browser.toggle();
 		});
 
+		// Presenting it. Freeze, draw, blank and fullscreen are switches, and
+		// the bar shows which are on.
+		const show = right.createDiv({ cls: "atl-btns" });
+		this.freezeBtn = button(show, "snowflake", "Z", "Freeze the card, to use what is in it", () => this.setFrozen(!this.frozen));
+		this.drawBtn = button(show, "pen-tool", "D", "Draw on the card", () => {
+			if (this.ink) void this.finishDraw(true);
+			else this.startDraw();
+		});
+		this.blankBtn = button(show, "square", "B", "Blank the screen", () => {
+			this.blanked = !this.blanked;
+			this.overlay.toggleClass("is-blank", this.blanked);
+			this.markSwitches();
+		});
+		this.fullBtn = button(show, "maximize", "F", "Fullscreen", () => {
+			if (this.doc.fullscreenElement) void this.doc.exitFullscreen();
+			else void this.overlay.requestFullscreen().catch(() => undefined);
+		});
+		button(show, "presentation", "P", "The presenter panel", () => void this.openPresenter());
+		this.registerDomEvent(this.doc, "fullscreenchange", () => this.markSwitches());
+
 		// Putting something into it. Grouped because in a meeting these three
 		// are the ones you reach for without looking.
 		const take = right.createDiv({ cls: "atl-btns" });
-		button(take, "Remark", "N", "Note something against this card", () =>
-			this.captureNote()
-		);
-		button(take, "Speak", "R", "Speak a note against this card", () =>
-			void this.dictateNote()
-		);
-		this.recordBtn = button(take, "Record", "⇧R", "Record the whole meeting", () =>
+		const remark = button(take, "notebook-pen", "N", "Note something against this card", () => this.captureNote());
+		remark.createSpan({ cls: "atl-btn-count" });
+		button(take, "mic", "R", "Speak a note against this card", () => void this.dictateNote());
+		this.recordBtn = button(take, "circle-dot", "⇧R", "Record the whole meeting", () =>
 			void this.toggleSessionRecording()
 		);
 
@@ -536,16 +559,13 @@ export class Presentation extends Component {
 		// Only when there is a model to ask. Everything else on this bar works
 		// for everyone; this one would not.
 		if (hasModel(this.settings)) {
-			button(end, "Ask", "A", "Ask your notes a question", () => this.askNotes());
+			button(end, "sparkles", "A", "Ask your notes a question", () => this.askNotes());
 		}
-		button(end, "Write up", "W", "Write the session up as a note", () =>
-			this.reviewSession()
-		);
-		// E has always done this; nothing said so, which is the same as not
-		// having it. The one thing on this bar that leaves the vault.
-		button(end, "Export", "E", "Export this deck to a folder you can send", () =>
-			void this.exportToHtml()
-		);
+		button(end, "file-text", "W", "Write the session up as a note", () => this.reviewSession());
+		// The one thing on this bar that leaves the vault.
+		button(end, "download", "E", "Export this deck to a folder you can send", () => void this.exportToHtml());
+		const help = right.createDiv({ cls: "atl-btns" });
+		button(help, "keyboard", "?", "Every key this deck answers to", () => this.toggleKeys());
 
 		if (this.settings.timer !== "off") {
 			this.timerEl = right.createDiv({ cls: "atl-timer" });
@@ -916,6 +936,11 @@ export class Presentation extends Component {
 				this.startDraw();
 				return;
 			}
+			if (key === "?" || (this.keysEl && key === "Escape")) {
+				handled();
+				this.toggleKeys();
+				return;
+			}
 			if (key === "z" || key === "Z") {
 				handled();
 				this.setFrozen(!this.frozen);
@@ -983,6 +1008,7 @@ export class Presentation extends Component {
 				handled();
 				this.blanked = !this.blanked;
 				this.overlay.toggleClass("is-blank", this.blanked);
+				this.markSwitches();
 			} else if (key === "n" || key === "N") {
 				handled();
 				this.captureNote();
@@ -1830,6 +1856,57 @@ ${this.themeCss}`,
 	private recorder: Recorder | null = null;
 	/** The Record button, so it can show that it is on. */
 	private recordBtn: HTMLButtonElement | null = null;
+	/** The bar's switches, lit while they are on. */
+	private freezeBtn: HTMLButtonElement | null = null;
+	private drawBtn: HTMLButtonElement | null = null;
+	private blankBtn: HTMLButtonElement | null = null;
+	private fullBtn: HTMLButtonElement | null = null;
+	private keysEl: HTMLElement | null = null;
+
+	/** Light the bar's switches that are on. */
+	private markSwitches(): void {
+		this.freezeBtn?.toggleClass("is-on", this.frozen);
+		this.drawBtn?.toggleClass("is-on", !!this.ink);
+		this.blankBtn?.toggleClass("is-on", this.blanked);
+		this.fullBtn?.toggleClass("is-on", !!this.doc.fullscreenElement);
+	}
+
+	/**
+	 * The key card: every key the deck answers to, over the deck. The exported
+	 * file has always had one; the deck itself now does too.
+	 */
+	private toggleKeys(): void {
+		if (this.keysEl) {
+			this.keysEl.remove();
+			this.keysEl = null;
+			return;
+		}
+		const card = this.overlay.createDiv({ cls: "atl-keys" });
+		card.addEventListener("click", (e) => {
+			e.stopPropagation();
+			this.toggleKeys();
+		});
+		const groups: [string, [string, string][]][] = [
+			["Moving", [["→  Space", "Reveal, then the next card"], ["←", "Back"], ["Home  End", "First and last card"], ["Enter", "Into the sub-deck on this card"]]],
+			["Looking", [["O", "The overview"], ["M", "The map"], ["G", "Every note in the vault"]]],
+			["Presenting", [["Z", "Freeze the card, to use what is in it"], ["D", "Draw on it · P pen · H highlighter · A arrow · R box · O ellipse · T text · E eraser · 1–6 colours"],
+				["B", "Blank the screen"], ["F", "Fullscreen"], ["P", "The presenter panel"]]],
+			["Capturing", [["N", "A remark on this card"], ["R", "Speak a note"], ["⇧R", "Record the whole meeting"], ["A", "Ask your notes"]]],
+			["Finishing", [["W", "Write the session up"], ["E", "Export the deck"], ["Esc", "Close what is open, then leave the deck"]]],
+		];
+		const grid = card.createDiv({ cls: "atl-keys-grid" });
+		for (const [title, rows] of groups) {
+			const col = grid.createDiv({ cls: "atl-keys-col" });
+			col.createDiv({ cls: "atl-keys-title", text: title });
+			for (const [k, what] of rows) {
+				const row = col.createDiv({ cls: "atl-keys-row" });
+				row.createSpan({ cls: "atl-btn-key", text: k });
+				row.createSpan({ text: what });
+			}
+		}
+		card.createDiv({ cls: "atl-keys-hint", text: "? or Esc closes this" });
+		this.keysEl = card;
+	}
 	/** The pip in the corner, present only while something is recording. */
 	private recEl: HTMLElement | null = null;
 	private recTimer = 0;
@@ -1853,6 +1930,7 @@ ${this.themeCss}`,
 		const accent = this.win.getComputedStyle(this.overlay).getPropertyValue("--accent").trim() || "#1d5a78";
 		this.ink = new Ink(card, this.overlay, { accent, saves: true, onDone: (keep) => void this.finishDraw(keep) });
 		this.overlay.addClass("is-drawing");
+		this.markSwitches();
 		this.freezeHint("Drawing · D or Esc saves it to the card's note");
 	}
 
@@ -1862,6 +1940,7 @@ ${this.themeCss}`,
 		if (!ink) return;
 		this.ink = null;
 		this.overlay.removeClass("is-drawing");
+		this.markSwitches();
 		const unfreeze = this.inkFroze;
 		this.inkFroze = false;
 		if (keep && ink.hasInk) await this.saveInk(ink, false);
@@ -3077,6 +3156,7 @@ ${this.themeCss}`,
 			return;
 		}
 		this.frozen = on;
+		this.markSwitches();
 		this.overlay.toggleClass("is-frozen", on);
 		for (const el of Array.from(this.overlay.querySelectorAll(".atl-mark-frz"))) el.remove();
 		if (!on) return;
@@ -3174,7 +3254,7 @@ ${this.themeCss}`,
 
 		const remark = this.hud.querySelector<HTMLElement>(".atl-map-btn[data-key='N']");
 		if (remark) {
-			remark.setText(this.captures.length ? `Remark ${this.captures.length}` : "Remark");
+			remark.querySelector(".atl-btn-count")?.setText(this.captures.length ? String(this.captures.length) : "");
 			remark.toggleClass("has-note", this.captures.some((c) => c.nodeId === stop.node.id));
 		}
 		this.markNotedCards();
