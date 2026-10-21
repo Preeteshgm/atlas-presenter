@@ -1587,7 +1587,7 @@ ${input.css}
 <div id="map" class="atl-minimap atl-overlay"><div class="atl-minimap-hint">Click a card to fly to it &middot; M or Esc to close</div></div>
 <div id="bar"><span>${input.title}${
 	input.notes.length > 0 ? ` <button type="button" id="notes" title="The write-up, over the deck">N Notes</button>` : ""
-}</span><span id="counter"></span><span><button type="button" id="help" title="Every key this deck answers to">? Navigate</button></span></div>
+}</span><span id="counter"></span><span><button type="button" id="help" title="Every key this deck answers to · H">H Keys</button></span></div>
 <div id="touch"><button type="button" id="t-prev" aria-label="Previous">&lsaquo;</button><button type="button" id="t-over">Overview</button><button type="button" id="t-map">Map</button><button type="button" id="t-frz" aria-pressed="false">Freeze</button><button type="button" id="t-drw">Draw</button><button type="button" id="t-next" aria-label="Next">&rsaquo;</button></div>
 <div id="turn">Turn your phone sideways to see the whole slide</div>
 <div id="keys"><table>

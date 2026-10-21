@@ -860,6 +860,7 @@ settings:
 .atl-keys-note { text-transform: none; letter-spacing: 0; font-weight: 500; color: var(--ink-soft, var(--text-muted)); }
 .atl-keys-row { display: grid; grid-template-columns: 76px 20px 1fr; align-items: center; gap: 8px; padding: 4px 0; line-height: 1.35; }
 .atl-keys-row .atl-btn-key { justify-self: start; height: 18px; padding: 0 5px; font-size: 10px; }
+.atl-keys-what { min-width: 0; }
 .atl-keys-icon { display: inline-flex; color: var(--ink-soft, var(--text-muted)); }
 .atl-keys-icon svg { width: 15px; height: 15px; }
 .atl-keys-esc { display: flex; align-items: flex-start; gap: 10px; margin-top: 16px; padding: 10px 12px; border-radius: 10px;
