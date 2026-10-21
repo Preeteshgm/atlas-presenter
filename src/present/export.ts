@@ -979,7 +979,21 @@ const RUNTIME = `
     else if (k === 'f' || k === 'F') {
       e.preventDefault();
       if (document.fullscreenElement) document.exitFullscreen();
-      else document.documentElement.requestFullscreen();
+      else {
+        /* In fullscreen the browser takes Esc for itself; the keyboard lock
+           hands it back, so Esc closes what is open first and leaves
+           fullscreen last. Holding Esc still leaves at once. */
+        var p = document.documentElement.requestFullscreen();
+        if (p && p.then) p.then(function () {
+          if (navigator.keyboard && navigator.keyboard.lock) navigator.keyboard.lock(['Escape']).catch(function () {});
+        }).catch(function () {});
+      }
+    }
+    else if (k === 'Escape') {
+      /* The last layers: a blank screen, then fullscreen. */
+      e.preventDefault();
+      if (blank.classList.contains('on')) blank.classList.remove('on');
+      else if (document.fullscreenElement) document.exitFullscreen();
     }
   });
 

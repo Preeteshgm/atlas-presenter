@@ -537,12 +537,12 @@ export class Presentation extends Component {
 			this.overlay.toggleClass("is-blank", this.blanked);
 			this.markSwitches();
 		});
-		this.fullBtn = button(show, "maximize", "F", "Fullscreen", () => {
-			if (this.doc.fullscreenElement) void this.doc.exitFullscreen();
-			else void this.overlay.requestFullscreen().catch(() => undefined);
-		});
+		this.fullBtn = button(show, "maximize", "F", "Fullscreen", () => this.toggleFullscreen());
 		button(show, "presentation", "P", "The presenter panel", () => void this.openPresenter());
-		this.registerDomEvent(this.doc, "fullscreenchange", () => this.markSwitches());
+		this.registerDomEvent(this.doc, "fullscreenchange", () => {
+			if (!this.doc.fullscreenElement) this.keyboard()?.unlock?.();
+			this.markSwitches();
+		});
 
 		// Putting something into it. Grouped because in a meeting these three
 		// are the ones you reach for without looking.
@@ -974,7 +974,16 @@ export class Presentation extends Component {
 
 			if (key === "Escape") {
 				handled();
+				// Esc takes off one layer at a time, the top one first. Everything
+				// drawn over the deck has already had its turn above — the note
+				// box, the panels, the key card, drawing, freeze, the overview.
+				// What is left goes in this order, and only then does Esc leave.
 				if (this.minimap.isOpen) this.minimap.hide();
+				else if (this.blanked) {
+					this.blanked = false;
+					this.overlay.removeClass("is-blank");
+					this.markSwitches();
+				} else if (this.doc.fullscreenElement) void this.doc.exitFullscreen();
 				else this.stop();
 			} else if (key === "m" || key === "M") {
 				handled();
@@ -1032,8 +1041,7 @@ export class Presentation extends Component {
 				void this.exportToHtml();
 			} else if (key === "f" || key === "F") {
 				handled();
-				if (this.doc.fullscreenElement) void this.doc.exitFullscreen();
-				else void this.overlay.requestFullscreen().catch(() => undefined);
+				this.toggleFullscreen();
 			}
 		};
 		// Capture phase, so Obsidian's own hotkeys do not steal the arrow keys.
@@ -1429,7 +1437,7 @@ export class Presentation extends Component {
 		// back. Anything else is a change you did not ask for, mid-talk.
 		if (this.wasFullscreen && !keepLeaf) {
 			this.wasFullscreen = false;
-			void this.overlay?.requestFullscreen().catch(() => undefined);
+			this.enterFullscreen();
 		}
 	}
 
@@ -1862,6 +1870,32 @@ ${this.themeCss}`,
 	private blankBtn: HTMLButtonElement | null = null;
 	private fullBtn: HTMLButtonElement | null = null;
 	private keysEl: HTMLElement | null = null;
+
+	/**
+	 * Fullscreen, with Esc kept for the deck.
+	 *
+	 * In fullscreen the browser takes Esc for itself and leaves fullscreen
+	 * before the deck hears it — so Esc meant to close a note dropped you out
+	 * of fullscreen instead. The keyboard lock hands Esc back to the deck: it
+	 * closes what is open, top layer first, and leaves fullscreen last. Holding
+	 * Esc still leaves fullscreen at once; the browser keeps that way out, and
+	 * says so. Where there is no keyboard lock, nothing changes.
+	 */
+	private keyboard(): { lock?: (keys: string[]) => Promise<void>; unlock?: () => void } | undefined {
+		return (this.win.navigator as unknown as { keyboard?: { lock?: (keys: string[]) => Promise<void>; unlock?: () => void } }).keyboard;
+	}
+
+	private enterFullscreen(): void {
+		void this.overlay
+			.requestFullscreen()
+			.then(() => this.keyboard()?.lock?.(["Escape"]))
+			.catch(() => undefined);
+	}
+
+	private toggleFullscreen(): void {
+		if (this.doc.fullscreenElement) void this.doc.exitFullscreen();
+		else this.enterFullscreen();
+	}
 
 	/** Light the bar's switches that are on. */
 	private markSwitches(): void {
