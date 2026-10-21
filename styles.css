@@ -2763,7 +2763,38 @@ textarea.atl-note-box:focus { outline: none; border-color: var(--accent, var(--i
 	box-shadow: 0 24px 80px rgb(0 0 0 / 0.45);
 }
 
-.atl-review-panel { padding: 20px 22px 16px; }
+.atl-review-panel {
+	padding: 20px 22px 16px;
+	/* Solid, in the theme's own paper. A theme's paper is often glass —
+	   translucent by design — and the card under the panel showed through it,
+	   its words mixed in with the ones being read. The paper's colour with its
+	   transparency taken out, over a blur of the card for any theme that
+	   leaves the paper unset. */
+	background: var(--paper, var(--background-primary));
+	background: rgb(from var(--paper, var(--background-primary)) r g b / 0.97);
+	backdrop-filter: blur(18px);
+	color: var(--ink, var(--text-normal));
+}
+.atl-review-panel .atl-review-card { color: var(--ink, var(--text-normal)); }
+.atl-review-panel .atl-review-section { color: var(--accent, var(--atl-accent)); }
+.atl-review-panel .atl-review-sub { color: var(--ink-soft, var(--text-muted)); }
+
+/* A remark as the note will show it. Click it to edit. */
+.atl-review-view {
+	padding: 8px 10px;
+	border-radius: 8px;
+	border: 1px solid var(--rule, var(--background-modifier-border));
+	cursor: text;
+	font-size: 14px;
+	line-height: 1.55;
+	color: var(--ink, var(--text-normal));
+}
+.atl-review-view:hover { border-color: color-mix(in srgb, var(--accent, var(--atl-accent)) 55%, transparent); }
+.atl-review-view > :first-child { margin-top: 0; }
+.atl-review-view > :last-child { margin-bottom: 0; }
+.atl-review-view img { max-height: 240px; width: auto; max-width: 100%; border-radius: 6px; }
+.atl-review-view audio { width: min(100%, 420px); }
+.atl-review-view video { max-height: 240px; max-width: 100%; }
 
 .atl-review-head { flex: 0 0 auto; margin-bottom: 10px; }
 

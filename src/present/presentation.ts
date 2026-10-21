@@ -1,6 +1,7 @@
 import {
 	App,
 	Component,
+	MarkdownRenderer,
 	Notice,
 	TFile,
 	TFolder,
@@ -2915,6 +2916,7 @@ ${this.themeCss}`,
 				this.updateHud(this.stopAt(this.index), 0);
 			},
 			onWrite: () => void this.writeUp(),
+			render: (markdown, into) => void MarkdownRenderer.render(this.app, markdown, into, this.file.path, this),
 		});
 		this.review.open();
 	}

@@ -76,6 +76,12 @@ interface ReviewOptions {
 	entries: ReviewEntry[];
 	onEdit: (nodeId: string, text: string) => void;
 	onWrite: () => void;
+	/**
+	 * Draw a remark as the note will show it — a sketch as a picture, a
+	 * recording as a player. Obsidian's renderer, handed in, so this file
+	 * stays free of it. Without one, remarks show as text.
+	 */
+	render?: (markdown: string, into: HTMLElement) => void;
 }
 
 /**
@@ -158,6 +164,36 @@ export class ReviewPanel {
 				this.options.onEdit(entry.nodeId, box.value.trim());
 				this.paintActions();
 			});
+			// Shown as the note will show it: a sketch is a picture and a
+			// recording plays, where an edit box could only print its path.
+			// Click it to edit, as text; leave the box and it is drawn again.
+			const render = this.options.render;
+			if (render) {
+				const view = createDiv({ cls: "atl-review-view markdown-rendered" });
+				block.insertBefore(view, box);
+				const show = () => {
+					view.empty();
+					if (!entry.text.trim()) {
+						view.hide();
+						box.show();
+						return;
+					}
+					render(entry.text, view);
+					view.show();
+					box.hide();
+				};
+				view.setAttr("aria-label", "Click to edit");
+				view.addEventListener("click", (e) => {
+					// A player or a link inside it is for using, not editing.
+					if ((e.target as HTMLElement).closest("audio, video, a, button")) return;
+					view.hide();
+					box.show();
+					box.rows = Math.max(2, entry.text.split("\n").length + 1);
+					box.focus();
+				});
+				box.addEventListener("blur", show);
+				show();
+			}
 		}
 
 		const foot = root.createDiv({ cls: "atl-review-foot" });

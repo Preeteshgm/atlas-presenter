@@ -117,6 +117,11 @@ export interface ExportInput {
 	 * exported with the setting on.
 	 */
 	notes: { title: string; text: string }[];
+	/**
+	 * What each `![[…]]` in the write-up becomes, filled in while the deck is
+	 * built: a picture inside the file, a recording as a player beside it.
+	 */
+	noteMedia?: Map<string, string>;
 }
 
 /** A sound or a film, copied beside the deck rather than into it. */
@@ -292,6 +297,67 @@ async function inlineMedia(
 		el.setAttribute("src", `./${encodeURIComponent(held.name)}`);
 	}
 	return inlined;
+}
+
+/** `![[Meetings/Sketches/x.png]]` and `![[x.webm|300]]`: the link, without its size. */
+const EMBED = /!\[\[([^\]|#]+)(?:#[^\]|]*)?(?:\|[^\]]*)?\]\]/g;
+const PICTURE_EXT = new Set(["png", "jpg", "jpeg", "gif", "webp", "svg", "bmp", "avif"]);
+const SOUND_EXT = new Set(["webm", "mp3", "m4a", "wav", "ogg", "oga", "flac", "aac", "opus"]);
+const FILM_EXT = new Set(["mp4", "mov", "mkv", "ogv"]);
+
+/**
+ * The write-up's own media, the way the cards' media already travels.
+ *
+ * A remark is markdown, so a sketch or a recording is an `![[…]]` line, and the
+ * write-up printed it as that: a path in brackets where the picture should be.
+ * Pictures go inside the file; recordings join the deck's carried files and
+ * are played from beside it. A recording called .webm is a sound unless it
+ * says otherwise: that is what the deck records.
+ */
+async function noteMediaFor(app: App, notes: ExportInput["notes"], carried: Carried[]): Promise<Map<string, string>> {
+	const out = new Map<string, string>();
+	const taken = new Set(carried.map((c) => c.name.toLowerCase()));
+	for (const note of notes) {
+		for (const m of note.text.matchAll(EMBED)) {
+			const link = m[1].trim();
+			if (out.has(link)) continue;
+			const file = app.metadataCache.getFirstLinkpathDest(link, "");
+			if (!file) {
+				out.set(link, `<p class="wu-missing">${escapeHtml(link.split("/").pop() ?? link)} — not in the vault</p>`);
+				continue;
+			}
+			const ext = file.extension.toLowerCase();
+			if (PICTURE_EXT.has(ext)) {
+				try {
+					const data = await app.vault.readBinary(file);
+					out.set(link, `<figure class="wu-pic"><img src="data:${mimeFor(ext)};base64,${base64(data)}" alt="${escapeHtml(file.basename)}"></figure>`);
+				} catch {
+					out.set(link, `<p class="wu-missing">${escapeHtml(file.name)} — could not be read</p>`);
+				}
+				continue;
+			}
+			if (SOUND_EXT.has(ext) || FILM_EXT.has(ext)) {
+				let held = carried.find((c) => c.file.path === file.path);
+				if (!held) {
+					let name = file.name;
+					for (let n = 2; taken.has(name.toLowerCase()); n++) name = `${file.basename} ${n}.${file.extension}`;
+					taken.add(name.toLowerCase());
+					held = { file, name };
+					carried.push(held);
+				}
+				const src = `./${encodeURIComponent(held.name)}`;
+				const tag = FILM_EXT.has(ext) ? "video" : "audio";
+				// A player says so when the file is not beside it, rather than
+				// sitting there as a control that does nothing.
+				out.set(link, `<figure class="wu-media"><${tag} controls preload="metadata" src="${src}" ` +
+					`onerror="this.parentNode.classList.add('is-missing')"></${tag}>` +
+					`<figcaption>${escapeHtml(file.basename)}<span> — not found beside this file; send the folder</span></figcaption></figure>`);
+				continue;
+			}
+			out.set(link, `<p class="wu-file">${escapeHtml(file.name)}</p>`);
+		}
+	}
+	return out;
 }
 
 /** The vault file a resource path points at. */
@@ -1466,11 +1532,12 @@ function reveal(
 export async function buildDeckHtml(
 	app: App,
 	input: ExportInput
-): Promise<{ html: string; inlined: number; carried: Carried[] }> {
+): Promise<{ html: string; inlined: number; carried: Carried[]; noteMedia: Map<string, string> }> {
 	const clone = input.stage.cloneNode(true) as HTMLElement;
 	flattenShadows(input.stage, clone);
 	const carried: Carried[] = [];
 	const inlined = await inlineMedia(app, clone, carried);
+	input = { ...input, noteMedia: await noteMediaFor(app, input.notes, carried) };
 
 	// The logo is written into the template rather than cloned, so it misses
 	// the pass above and has to be inlined on its own.
@@ -1563,6 +1630,17 @@ export async function buildDeckHtml(
     font-size: 2em; line-height: 1.1; margin: 0 0 6px; }
   #writeup-page .when { color: var(--ink-soft, #4e5f66); font-size: 0.9em; }
   #writeup-page .wu-entry { margin: 0 0 26px; }
+  /* The write-up's sketches and recordings, as themselves. */
+  #writeup-page .wu-pic, #writeup-page .wu-media { margin: 6px 0 14px; }
+  #writeup-page .wu-pic img { display: block; max-width: 100%; max-height: 420px; border-radius: 8px;
+    border: 1px solid var(--rule, #d7dbd7); background: #fff; }
+  #writeup-page .wu-media audio { width: min(100%, 420px); display: block; }
+  #writeup-page .wu-media video { max-width: 100%; max-height: 420px; border-radius: 8px; display: block; }
+  #writeup-page .wu-media figcaption { font-size: 12px; color: var(--ink-soft, #6b7a80); margin-top: 3px; }
+  #writeup-page .wu-media figcaption span { display: none; }
+  #writeup-page .wu-media.is-missing audio, #writeup-page .wu-media.is-missing video { display: none; }
+  #writeup-page .wu-media.is-missing figcaption span { display: inline; }
+  #writeup-page .wu-missing, #writeup-page .wu-file { font-size: 12.5px; color: var(--ink-soft, #6b7a80); font-style: italic; }
   #writeup-page .wu-entry h2 { font-family: var(--display-font, var(--body-font));
     font-size: 1.05em; margin: 0 0 6px; color: var(--accent, #1d5a78); }
   #writeup-page p { margin: 0 0 10px; }
@@ -1776,6 +1854,7 @@ __SCRIPTS__
 	return {
 		inlined,
 		carried,
+		noteMedia: input.noteMedia ?? new Map(),
 		html: html
 			.replace('<div id="stage" class="atl-stage"></div>', `<div id="stage" class="atl-stage">${stageHtml}</div>`)
 			.replace("__PRINT__", printHtml)
@@ -1881,12 +1960,14 @@ function escapeHtml(text: string): string {
  * embed — would be a surprise in a page that is meant to read like minutes, and
  * is left as the characters that were typed.
  */
-function remarkHtml(text: string): string {
+function remarkHtml(text: string, media: Map<string, string> = new Map()): string {
 	const out: string[] = [];
 	let list: string[] = [];
 
+	const embed = (link: string) => media.get(link.trim()) ?? `<p class="wu-missing">${escapeHtml(link)}</p>`;
 	const inline = (line: string) =>
 		escapeHtml(line)
+			.replace(EMBED, (_m, link: string) => embed(link.replace(/&amp;/g, "&")))
 			.replace(/`([^`]+)`/g, "<code>$1</code>")
 			.replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>")
 			.replace(/(^|[^*])\*([^*]+)\*/g, "$1<em>$2</em>");
@@ -1901,6 +1982,13 @@ function remarkHtml(text: string): string {
 		const line = raw.trim();
 		if (!line) {
 			closeList();
+			continue;
+		}
+		// A sketch or a recording on a line of its own: the thing, not its path.
+		const alone = line.match(/^!\[\[([^\]|#]+)(?:#[^\]|]*)?(?:\|[^\]]*)?\]\]$/);
+		if (alone) {
+			closeList();
+			out.push(embed(alone[1]));
 			continue;
 		}
 		const bullet = line.match(/^[-*+]\s+(.*)$/);
@@ -1935,7 +2023,7 @@ function writeupBody(input: ExportInput): string {
 			(n) =>
 				`<section class="wu-entry">
 	<h2>${escapeHtml(n.title)}</h2>
-	${remarkHtml(n.text)}
+	${remarkHtml(n.text, input.noteMedia)}
 </section>`
 		)
 		.join(BREAK);
@@ -1986,6 +2074,16 @@ ${tokens}
   }
   .wu-page .when { color: var(--ink-soft, #4e5f66); font-size: 0.9em; }
   .wu-entry { margin: 0 0 30px; }
+  .wu-pic, .wu-media { margin: 6px 0 14px; }
+  .wu-pic img { display: block; max-width: 100%; max-height: 420px; border-radius: 8px;
+    border: 1px solid var(--rule, #d7dbd7); background: #fff; }
+  .wu-media audio { width: min(100%, 420px); display: block; }
+  .wu-media video { max-width: 100%; max-height: 420px; border-radius: 8px; display: block; }
+  .wu-media figcaption { font-size: 12px; color: var(--ink-soft, #6b7a80); margin-top: 3px; }
+  .wu-media figcaption span { display: none; }
+  .wu-media.is-missing audio, .wu-media.is-missing video { display: none; }
+  .wu-media.is-missing figcaption span { display: inline; }
+  .wu-missing, .wu-file { font-size: 12.5px; color: var(--ink-soft, #6b7a80); font-style: italic; }
   .wu-entry h2 {
     font-family: var(--display-font, var(--body-font));
     font-size: 1.06em;
@@ -2028,7 +2126,8 @@ ${writeupBody(input)}
 }
 
 export async function exportDeck(app: App, input: ExportInput): Promise<string | null> {
-	const { html: out, inlined, carried } = await buildDeckHtml(app, input);
+	const { html: out, inlined, carried, noteMedia } = await buildDeckHtml(app, input);
+	input = { ...input, noteMedia };
 	const name = `${safeFileName(input.title)} — deck`;
 	const parent = input.exportFolder.trim().replace(/^\/+|\/+$/g, "");
 	const folder = normalizePath(parent ? `${parent}/${name}` : name);
