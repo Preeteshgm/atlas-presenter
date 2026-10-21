@@ -88,7 +88,7 @@ starts at the beginning.
 | `P` | Open the presenter panel — notes, the clock, what is next, and a box to write a remark in |
 | `Enter` | Dive into the sub-deck on this card |
 | `E` | Export the deck to one standalone HTML file |
-| `Ctrl+P` | Save the deck as a PDF, one card to a page, beside its export (desktop) |
+| `Ctrl+P` | Save the deck as a PDF, one card to a page, beside its export (desktop). Also: right-click a canvas → Save this canvas as PDF |
 | `F` | Fullscreen |
 | `Z` | Freeze the card on screen, so you can use what is in it: clicks are the card's and the arrows only scroll it. A snowflake under the note dot, top right, shows it; `Z`, `Esc` or clicking the mark lets go, and so does going to another card. Works in the exported HTML too, with a Freeze button on a phone |
 | `D` | Draw on the card — a full freeze, so a click is ink. Icons only, names on hover: pen `P`, highlighter `H`, arrow `A`, box `R`, ellipse `O`, text `T`, eraser `E`; six colours `1`–`6` (red and blue first) and any other from +; three sizes; `Shift` keeps an arrow at 45° and a box square; `Ctrl`+`Z` / `Ctrl`+`Shift`+`Z` undo and redo. `D`, `Esc` or ✓ keeps it: a picture of the card with the ink goes into `Meetings/Sketches` and into the card's note, and a pen mark shows beside the card. In the exported HTML the ink is for the room only, and finishing clears it |

@@ -1,6 +1,7 @@
 import { ItemView, Notice, Plugin, TFile } from "obsidian";
 import { AtlasSettings, DEFAULT_SETTINGS } from "./types";
 import { ICON_ID, registerIcons } from "./icons";
+import { canPrintPdf } from "./present/pdf";
 import { Presentation } from "./present/presentation";
 import { parseCanvas } from "./canvas/parse";
 import { variantsIn } from "./canvas/path";
@@ -186,6 +187,16 @@ export default class AtlasPlugin extends Plugin {
 						.setIcon(ICON_ID)
 						.onClick(() => void this.exportCanvas(file))
 				);
+				// The same pages the exported file prints, without presenting
+				// first. Desktop only: it needs a window nobody sees.
+				if (canPrintPdf()) {
+					menu.addItem((item) =>
+						item
+							.setTitle("Save this canvas as PDF")
+							.setIcon("printer")
+							.onClick(() => void this.exportCanvas(file, "pdf"))
+					);
+				}
 			})
 		);
 
